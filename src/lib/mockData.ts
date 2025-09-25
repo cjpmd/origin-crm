@@ -1,5 +1,7 @@
 import { Contact, Deal, Fund, Investor, PortfolioCompany, InvestorCommitment, PortfolioKPI, Task, Note, Document } from '@/types';
 
+export type { Task } from '@/types';
+
 // Mock data for development
 export const mockContacts: Contact[] = [
   {
