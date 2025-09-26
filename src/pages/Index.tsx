@@ -1,86 +1,59 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Users, DollarSign, Target } from 'lucide-react';
-import { mockDeals, mockContacts, mockPortfolioCompanies } from '@/lib/mockData';
+import { Button } from '@/components/ui/button';
+import { Plus, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { mockDeals, mockContacts, mockTasks } from '@/lib/mockData';
+import { DashboardCards } from '@/components/Dashboard/DashboardCards';
+import { FundMetrics } from '@/components/Analytics/FundMetrics';
 
 const Index = () => {
-  const totalDeals = mockDeals.length;
-  const activePipeline = mockDeals.filter(d => d.stage !== 'exit').length;
-  const totalContacts = mockContacts.length;
-  const portfolioCompanies = mockPortfolioCompanies.length;
+  const recentTasks = mockTasks.filter(task => task.status !== 'done').slice(0, 3);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to your Private Equity CRM. Here's an overview of your deal flow and portfolio.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome to your Private Equity CRM. Here's an overview of your deal flow and portfolio.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link to="/pipeline">
+              <Plus className="h-4 w-4 mr-2" />
+              New Deal
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to="/contacts">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Contact
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Active Pipeline
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activePipeline}</div>
-            <p className="text-xs text-muted-foreground">deals in progress</p>
-          </CardContent>
-        </Card>
+      <DashboardCards />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Network
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalContacts}</div>
-            <p className="text-xs text-muted-foreground">contacts managed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Portfolio
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{portfolioCompanies}</div>
-            <p className="text-xs text-muted-foreground">companies invested</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Total Deals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalDeals}</div>
-            <p className="text-xs text-muted-foreground">all time</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Fund Performance */}
+      <FundMetrics />
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Recent Deals</CardTitle>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/pipeline">
+                View All <ArrowRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mockDeals.slice(0, 3).map((deal) => (
+            {mockDeals.slice(0, 4).map((deal) => (
               <div key={deal.id} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{deal.name}</p>
@@ -93,11 +66,16 @@ const Index = () => {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Key Contacts</CardTitle>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/contacts">
+                View All <ArrowRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mockContacts.slice(0, 3).map((contact) => (
+            {mockContacts.slice(0, 4).map((contact) => (
               <div key={contact.id} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{contact.first_name} {contact.last_name}</p>
@@ -107,6 +85,32 @@ const Index = () => {
                   <div className="text-sm font-medium">{contact.relationship_strength}/100</div>
                   <div className="text-xs text-muted-foreground">strength</div>
                 </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Pending Tasks</CardTitle>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/reports">
+                View All <ArrowRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {recentTasks.map((task) => (
+              <div key={task.id} className="flex items-start gap-3">
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{task.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
+                  </p>
+                </div>
+                <Badge variant={task.status === 'open' ? 'destructive' : 'secondary'} className="text-xs">
+                  {task.status}
+                </Badge>
               </div>
             ))}
           </CardContent>

@@ -1,12 +1,23 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Building2, Search, Plus, MapPin, Calendar, TrendingUp } from 'lucide-react';
 import { mockPortfolioCompanies, mockKPIs } from '@/lib/mockData';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Companies() {
+  const [companies, setCompanies] = useState(mockPortfolioCompanies);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sectorFilter, setSectorFilter] = useState('all');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -28,6 +39,28 @@ export default function Companies() {
     return (Math.random() * 40 - 10).toFixed(1);
   };
 
+  const filteredCompanies = companies.filter(company => {
+    const matchesSearch = company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         company.sector?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSector = sectorFilter === 'all' || company.sector === sectorFilter;
+    return matchesSearch && matchesSector;
+  });
+
+  const sectors = [...new Set(companies.map(c => c.sector))];
+
+  const handleCreateCompany = () => {
+    toast({ title: "Company added", description: "New portfolio company has been added successfully" });
+    setIsDialogOpen(false);
+  };
+
+  const handleViewCompany = (companyId: string) => {
+    toast({ title: "Company details", description: "Company profile view will be implemented" });
+  };
+
+  const handleEditCompany = (companyId: string) => {
+    toast({ title: "Edit company", description: "Company editing functionality will be implemented" });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -38,26 +71,91 @@ export default function Companies() {
             Portfolio companies and investment tracking
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Company
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Company
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Portfolio Company</DialogTitle>
+              <DialogDescription>
+                Add a new company to your portfolio
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="company-name">Company Name</Label>
+                <Input id="company-name" placeholder="TechCorp Ltd" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="sector">Sector</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select sector" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Technology">Technology</SelectItem>
+                      <SelectItem value="Healthcare">Healthcare</SelectItem>
+                      <SelectItem value="FinTech">FinTech</SelectItem>
+                      <SelectItem value="Consumer">Consumer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="geography">Geography</Label>
+                  <Input id="geography" placeholder="London, UK" />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="investment-date">Investment Date</Label>
+                <Input id="investment-date" type="date" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" placeholder="Brief company description" />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateCompany}>
+                Add Company
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Search and filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search companies..."
-                className="pl-9"
-              />
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search companies..."
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Select value={sectorFilter} onValueChange={setSectorFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="All Sectors" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sectors</SelectItem>
+                  {sectors.map(sector => (
+                    <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Button variant="outline">Filter by Sector</Button>
-            <Button variant="outline">Filter by Geography</Button>
-          </div>
         </CardContent>
       </Card>
 
@@ -146,7 +244,7 @@ export default function Companies() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockPortfolioCompanies.map((company) => {
+              {filteredCompanies.map((company) => {
                 const kpi = getKPIForCompany(company.id);
                 const growthRate = parseFloat(getGrowthRate());
                 const isPositiveGrowth = growthRate > 0;
@@ -196,10 +294,18 @@ export default function Companies() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewCompany(company.id)}
+                        >
                           View
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditCompany(company.id)}
+                        >
                           Edit
                         </Button>
                       </div>

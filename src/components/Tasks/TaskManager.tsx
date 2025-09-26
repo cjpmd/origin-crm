@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import { CheckSquare, Clock, AlertCircle, Plus, Calendar, User } from 'lucide-react';
 import { mockTasks, Task } from '@/lib/mockData';
+import { useToast } from '@/hooks/use-toast';
 
 const statusConfig = {
   open: { label: 'Open', color: 'bg-blue-500', icon: Clock },
@@ -17,9 +18,10 @@ const statusConfig = {
 };
 
 export function TaskManager() {
-  const [tasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [selectedStatus, setSelectedStatus] = useState<'all' | Task['status']>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const filteredTasks = selectedStatus === 'all' 
     ? tasks 
@@ -40,6 +42,22 @@ export function TaskManager() {
 
   const isOverdue = (dueDate: string) => {
     return new Date(dueDate) < new Date();
+  };
+
+  const handleCreateTask = () => {
+    toast({ title: "Task created", description: "New task has been added successfully" });
+    setIsDialogOpen(false);
+  };
+
+  const handleEditTask = (taskId: string) => {
+    toast({ title: "Edit task", description: "Task editing functionality will be implemented" });
+  };
+
+  const handleMarkDone = (taskId: string) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: 'done' as const } : task
+    ));
+    toast({ title: "Task completed", description: "Task has been marked as done" });
   };
 
   return (
@@ -98,7 +116,7 @@ export function TaskManager() {
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => setIsDialogOpen(false)}>
+              <Button onClick={handleCreateTask}>
                 Create Task
               </Button>
             </div>
@@ -186,11 +204,19 @@ export function TaskManager() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleEditTask(task.id)}
+                    >
                       Edit
                     </Button>
                     {task.status !== 'done' && (
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleMarkDone(task.id)}
+                      >
                         Mark Done
                       </Button>
                     )}

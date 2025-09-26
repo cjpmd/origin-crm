@@ -1,14 +1,23 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, Users, Search, Plus, Building, User, CreditCard } from 'lucide-react';
 import { mockInvestors, mockFunds, mockContacts } from '@/lib/mockData';
 import { FundMetrics } from '@/components/Analytics/FundMetrics';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Investors() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'individual' | 'institution' | 'family_office'>('all');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
   const formatCurrency = (amount: number) => {
     return `£${(amount / 1000000).toFixed(1)}M`;
   };
@@ -41,6 +50,28 @@ export default function Investors() {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const filteredInvestors = mockInvestors.filter(investor => {
+    const contact = getContactForInvestor(investor.contact_id);
+    const matchesSearch = investor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         contact?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         contact?.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === 'all' || investor.type === typeFilter;
+    return matchesSearch && matchesType;
+  });
+
+  const handleCreateInvestor = () => {
+    toast({ title: "Investor added", description: "New investor has been added to your network" });
+    setIsDialogOpen(false);
+  };
+
+  const handleViewInvestor = (investorId: string) => {
+    toast({ title: "Investor details", description: "Investor profile view will be implemented" });
+  };
+
+  const handleEditInvestor = (investorId: string) => {
+    toast({ title: "Edit investor", description: "Investor editing functionality will be implemented" });
   };
 
   return (

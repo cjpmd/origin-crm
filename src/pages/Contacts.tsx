@@ -4,9 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Mail, Phone, Building2, Plus, Search } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Mail, Phone, Building2, Plus, Search, Filter } from 'lucide-react';
 import { mockContacts, relationshipStrengthConfig } from '@/lib/mockData';
 import { Contact } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 const getRelationshipStrength = (score: number) => {
   return relationshipStrengthConfig.find(config => 
@@ -15,14 +18,25 @@ const getRelationshipStrength = (score: number) => {
 };
 
 export default function Contacts() {
-  const [contacts] = useState<Contact[]>(mockContacts);
+  const [contacts, setContacts] = useState<Contact[]>(mockContacts);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const filteredContacts = contacts.filter(contact =>
     `${contact.first_name} ${contact.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contact.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contact.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleCreateContact = () => {
+    toast({ title: "Contact created", description: "New contact has been added to your network" });
+    setIsDialogOpen(false);
+  };
+
+  const handleContactClick = (contactId: string) => {
+    toast({ title: "Contact details", description: "Contact profile functionality will be implemented" });
+  };
 
   return (
     <div className="space-y-6">
@@ -33,10 +47,62 @@ export default function Contacts() {
             Manage your network and relationship intelligence
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Contact
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Contact
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Contact</DialogTitle>
+              <DialogDescription>
+                Add a new contact to your relationship network
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="first-name">First Name</Label>
+                  <Input id="first-name" placeholder="John" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="last-name">Last Name</Label>
+                  <Input id="last-name" placeholder="Doe" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="john@example.com" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input id="phone" placeholder="+44 20 1234 5678" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="company">Company</Label>
+                  <Input id="company" placeholder="Company name" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="title">Job Title</Label>
+                  <Input id="title" placeholder="CEO, Partner, etc." />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateContact}>
+                Add Contact
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex items-center gap-4">
@@ -56,7 +122,11 @@ export default function Contacts() {
           const strengthConfig = getRelationshipStrength(contact.relationship_strength);
           
           return (
-            <Card key={contact.id} className="cursor-pointer hover:shadow-md transition-shadow">
+            <Card 
+              key={contact.id} 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handleContactClick(contact.id)}
+            >
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -127,6 +197,21 @@ export default function Contacts() {
             </Card>
           );
         })}
+
+        {filteredContacts.length === 0 && (
+          <div className="col-span-full">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground">
+                  {searchTerm 
+                    ? 'No contacts match your search criteria'
+                    : 'No contacts yet. Add your first contact to get started.'
+                  }
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
