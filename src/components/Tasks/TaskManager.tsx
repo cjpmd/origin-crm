@@ -21,6 +21,12 @@ export function TaskManager() {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [selectedStatus, setSelectedStatus] = useState<'all' | Task['status']>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    assignee: ''
+  });
   const { toast } = useToast();
 
   const filteredTasks = selectedStatus === 'all' 
@@ -45,8 +51,23 @@ export function TaskManager() {
   };
 
   const handleCreateTask = () => {
-    toast({ title: "Task created", description: "New task has been added successfully" });
+    if (!formData.title.trim()) return;
+    
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title: formData.title,
+      description: formData.description || null,
+      status: 'open',
+      due_date: formData.dueDate,
+      assigned_to: formData.assignee || '1',
+      created_at: new Date().toISOString(),
+      related_deal: null
+    };
+
+    setTasks(prev => [...prev, newTask]);
+    setFormData({ title: '', description: '', dueDate: '', assignee: '' });
     setIsDialogOpen(false);
+    toast({ title: "Task created", description: `${newTask.title} has been added successfully` });
   };
 
   const handleEditTask = (taskId: string) => {
@@ -87,33 +108,51 @@ export function TaskManager() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="title">Title</Label>
-                <Input id="title" placeholder="Task title" />
+                <Input 
+                  id="title" 
+                  placeholder="Task title" 
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
-                <Textarea id="description" placeholder="Task description" />
+                <Textarea 
+                  id="description" 
+                  placeholder="Task description" 
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="due-date">Due Date</Label>
-                  <Input id="due-date" type="date" />
+                  <Input 
+                    id="due-date" 
+                    type="date" 
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="assignee">Assignee</Label>
-                  <Select>
+                  <Select value={formData.assignee} onValueChange={(value) => setFormData(prev => ({ ...prev, assignee: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select assignee" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">John Doe</SelectItem>
-                      <SelectItem value="2">Jane Smith</SelectItem>
+                      <SelectItem value="1">Sarah Chen</SelectItem>
+                      <SelectItem value="2">Michael Rodriguez</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button variant="outline" onClick={() => {
+                setIsDialogOpen(false);
+                setFormData({ title: '', description: '', dueDate: '', assignee: '' });
+              }}>
                 Cancel
               </Button>
               <Button onClick={handleCreateTask}>
