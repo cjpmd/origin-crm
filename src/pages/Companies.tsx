@@ -8,15 +8,20 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Building2, Search, Plus, MapPin, Calendar, TrendingUp } from 'lucide-react';
+import { Building2, Search, Plus, MapPin, Calendar, TrendingUp, Eye, Edit } from 'lucide-react';
 import { mockPortfolioCompanies, mockKPIs } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
+import type { PortfolioCompany } from '@/types';
 
 export default function Companies() {
   const [companies, setCompanies] = useState(mockPortfolioCompanies);
   const [searchTerm, setSearchTerm] = useState('');
   const [sectorFilter, setSectorFilter] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<PortfolioCompany | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<PortfolioCompany>>({});
   const { toast } = useToast();
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -54,11 +59,39 @@ export default function Companies() {
   };
 
   const handleViewCompany = (companyId: string) => {
-    toast({ title: "Company details", description: "Company profile view will be implemented" });
+    const company = companies.find(c => c.id === companyId);
+    if (company) {
+      setSelectedCompany(company);
+      setIsViewDialogOpen(true);
+    }
   };
 
   const handleEditCompany = (companyId: string) => {
-    toast({ title: "Edit company", description: "Company editing functionality will be implemented" });
+    const company = companies.find(c => c.id === companyId);
+    if (company) {
+      setSelectedCompany(company);
+      setEditFormData({
+        name: company.name,
+        sector: company.sector,
+        geography: company.geography,
+        investment_date: company.investment_date
+      });
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleUpdateCompany = () => {
+    if (selectedCompany) {
+      setCompanies(companies.map(c => 
+        c.id === selectedCompany.id 
+          ? { ...c, ...editFormData }
+          : c
+      ));
+      toast({ title: "Company updated", description: "Company details have been updated successfully" });
+      setIsEditDialogOpen(false);
+      setSelectedCompany(null);
+      setEditFormData({});
+    }
   };
 
   return (
@@ -130,6 +163,146 @@ export default function Companies() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* View Company Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Company Details
+            </DialogTitle>
+            <DialogDescription>
+              Viewing details for {selectedCompany?.name}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedCompany && (
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Company Name</Label>
+                  <p className="text-lg font-semibold">{selectedCompany.name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Sector</Label>
+                  <div className="mt-1">
+                    <Badge variant="outline">{selectedCompany.sector || 'N/A'}</Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Geography</Label>
+                  <p className="flex items-center gap-1 mt-1">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    {selectedCompany.geography || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Investment Date</Label>
+                  <p className="flex items-center gap-1 mt-1">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {selectedCompany.investment_date ? formatDate(selectedCompany.investment_date) : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              {(() => {
+                const kpi = getKPIForCompany(selectedCompany.id);
+                return kpi && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Key Performance Indicators</Label>
+                    <div className="grid grid-cols-3 gap-4 mt-2 p-4 bg-muted/50 rounded-lg">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.revenue || 0)}</p>
+                        <p className="text-sm text-muted-foreground">Revenue</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.ebitda || 0)}</p>
+                        <p className="text-sm text-muted-foreground">EBITDA</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-primary">{kpi.headcount || 0}</p>
+                        <p className="text-sm text-muted-foreground">Headcount</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Company Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Edit Company
+            </DialogTitle>
+            <DialogDescription>
+              Update details for {selectedCompany?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-company-name">Company Name</Label>
+              <Input 
+                id="edit-company-name" 
+                value={editFormData.name || ''}
+                onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-sector">Sector</Label>
+                <Select value={editFormData.sector || ''} onValueChange={(value) => setEditFormData({...editFormData, sector: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select sector" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Healthcare">Healthcare</SelectItem>
+                    <SelectItem value="FinTech">FinTech</SelectItem>
+                    <SelectItem value="Consumer">Consumer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-geography">Geography</Label>
+                <Input 
+                  id="edit-geography" 
+                  value={editFormData.geography || ''}
+                  onChange={(e) => setEditFormData({...editFormData, geography: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-investment-date">Investment Date</Label>
+              <Input 
+                id="edit-investment-date" 
+                type="date" 
+                value={editFormData.investment_date || ''}
+                onChange={(e) => setEditFormData({...editFormData, investment_date: e.target.value})}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateCompany}>
+              Update Company
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Search and filters */}
       <Card>
@@ -298,14 +471,18 @@ export default function Companies() {
                           variant="ghost" 
                           size="sm"
                           onClick={() => handleViewCompany(company.id)}
+                          className="gap-1"
                         >
+                          <Eye className="h-4 w-4" />
                           View
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleEditCompany(company.id)}
+                          className="gap-1"
                         >
+                          <Edit className="h-4 w-4" />
                           Edit
                         </Button>
                       </div>
