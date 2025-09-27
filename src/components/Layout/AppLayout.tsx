@@ -12,6 +12,7 @@ import {
   SidebarInset
 } from '@/components/ui/sidebar';
 import { 
+  Home,
   GitBranch,
   Users,
   Building2,
@@ -25,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 const navigation = [
+  { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Pipeline', href: '/pipeline', icon: GitBranch },
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Companies', href: '/companies', icon: Building2 },
