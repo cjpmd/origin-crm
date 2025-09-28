@@ -1,4 +1,4 @@
-import { Contact, Deal, Fund, Investor, PortfolioCompany, InvestorCommitment, PortfolioKPI, Task, Note, Document } from '@/types';
+import { Contact, Deal, Fund, Investor, PortfolioCompany, InvestorCommitment, PortfolioKPI, Task, Note, Document, ESGRating, ESGHistory, SectorBenchmark, ESGAlert } from '@/types';
 
 export type { Task } from '@/types';
 
@@ -202,3 +202,117 @@ export const relationshipStrengthConfig = [
   { min: 34, max: 66, label: 'Medium', color: 'text-yellow-600' },
   { min: 67, max: 100, label: 'Strong', color: 'text-green-600' }
 ];
+
+// ESG Mock Data
+export const mockESGRatings: ESGRating[] = [
+  {
+    id: '1',
+    company_id: '1', // DataFlow Analytics
+    provider: 'CSRHub',
+    overall_score: 78,
+    e_score: 82,
+    s_score: 75,
+    g_score: 77,
+    climate_score: 85,
+    supply_chain_score: 70,
+    human_rights_score: 78,
+    governance_transparency: 80,
+    last_updated: '2024-01-01T00:00:00Z',
+    created_at: '2023-03-15T00:00:00Z'
+  },
+  {
+    id: '2',
+    company_id: '2', // CloudSecure Pro
+    provider: 'CSRHub',
+    overall_score: 65,
+    e_score: 60,
+    s_score: 68,
+    g_score: 67,
+    climate_score: 58,
+    supply_chain_score: 72,
+    human_rights_score: 65,
+    governance_transparency: 70,
+    last_updated: '2024-01-01T00:00:00Z',
+    created_at: '2023-06-20T00:00:00Z'
+  }
+];
+
+export const mockESGHistory: ESGHistory[] = [
+  {
+    id: '1',
+    esg_rating_id: '1',
+    date: '2023-12-01',
+    overall_score: 75,
+    e_score: 78,
+    s_score: 72,
+    g_score: 75,
+    created_at: '2023-12-01T00:00:00Z'
+  },
+  {
+    id: '2',
+    esg_rating_id: '1',
+    date: '2024-01-01',
+    overall_score: 78,
+    e_score: 82,
+    s_score: 75,
+    g_score: 77,
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '3',
+    esg_rating_id: '2',
+    date: '2023-12-01',
+    overall_score: 62,
+    e_score: 58,
+    s_score: 65,
+    g_score: 64,
+    created_at: '2023-12-01T00:00:00Z'
+  },
+  {
+    id: '4',
+    esg_rating_id: '2',
+    date: '2024-01-01',
+    overall_score: 65,
+    e_score: 60,
+    s_score: 68,
+    g_score: 67,
+    created_at: '2024-01-01T00:00:00Z'
+  }
+];
+
+export const mockSectorBenchmarks: SectorBenchmark[] = [
+  {
+    id: '1',
+    sector: 'SaaS',
+    geography: 'North America',
+    provider: 'CSRHub',
+    average_overall: 72,
+    median_overall: 75,
+    percentile_75: 82,
+    percentile_25: 65,
+    last_updated: '2024-01-01T00:00:00Z',
+    created_at: '2023-01-01T00:00:00Z'
+  },
+  {
+    id: '2',
+    sector: 'Cybersecurity',
+    geography: 'Europe',
+    provider: 'CSRHub',
+    average_overall: 68,
+    median_overall: 70,
+    percentile_75: 78,
+    percentile_25: 62,
+    last_updated: '2024-01-01T00:00:00Z',
+    created_at: '2023-01-01T00:00:00Z'
+  }
+];
+
+export const esgRiskLevels = [
+  { value: 'low' as const, label: 'Low Risk', color: 'text-esg-low', range: { min: 75, max: 100 } },
+  { value: 'medium' as const, label: 'Medium Risk', color: 'text-esg-medium', range: { min: 50, max: 74 } },
+  { value: 'high' as const, label: 'High Risk', color: 'text-esg-high', range: { min: 0, max: 49 } }
+];
+
+export const getESGRiskLevel = (score: number) => {
+  return esgRiskLevels.find(level => score >= level.range.min && score <= level.range.max) || esgRiskLevels[1];
+};

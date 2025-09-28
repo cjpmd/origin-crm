@@ -135,6 +135,58 @@ export interface Document {
   created_at: string;
 }
 
+// ESG Types
+export interface ESGRating {
+  id: string;
+  company_id: string;
+  provider: string;
+  overall_score: number; // 0-100
+  e_score: number; // Environment
+  s_score: number; // Social
+  g_score: number; // Governance
+  climate_score?: number;
+  supply_chain_score?: number;
+  human_rights_score?: number;
+  governance_transparency?: number;
+  last_updated: string;
+  created_at: string;
+}
+
+export interface ESGHistory {
+  id: string;
+  esg_rating_id: string;
+  date: string;
+  overall_score: number;
+  e_score: number;
+  s_score: number;
+  g_score: number;
+  created_at: string;
+}
+
+export interface SectorBenchmark {
+  id: string;
+  sector: string;
+  geography: string;
+  provider: string;
+  average_overall: number;
+  median_overall: number;
+  percentile_75: number;
+  percentile_25: number;
+  last_updated: string;
+  created_at: string;
+}
+
+export interface ESGAlert {
+  id: string;
+  profile_id: string;
+  company_id: string;
+  provider: string;
+  threshold_change: number;
+  last_notified?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 // UI Helper Types
 export interface DealStageConfig {
   value: Deal['stage'];
@@ -147,4 +199,11 @@ export interface RelationshipStrengthConfig {
   max: number;
   label: string;
   color: string;
+}
+
+export interface ESGRiskLevel {
+  value: 'low' | 'medium' | 'high';
+  label: string;
+  color: string;
+  range: { min: number; max: number };
 }

@@ -10,6 +10,7 @@ import Contacts from "./pages/Contacts";
 import Portfolio from "./pages/Portfolio";
 import Companies from "./pages/Companies";
 import Investors from "./pages/Investors";
+import ESGAnalytics from "./pages/ESGAnalytics";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="companies" element={<Companies />} />
             <Route path="investors" element={<Investors />} />
             <Route path="portfolio" element={<Portfolio />} />
+            <Route path="esg-analytics" element={<ESGAnalytics />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
           </Route>

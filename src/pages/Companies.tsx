@@ -9,9 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Building2, Search, Plus, MapPin, Calendar, TrendingUp, Eye, Edit } from 'lucide-react';
-import { mockPortfolioCompanies, mockKPIs } from '@/lib/mockData';
+import { mockPortfolioCompanies, mockKPIs, mockESGRatings, mockESGHistory, mockSectorBenchmarks, getESGRiskLevel } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
 import type { PortfolioCompany } from '@/types';
+import { ESGRatingCard } from "@/components/ESG/ESGRatingCard";
+import { ESGHistoryChart } from "@/components/ESG/ESGHistoryChart";
+import { SectorBenchmarkChart } from "@/components/ESG/SectorBenchmarkChart";
 
 export default function Companies() {
   const [companies, setCompanies] = useState(mockPortfolioCompanies);
@@ -166,19 +169,20 @@ export default function Companies() {
 
       {/* View Company Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="h-5 w-5" />
               Company Details
             </DialogTitle>
             <DialogDescription>
-              Viewing details for {selectedCompany?.name}
+              Comprehensive view of {selectedCompany?.name}
             </DialogDescription>
           </DialogHeader>
           {selectedCompany && (
-            <div className="grid gap-6 py-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
+              {/* Basic Company Info */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Company Name</Label>
                   <p className="text-lg font-semibold">{selectedCompany.name}</p>
@@ -189,8 +193,6 @@ export default function Companies() {
                     <Badge variant="outline">{selectedCompany.sector || 'N/A'}</Badge>
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Geography</Label>
                   <p className="flex items-center gap-1 mt-1">
@@ -205,7 +207,17 @@ export default function Companies() {
                     {selectedCompany.investment_date ? formatDate(selectedCompany.investment_date) : 'N/A'}
                   </p>
                 </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Fund</Label>
+                  <p>{selectedCompany.fund_id || 'N/A'}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Exit Date</Label>
+                  <p>{selectedCompany.exit_date ? formatDate(selectedCompany.exit_date) : 'Active'}</p>
+                </div>
               </div>
+
+              {/* KPI Section */}
               {(() => {
                 const kpi = getKPIForCompany(selectedCompany.id);
                 return kpi && (
@@ -225,6 +237,38 @@ export default function Companies() {
                         <p className="text-sm text-muted-foreground">Headcount</p>
                       </div>
                     </div>
+                  </div>
+                );
+              })()}
+
+              {/* ESG Section */}
+              {(() => {
+                const esgRating = mockESGRatings.find(r => r.company_id === selectedCompany.id);
+                const esgHistory = mockESGHistory.filter(h => h.esg_rating_id === esgRating?.id);
+                const sectorBenchmark = mockSectorBenchmarks.find(b => 
+                  b.sector === selectedCompany.sector && 
+                  b.geography === selectedCompany.geography
+                );
+
+                return esgRating ? (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">ESG Analysis</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <ESGRatingCard rating={esgRating} />
+                      {esgHistory.length > 0 && (
+                        <ESGHistoryChart history={esgHistory} />
+                      )}
+                      {sectorBenchmark && (
+                        <SectorBenchmarkChart 
+                          benchmark={sectorBenchmark} 
+                          companyRating={esgRating} 
+                        />
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 border border-dashed rounded-lg">
+                    <p className="text-muted-foreground">No ESG data available for this company</p>
                   </div>
                 );
               })()}
@@ -408,6 +452,7 @@ export default function Companies() {
                 <TableHead>Company</TableHead>
                 <TableHead>Sector</TableHead>
                 <TableHead>Geography</TableHead>
+                <TableHead>ESG Score</TableHead>
                 <TableHead>Investment Date</TableHead>
                 <TableHead>Revenue</TableHead>
                 <TableHead>EBITDA</TableHead>
@@ -421,6 +466,8 @@ export default function Companies() {
                 const kpi = getKPIForCompany(company.id);
                 const growthRate = parseFloat(getGrowthRate());
                 const isPositiveGrowth = growthRate > 0;
+                const esgRating = mockESGRatings.find(r => r.company_id === company.id);
+                const riskLevel = esgRating ? getESGRiskLevel(esgRating.overall_score) : null;
                 
                 return (
                   <TableRow key={company.id} className="hover:bg-muted/50">
@@ -438,6 +485,18 @@ export default function Companies() {
                         <MapPin className="h-3 w-3" />
                         {company.geography}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {esgRating ? (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{esgRating.overall_score}</span>
+                          <Badge variant="outline" className={`${riskLevel?.color} border-current text-xs`}>
+                            {riskLevel?.label.split(' ')[0]}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">N/A</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm">

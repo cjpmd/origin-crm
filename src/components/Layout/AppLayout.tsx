@@ -19,7 +19,8 @@ import {
   TrendingUp,
   BarChart3,
   Settings,
-  Search
+  Search,
+  Leaf
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,7 @@ const navigation = [
   { name: 'Companies', href: '/companies', icon: Building2 },
   { name: 'Investors', href: '/investors', icon: TrendingUp },
   { name: 'Portfolio', href: '/portfolio', icon: BarChart3 },
+  { name: 'ESG Analytics', href: '/esg-analytics', icon: Leaf },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings }
 ];

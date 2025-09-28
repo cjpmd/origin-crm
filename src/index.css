@@ -55,6 +55,14 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 210 22% 15%;
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 200 100% 36%;
+
+    /* ESG Risk Colors */
+    --esg-low: 134 61% 41%; /* Green */
+    --esg-medium: 45 93% 47%; /* Orange/Yellow */
+    --esg-high: 0 84% 60%; /* Red */
+    --esg-low-bg: 134 61% 95%;
+    --esg-medium-bg: 45 93% 95%;
+    --esg-high-bg: 0 84% 95%;
   }
 
   .dark {
@@ -98,6 +106,14 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 210 40% 18%;
     --sidebar-ring: 178 100% 39%;
+
+    /* ESG Risk Colors */
+    --esg-low: 134 61% 41%; /* Green */
+    --esg-medium: 45 93% 47%; /* Orange/Yellow */
+    --esg-high: 0 84% 60%; /* Red */
+    --esg-low-bg: 134 61% 95%;
+    --esg-medium-bg: 45 93% 95%;
+    --esg-high-bg: 0 84% 95%;
   }
 }
 

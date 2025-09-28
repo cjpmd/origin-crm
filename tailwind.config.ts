@@ -57,6 +57,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // ESG Risk Colors
+        "esg-low": "hsl(var(--esg-low))",
+        "esg-medium": "hsl(var(--esg-medium))",  
+        "esg-high": "hsl(var(--esg-high))",
+        "esg-low-bg": "hsl(var(--esg-low-bg))",
+        "esg-medium-bg": "hsl(var(--esg-medium-bg))",
+        "esg-high-bg": "hsl(var(--esg-high-bg))",
       },
       borderRadius: {
         lg: "var(--radius)",
