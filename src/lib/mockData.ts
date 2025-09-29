@@ -1,4 +1,4 @@
-import { Contact, Deal, Fund, Investor, PortfolioCompany, InvestorCommitment, PortfolioKPI, Task, Note, Document, ESGRating, ESGHistory, SectorBenchmark, ESGAlert } from '@/types';
+import { Contact, Deal, Fund, Investor, PortfolioCompany, InvestorCommitment, PortfolioKPI, Task, Note, Document, ESGRating, ESGHistory, SectorBenchmark, ESGAlert, Sector, SectorFinancialBenchmark, SectorScenario } from '@/types';
 
 export type { Task } from '@/types';
 
@@ -315,4 +315,194 @@ export const esgRiskLevels = [
 
 export const getESGRiskLevel = (score: number) => {
   return esgRiskLevels.find(level => score >= level.range.min && score <= level.range.max) || esgRiskLevels[1];
+};
+
+// Sectoral Analysis Mock Data
+export const mockSectors: Sector[] = [
+  {
+    id: '1',
+    name: 'Technology',
+    description: 'Software, hardware, and technology services companies',
+    key_trends: ['AI/ML adoption', 'Cloud migration', 'Cybersecurity growth'],
+    top_players: ['Microsoft', 'Apple', 'Google'],
+    market_size: 5200000000000,
+    cagr: 8.2,
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '2',
+    name: 'SaaS',
+    parent_id: '1',
+    description: 'Software-as-a-Service platforms and applications',
+    key_trends: ['Vertical SaaS growth', 'AI integration', 'Usage-based pricing'],
+    top_players: ['Salesforce', 'ServiceNow', 'Workday'],
+    market_size: 195000000000,
+    cagr: 18.7,
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '3',
+    name: 'Cybersecurity',
+    parent_id: '1',
+    description: 'Information security and cyber defense solutions',
+    key_trends: ['Zero Trust architecture', 'Cloud security', 'AI-powered threats'],
+    top_players: ['CrowdStrike', 'Palo Alto Networks', 'Fortinet'],
+    market_size: 156000000000,
+    cagr: 12.5,
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '4',
+    name: 'FinTech',
+    parent_id: '1',
+    description: 'Financial technology and digital payment solutions',
+    key_trends: ['DeFi growth', 'Embedded finance', 'RegTech expansion'],
+    top_players: ['Square', 'Stripe', 'PayPal'],
+    market_size: 110000000000,
+    cagr: 20.3,
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '5',
+    name: 'Healthcare',
+    description: 'Healthcare services, medical devices, and biotechnology',
+    key_trends: ['Telemedicine adoption', 'AI diagnostics', 'Personalized medicine'],
+    top_players: ['Johnson & Johnson', 'Pfizer', 'UnitedHealth'],
+    market_size: 4500000000000,
+    cagr: 5.8,
+    created_at: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '6',
+    name: 'CleanTech',
+    description: 'Clean technology and renewable energy solutions',
+    key_trends: ['Solar cost reduction', 'Battery technology', 'Green hydrogen'],
+    top_players: ['Tesla', 'First Solar', 'Vestas'],
+    market_size: 85000000000,
+    cagr: 15.1,
+    created_at: '2024-01-01T00:00:00Z'
+  }
+];
+
+export const mockSectorFinancialBenchmarks: SectorFinancialBenchmark[] = [
+  {
+    id: '1',
+    sector_id: '2', // SaaS
+    period: '2024-01-01',
+    avg_revenue_growth: 25.5,
+    avg_ebitda_margin: 18.2,
+    avg_valuation_multiple: 8.5,
+    median_revenue_growth: 22.0,
+    median_ebitda_margin: 15.5,
+    median_valuation_multiple: 7.2,
+    percentile_75_revenue_growth: 35.0,
+    percentile_25_revenue_growth: 12.0,
+    percentile_75_ebitda_margin: 25.0,
+    percentile_25_ebitda_margin: 8.0,
+    created_at: '2024-01-31T00:00:00Z'
+  },
+  {
+    id: '2',
+    sector_id: '3', // Cybersecurity
+    period: '2024-01-01',
+    avg_revenue_growth: 18.7,
+    avg_ebitda_margin: 22.1,
+    avg_valuation_multiple: 9.2,
+    median_revenue_growth: 16.5,
+    median_ebitda_margin: 20.0,
+    median_valuation_multiple: 8.8,
+    percentile_75_revenue_growth: 28.0,
+    percentile_25_revenue_growth: 8.0,
+    percentile_75_ebitda_margin: 30.0,
+    percentile_25_ebitda_margin: 12.0,
+    created_at: '2024-01-31T00:00:00Z'
+  },
+  {
+    id: '3',
+    sector_id: '4', // FinTech
+    period: '2024-01-01',
+    avg_revenue_growth: 32.1,
+    avg_ebitda_margin: 12.8,
+    avg_valuation_multiple: 6.5,
+    median_revenue_growth: 28.0,
+    median_ebitda_margin: 10.5,
+    median_valuation_multiple: 5.8,
+    percentile_75_revenue_growth: 45.0,
+    percentile_25_revenue_growth: 15.0,
+    percentile_75_ebitda_margin: 18.0,
+    percentile_25_ebitda_margin: 5.0,
+    created_at: '2024-01-31T00:00:00Z'
+  },
+  {
+    id: '4',
+    sector_id: '5', // Healthcare
+    period: '2024-01-01',
+    avg_revenue_growth: 8.2,
+    avg_ebitda_margin: 28.5,
+    avg_valuation_multiple: 12.1,
+    median_revenue_growth: 7.5,
+    median_ebitda_margin: 26.0,
+    median_valuation_multiple: 11.5,
+    percentile_75_revenue_growth: 12.0,
+    percentile_25_revenue_growth: 4.0,
+    percentile_75_ebitda_margin: 35.0,
+    percentile_25_ebitda_margin: 18.0,
+    created_at: '2024-01-31T00:00:00Z'
+  },
+  {
+    id: '5',
+    sector_id: '6', // CleanTech
+    period: '2024-01-01',
+    avg_revenue_growth: 42.8,
+    avg_ebitda_margin: 8.1,
+    avg_valuation_multiple: 4.2,
+    median_revenue_growth: 38.0,
+    median_ebitda_margin: 6.5,
+    median_valuation_multiple: 3.8,
+    percentile_75_revenue_growth: 65.0,
+    percentile_25_revenue_growth: 18.0,
+    percentile_75_ebitda_margin: 15.0,
+    percentile_25_ebitda_margin: -2.0,
+    created_at: '2024-01-31T00:00:00Z'
+  }
+];
+
+export const mockSectorScenarios: SectorScenario[] = [
+  {
+    id: '1',
+    sector_id: '2',
+    name: 'Bull Case - AI Acceleration',
+    assumption_growth: 35.0,
+    assumption_margin: 22.0,
+    assumption_multiple: 12.0,
+    created_by: '1',
+    created_at: '2024-01-15T00:00:00Z'
+  },
+  {
+    id: '2',
+    sector_id: '2',
+    name: 'Bear Case - Market Saturation',
+    assumption_growth: 12.0,
+    assumption_margin: 15.0,
+    assumption_multiple: 6.0,
+    created_by: '1',
+    created_at: '2024-01-15T00:00:00Z'
+  }
+];
+
+// Helper functions for sectoral analysis
+export const getSectorById = (sectorId: string): Sector | undefined => {
+  return mockSectors.find(sector => sector.id === sectorId);
+};
+
+export const getSectorBenchmark = (sectorId: string): SectorFinancialBenchmark | undefined => {
+  return mockSectorFinancialBenchmarks.find(benchmark => benchmark.sector_id === sectorId);
+};
+
+export const getCompaniesInSector = (sectorName: string): PortfolioCompany[] => {
+  return mockPortfolioCompanies.filter(company => company.sector === sectorName);
+};
+
+export const getDealsInSector = (sectorName: string): Deal[] => {
+  return mockDeals.filter(deal => deal.sector === sectorName);
 };

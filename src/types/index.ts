@@ -187,6 +187,47 @@ export interface ESGAlert {
   created_at: string;
 }
 
+// Sectoral Analysis Types
+export interface Sector {
+  id: string;
+  name: string;
+  parent_id?: string;
+  description: string;
+  key_trends?: string[];
+  top_players?: string[];
+  market_size?: number;
+  cagr?: number;
+  created_at: string;
+}
+
+export interface SectorFinancialBenchmark {
+  id: string;
+  sector_id: string;
+  period: string;
+  avg_revenue_growth: number;
+  avg_ebitda_margin: number;
+  avg_valuation_multiple: number;
+  median_revenue_growth: number;
+  median_ebitda_margin: number;
+  median_valuation_multiple: number;
+  percentile_75_revenue_growth: number;
+  percentile_25_revenue_growth: number;
+  percentile_75_ebitda_margin: number;
+  percentile_25_ebitda_margin: number;
+  created_at: string;
+}
+
+export interface SectorScenario {
+  id: string;
+  sector_id: string;
+  name: string;
+  assumption_growth: number;
+  assumption_margin: number;
+  assumption_multiple: number;
+  created_by: string;
+  created_at: string;
+}
+
 // UI Helper Types
 export interface DealStageConfig {
   value: Deal['stage'];

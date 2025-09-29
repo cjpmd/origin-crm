@@ -18,6 +18,7 @@ import {
   Building2,
   TrendingUp,
   BarChart3,
+  TreePine,
   Settings,
   Search,
   Leaf
@@ -34,6 +35,7 @@ const navigation = [
   { name: 'Investors', href: '/investors', icon: TrendingUp },
   { name: 'Portfolio', href: '/portfolio', icon: BarChart3 },
   { name: 'ESG Analytics', href: '/esg-analytics', icon: Leaf },
+  { name: 'Sectoral Analysis', href: '/sectoral-analysis', icon: TreePine },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings }
 ];
