@@ -66,6 +66,26 @@ export function useResearch(companyId?: string, sectorId?: string) {
     enabled: !!(companyId || sectorId),
   });
 
+  // Get all reports for all jobs (not just latest)
+  const allJobIds = jobs.map(j => j.id).filter(Boolean);
+  
+  const { data: allReports = [], isLoading: allReportsLoading } = useQuery({
+    queryKey: ["all_research_reports", allJobIds],
+    queryFn: async () => {
+      if (allJobIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from("research_reports")
+        .select("*")
+        .in("research_job_id", allJobIds)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as ResearchReport[];
+    },
+    enabled: allJobIds.length > 0,
+  });
+
   const { data: reports = [], isLoading: reportsLoading } = useQuery({
     queryKey: ["research_reports", jobs[0]?.id],
     queryFn: async () => {
@@ -131,7 +151,8 @@ export function useResearch(companyId?: string, sectorId?: string) {
     jobs,
     reports,
     evidence,
-    isLoading: jobsLoading || reportsLoading || evidenceLoading,
+    allReports,
+    isLoading: jobsLoading || reportsLoading || evidenceLoading || allReportsLoading,
     latestJob: jobs[0],
     latestReport: reports[0],
     startResearch: startResearch.mutate,
