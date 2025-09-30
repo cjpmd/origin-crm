@@ -45,8 +45,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <ResearchNotifications />
       <BrowserRouter>
+        <ResearchNotifications />
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
