@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -21,11 +22,22 @@ import {
   TreePine,
   Settings,
   Search,
-  Leaf
+  Leaf,
+  LogOut,
+  User
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -42,6 +54,12 @@ const navigation = [
 
 export default function AppLayout() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { user, signOut } = useAuth();
+
+  const getUserInitials = () => {
+    if (!user?.email) return 'U';
+    return user.email.substring(0, 2).toUpperCase();
+  };
 
   return (
     <SidebarProvider>
@@ -105,6 +123,36 @@ export default function AppLayout() {
               <Button size="sm">
                 Add Contact
               </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">My Account</span>
+                      <span className="text-xs text-muted-foreground">{user?.email}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
