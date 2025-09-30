@@ -5,9 +5,19 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, DollarSign, TrendingUp, Building2, Loader2 } from "lucide-react";
-import { useDeals } from "@/hooks/useDeals";
+import { Plus, DollarSign, TrendingUp, Building2, Pencil, Trash2, ArrowUpCircle } from "lucide-react";
+import { useDeals, Deal } from "@/hooks/useDeals";
+import { useSectors } from "@/hooks/useSectors";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EditDealDialog } from "@/components/Pipeline/EditDealDialog";
+import { PromoteDealDialog } from "@/components/Pipeline/PromoteDealDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 
 const dealStageConfig = [
   { id: "Lead", name: "Lead", color: "bg-slate-100 dark:bg-slate-800" },
@@ -36,14 +46,17 @@ const getInitials = (name: string) => {
 };
 
 export default function Pipeline() {
-  const { deals, isLoading, createDeal, updateDeal, deleteDeal } = useDeals();
+  const { deals, isLoading, createDeal, updateDeal, deleteDeal, isUpdating } = useDeals();
+  const { activeSectors, getSectorById } = useSectors();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
+  const [promotingDeal, setPromotingDeal] = useState<Deal | null>(null);
   const [newDeal, setNewDeal] = useState({
     name: "",
     stage: "Lead",
     valuation: "",
     probability: "",
-    sector: "",
+    sector_id: "",
     owner: "",
   });
   const [draggedDealId, setDraggedDealId] = useState<string | null>(null);
@@ -59,7 +72,7 @@ export default function Pipeline() {
       stage: stage || newDeal.stage,
       valuation: Number(newDeal.valuation) || undefined,
       probability: Number(newDeal.probability) || undefined,
-      sector: newDeal.sector || undefined,
+      sector_id: newDeal.sector_id || undefined,
       owner: newDeal.owner || undefined,
     });
 
@@ -68,10 +81,29 @@ export default function Pipeline() {
       stage: "Lead",
       valuation: "",
       probability: "",
-      sector: "",
+      sector_id: "",
       owner: "",
     });
     setIsDialogOpen(false);
+  };
+
+  const handleEditDeal = (deal: Deal) => {
+    setEditingDeal(deal);
+  };
+
+  const handleUpdateDeal = (updates: Partial<Deal>) => {
+    if (!editingDeal) return;
+    updateDeal({
+      id: editingDeal.id,
+      updates,
+    });
+    setEditingDeal(null);
+  };
+
+  const handleDeleteDeal = (dealId: string) => {
+    if (confirm("Are you sure you want to delete this deal?")) {
+      deleteDeal(dealId);
+    }
   };
 
   const handleDragStart = (dealId: string) => {
@@ -168,12 +200,21 @@ export default function Pipeline() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="sector">Sector</Label>
-                <Input 
-                  id="sector" 
-                  placeholder="Technology" 
-                  value={newDeal.sector}
-                  onChange={(e) => setNewDeal(prev => ({ ...prev, sector: e.target.value }))}
-                />
+                <Select
+                  value={newDeal.sector_id}
+                  onValueChange={(value) => setNewDeal(prev => ({ ...prev, sector_id: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select sector" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeSectors.map((sector) => (
+                      <SelectItem key={sector.id} value={sector.id}>
+                        {sector.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="owner">Owner</Label>
@@ -210,56 +251,89 @@ export default function Pipeline() {
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
-                {dealsByStage[stage.id]?.map((deal) => (
-                  <Card
-                    key={deal.id}
-                    draggable
-                    onDragStart={() => handleDragStart(deal.id)}
-                    className={`cursor-move hover:shadow-lg transition-all bg-card border-border hover:border-primary/50 ${
-                      draggedDealId === deal.id ? 'opacity-50' : ''
-                    }`}
-                  >
-                    <CardContent className="p-4 space-y-3">
-                      <div className="space-y-2">
-                        <h3 className="font-semibold text-base leading-tight">{deal.name}</h3>
-                        
-                        <div className="flex items-center gap-3 flex-wrap">
-                          {deal.valuation && (
-                            <div className="flex items-center text-sm font-medium">
-                              <DollarSign className="h-3.5 w-3.5 mr-1 text-primary" />
-                              <span>{formatCurrency(deal.valuation)}</span>
+                {dealsByStage[stage.id]?.map((deal) => {
+                  const sector = deal.sector_id ? getSectorById(deal.sector_id) : null;
+                  const isClosing = stage.id === "Closing";
+                  
+                  return (
+                    <Card
+                      key={deal.id}
+                      draggable
+                      onDragStart={() => handleDragStart(deal.id)}
+                      className={`cursor-move hover:shadow-lg transition-all bg-card border-border hover:border-primary/50 ${
+                        draggedDealId === deal.id ? 'opacity-50' : ''
+                      }`}
+                    >
+                      <CardContent className="p-4 space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-semibold text-base leading-tight flex-1">{deal.name}</h3>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-background">
+                                <DropdownMenuItem onClick={() => handleEditDeal(deal)}>
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Edit
+                                </DropdownMenuItem>
+                                {isClosing && (
+                                  <DropdownMenuItem onClick={() => setPromotingDeal(deal)}>
+                                    <ArrowUpCircle className="h-4 w-4 mr-2" />
+                                    Promote to Portfolio
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteDeal(deal.id)}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                          
+                          <div className="flex items-center gap-3 flex-wrap">
+                            {deal.valuation && (
+                              <div className="flex items-center text-sm font-medium">
+                                <DollarSign className="h-3.5 w-3.5 mr-1 text-primary" />
+                                <span>{formatCurrency(deal.valuation)}</span>
+                              </div>
+                            )}
+                            {deal.probability !== null && deal.probability !== undefined && (
+                              <div className="flex items-center text-sm font-medium">
+                                <TrendingUp className="h-3.5 w-3.5 mr-1 text-success" />
+                                <span>{deal.probability}%</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          {sector && (
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Building2 className="h-3.5 w-3.5 mr-1" />
+                              <span className="truncate max-w-[100px]">{sector.name}</span>
                             </div>
                           )}
-                          {deal.probability !== null && deal.probability !== undefined && (
-                            <div className="flex items-center text-sm font-medium">
-                              <TrendingUp className="h-3.5 w-3.5 mr-1 text-success" />
-                              <span>{deal.probability}%</span>
+                          {deal.owner && (
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                                {getInitials(deal.owner)}
+                              </div>
+                              <span className="text-xs text-muted-foreground truncate max-w-[80px]">
+                                {deal.owner}
+                              </span>
                             </div>
                           )}
                         </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        {deal.sector && (
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Building2 className="h-3.5 w-3.5 mr-1" />
-                            <span className="truncate max-w-[100px]">{deal.sector}</span>
-                          </div>
-                        )}
-                        {deal.owner && (
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-                              {getInitials(deal.owner)}
-                            </div>
-                            <span className="text-xs text-muted-foreground truncate max-w-[80px]">
-                              {deal.owner}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
                 
                 <Button
                   variant="outline"
@@ -277,6 +351,27 @@ export default function Pipeline() {
           </div>
         ))}
       </div>
+
+      {/* Edit Deal Dialog */}
+      {editingDeal && (
+        <EditDealDialog
+          deal={editingDeal}
+          open={!!editingDeal}
+          onOpenChange={(open) => !open && setEditingDeal(null)}
+          onSave={handleUpdateDeal}
+          isLoading={isUpdating}
+        />
+      )}
+
+      {/* Promote Deal Dialog */}
+      {promotingDeal && (
+        <PromoteDealDialog
+          deal={promotingDeal}
+          open={!!promotingDeal}
+          onOpenChange={(open) => !open && setPromotingDeal(null)}
+          onSuccess={() => setPromotingDeal(null)}
+        />
+      )}
     </div>
   );
 }

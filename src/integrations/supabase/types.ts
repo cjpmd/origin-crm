@@ -77,7 +77,10 @@ export type Database = {
           notes: string | null
           owner: string | null
           probability: number | null
+          promoted_at: string | null
+          promoted_to_company_id: string | null
           sector: string | null
+          sector_id: string | null
           stage: string
           updated_at: string
           user_id: string
@@ -92,7 +95,10 @@ export type Database = {
           notes?: string | null
           owner?: string | null
           probability?: number | null
+          promoted_at?: string | null
+          promoted_to_company_id?: string | null
           sector?: string | null
+          sector_id?: string | null
           stage?: string
           updated_at?: string
           user_id: string
@@ -107,7 +113,10 @@ export type Database = {
           notes?: string | null
           owner?: string | null
           probability?: number | null
+          promoted_at?: string | null
+          promoted_to_company_id?: string | null
           sector?: string | null
+          sector_id?: string | null
           stage?: string
           updated_at?: string
           user_id?: string
@@ -119,6 +128,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_promoted_to_company_id_fkey"
+            columns: ["promoted_to_company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
             referencedColumns: ["id"]
           },
         ]
@@ -657,19 +680,25 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          display_order: number | null
           id: string
+          is_active: boolean | null
           name: string
         }
         Insert: {
           created_at?: string
           description?: string | null
+          display_order?: number | null
           id?: string
+          is_active?: boolean | null
           name: string
         }
         Update: {
           created_at?: string
           description?: string | null
+          display_order?: number | null
           id?: string
+          is_active?: boolean | null
           name?: string
         }
         Relationships: []

@@ -12,9 +12,12 @@ export interface Deal {
   valuation?: number;
   probability?: number;
   sector?: string;
+  sector_id?: string;
   owner?: string;
   expected_close_date?: string;
   notes?: string;
+  promoted_to_company_id?: string;
+  promoted_at?: string;
   created_at: string;
   updated_at: string;
 }
