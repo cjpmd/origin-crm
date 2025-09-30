@@ -43,8 +43,8 @@ serve(async (req) => {
 
       if (error) throw error;
 
-      // Start processing in background
-      EdgeRuntime.waitUntil(processResearchJob(job.id, supabaseClient));
+      // Start processing in background with service role client
+      EdgeRuntime.waitUntil(processResearchJob(job.id, user.id));
 
       return new Response(JSON.stringify({ job }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -79,19 +79,33 @@ serve(async (req) => {
   }
 });
 
-async function processResearchJob(jobId: string, supabaseClient: any) {
+async function processResearchJob(jobId: string, userId: string) {
+  // Create service role client for background operations
+  const serviceClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    console.log(`Starting research job ${jobId} for user ${userId}`);
+
     // Update status to running
-    await supabaseClient
+    const { error: updateError } = await serviceClient
       .from("research_jobs")
       .update({ status: "running" })
-      .eq("id", jobId);
+      .eq("id", jobId)
+      .eq("initiated_by", userId);
+
+    if (updateError) {
+      console.error("Failed to update job status:", updateError);
+      throw updateError;
+    }
 
     // Get job details
-    const { data: job } = await supabaseClient
+    const { data: job, error: jobError } = await serviceClient
       .from("research_jobs")
       .select(`
         *,
@@ -101,54 +115,87 @@ async function processResearchJob(jobId: string, supabaseClient: any) {
       .eq("id", jobId)
       .single();
 
-    if (!job) throw new Error("Job not found");
+    if (jobError || !job) {
+      console.error("Failed to fetch job:", jobError);
+      throw new Error("Job not found");
+    }
 
     // Step 1: Query Expansion Agent
+    console.log(`Expanding queries for job ${jobId}`);
     const queries = await expandQueries(job, LOVABLE_API_KEY);
 
     // Step 2: Evidence Gathering Agent
+    console.log(`Gathering evidence for job ${jobId}`);
     const evidenceItems = await gatherEvidence(queries, job, LOVABLE_API_KEY);
 
     // Save evidence to DB
+    console.log(`Saving ${evidenceItems.length} evidence items`);
     for (const item of evidenceItems) {
-      await supabaseClient.from("evidence_items").insert({
-        research_job_id: jobId,
-        company_id: job.company_id,
-        ...item,
-      });
+      const { error: evidenceError } = await serviceClient
+        .from("evidence_items")
+        .insert({
+          research_job_id: jobId,
+          company_id: job.company_id,
+          ...item,
+        });
+
+      if (evidenceError) {
+        console.error("Failed to insert evidence:", evidenceError);
+      }
     }
 
     // Step 3: Analysis & Synthesis
+    console.log(`Synthesizing findings for job ${jobId}`);
     const analysis = await synthesizeFindings(evidenceItems, job, LOVABLE_API_KEY);
 
     // Step 4: Bayesian Update
     const posterior = computePosterior(analysis);
 
     // Create research report
-    await supabaseClient.from("research_reports").insert({
-      research_job_id: jobId,
-      title: `Research Report: ${job.portfolio_companies?.name || job.sectors?.name || "Analysis"}`,
-      summary: analysis.summary,
-      prior_probability: 0.5,
-      posterior_probability: posterior.probability,
-      confidence: posterior.confidence,
-      key_drivers: analysis.drivers,
-      structured_findings: analysis.findings,
-    });
+    console.log(`Creating research report for job ${jobId}`);
+    const { error: reportError } = await serviceClient
+      .from("research_reports")
+      .insert({
+        research_job_id: jobId,
+        title: `Research Report: ${job.portfolio_companies?.name || job.sectors?.name || "Analysis"}`,
+        summary: analysis.summary,
+        prior_probability: 0.5,
+        posterior_probability: posterior.probability,
+        confidence: posterior.confidence,
+        key_drivers: analysis.drivers,
+        structured_findings: analysis.findings,
+      });
+
+    if (reportError) {
+      console.error("Failed to create report:", reportError);
+      throw reportError;
+    }
 
     // Mark job as complete
-    await supabaseClient
+    const { error: completeError } = await serviceClient
       .from("research_jobs")
       .update({ status: "done", completed_at: new Date().toISOString() })
       .eq("id", jobId);
 
+    if (completeError) {
+      console.error("Failed to mark job complete:", completeError);
+      throw completeError;
+    }
+
     console.log(`Job ${jobId} completed successfully`);
   } catch (error) {
     console.error(`Job ${jobId} failed:`, error);
-    await supabaseClient
-      .from("research_jobs")
-      .update({ status: "failed" })
-      .eq("id", jobId);
+    console.error("Error details:", error.message, error.stack);
+    
+    // Try to mark job as failed
+    try {
+      await serviceClient
+        .from("research_jobs")
+        .update({ status: "failed" })
+        .eq("id", jobId);
+    } catch (updateError) {
+      console.error("Failed to update job status to failed:", updateError);
+    }
   }
 }
 
