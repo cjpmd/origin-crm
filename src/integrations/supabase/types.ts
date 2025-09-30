@@ -117,6 +117,81 @@ export type Database = {
           },
         ]
       }
+      evidence_items: {
+        Row: {
+          author: string | null
+          company_id: string | null
+          correlation_group: string | null
+          created_at: string | null
+          fetch_time: string | null
+          id: string
+          independence_score: number | null
+          metadata: Json | null
+          outlet: string | null
+          recency_score: number | null
+          research_job_id: string | null
+          signal_quality: number | null
+          snippet: string | null
+          source_url: string | null
+          title: string | null
+          type: string | null
+          verifiability_score: number | null
+        }
+        Insert: {
+          author?: string | null
+          company_id?: string | null
+          correlation_group?: string | null
+          created_at?: string | null
+          fetch_time?: string | null
+          id?: string
+          independence_score?: number | null
+          metadata?: Json | null
+          outlet?: string | null
+          recency_score?: number | null
+          research_job_id?: string | null
+          signal_quality?: number | null
+          snippet?: string | null
+          source_url?: string | null
+          title?: string | null
+          type?: string | null
+          verifiability_score?: number | null
+        }
+        Update: {
+          author?: string | null
+          company_id?: string | null
+          correlation_group?: string | null
+          created_at?: string | null
+          fetch_time?: string | null
+          id?: string
+          independence_score?: number | null
+          metadata?: Json | null
+          outlet?: string | null
+          recency_score?: number | null
+          research_job_id?: string | null
+          signal_quality?: number | null
+          snippet?: string | null
+          source_url?: string | null
+          title?: string | null
+          type?: string | null
+          verifiability_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidence_items_research_job_id_fkey"
+            columns: ["research_job_id"]
+            isOneToOne: false
+            referencedRelation: "research_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investors: {
         Row: {
           check_size: string | null
@@ -356,6 +431,168 @@ export type Database = {
             columns: ["sector_id"]
             isOneToOne: false
             referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_alerts: {
+        Row: {
+          company_id: string | null
+          condition: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered: string | null
+          metric: string | null
+          profile_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          condition?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          metric?: string | null
+          profile_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          condition?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          metric?: string | null
+          profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_alerts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_alerts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_jobs: {
+        Row: {
+          company_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          depth: string | null
+          id: string
+          initiated_by: string | null
+          params: Json | null
+          priority: number | null
+          sector_id: string | null
+          source_url: string | null
+          status: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          depth?: string | null
+          id?: string
+          initiated_by?: string | null
+          params?: Json | null
+          priority?: number | null
+          sector_id?: string | null
+          source_url?: string | null
+          status?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          depth?: string | null
+          id?: string
+          initiated_by?: string | null
+          params?: Json | null
+          priority?: number | null
+          sector_id?: string | null
+          source_url?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_jobs_initiated_by_fkey"
+            columns: ["initiated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_jobs_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_reports: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          id: string
+          key_drivers: Json | null
+          pdf_url: string | null
+          posterior_probability: number | null
+          prior_probability: number | null
+          research_job_id: string | null
+          structured_findings: Json | null
+          summary: string | null
+          title: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          key_drivers?: Json | null
+          pdf_url?: string | null
+          posterior_probability?: number | null
+          prior_probability?: number | null
+          research_job_id?: string | null
+          structured_findings?: Json | null
+          summary?: string | null
+          title?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          key_drivers?: Json | null
+          pdf_url?: string | null
+          posterior_probability?: number | null
+          prior_probability?: number | null
+          research_job_id?: string | null
+          structured_findings?: Json | null
+          summary?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_reports_research_job_id_fkey"
+            columns: ["research_job_id"]
+            isOneToOne: false
+            referencedRelation: "research_jobs"
             referencedColumns: ["id"]
           },
         ]

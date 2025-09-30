@@ -1,1 +1,4 @@
 project_id = "cgqnunehtsnayelvznbj"
+
+[functions.research-agent]
+verify_jwt = true

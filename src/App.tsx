@@ -14,6 +14,7 @@ import Companies from "./pages/Companies";
 import Investors from "./pages/Investors";
 import ESGAnalytics from "./pages/ESGAnalytics";
 import SectoralAnalysis from "./pages/SectoralAnalysis";
+import Research from "./pages/Research";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -56,6 +57,8 @@ const App = () => (
             <Route path="esg-analytics" element={<ESGAnalytics />} />
             <Route path="sectoral-analysis" element={<SectoralAnalysis />} />
             <Route path="sectoral-analysis/:sectorId" element={<SectoralAnalysis />} />
+            <Route path="research/company/:companyId" element={<Research />} />
+            <Route path="research/sector/:sectorId" element={<Research />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
           </Route>

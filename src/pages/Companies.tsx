@@ -18,6 +18,9 @@ import { SectorBenchmarkChart } from "@/components/ESG/SectorBenchmarkChart";
 import { MarketCapCard } from "@/components/Market/MarketCapCard";
 import { StockPriceChart } from "@/components/Market/StockPriceChart";
 import { ValuationMetrics } from "@/components/Market/ValuationMetrics";
+import { ResearchTrigger } from "@/components/Research/ResearchTrigger";
+import { useResearch } from "@/hooks/useResearch";
+import { useNavigate } from "react-router-dom";
 
 export default function Companies() {
   const [companies, setCompanies] = useState(mockPortfolioCompanies);
@@ -29,6 +32,8 @@ export default function Companies() {
   const [selectedCompany, setSelectedCompany] = useState<PortfolioCompany | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<PortfolioCompany>>({});
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { startResearch, isStarting } = useResearch();
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -98,6 +103,11 @@ export default function Companies() {
       setSelectedCompany(null);
       setEditFormData({});
     }
+  };
+
+  const handleStartResearch = (companyId: string, depth: "quick" | "standard" | "forensic") => {
+    startResearch({ companyId, depth });
+    navigate(`/research/company/${companyId}`);
   };
 
   return (
@@ -302,7 +312,12 @@ export default function Companies() {
               })()}
             </div>
           )}
-          <div className="flex justify-end">
+          <div className="flex justify-between gap-2">
+            <ResearchTrigger
+              companyId={selectedCompany?.id}
+              onStart={(depth) => selectedCompany && handleStartResearch(selectedCompany.id, depth)}
+              isLoading={isStarting}
+            />
             <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
               Close
             </Button>
