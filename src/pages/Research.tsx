@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useResearch } from "@/hooks/useResearch";
 import { ResearchReportCard } from "@/components/Research/ResearchReportCard";
 import { EvidenceExplorer } from "@/components/Research/EvidenceExplorer";
@@ -6,9 +6,12 @@ import { ResearchTrigger } from "@/components/Research/ResearchTrigger";
 import { ResearchProgress } from "@/components/Research/ResearchProgress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export default function Research() {
   const { companyId, sectorId } = useParams();
+  const navigate = useNavigate();
   const {
     latestJob,
     latestReport,
@@ -22,21 +25,41 @@ export default function Research() {
     startResearch({ companyId, sectorId, depth });
   };
 
+  const handleBack = () => {
+    if (sectorId) {
+      navigate(`/sectoral-analysis/${sectorId}`);
+    } else if (companyId) {
+      navigate(`/portfolio/${companyId}`);
+    } else {
+      navigate(-1);
+    }
+  };
+
+  const showResearchTrigger = !latestJob || latestJob.status === 'done' || latestJob.status === 'failed';
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Deep Research</h1>
-          <p className="text-muted-foreground">
-            AI-powered market intelligence and evidence-based analysis
-          </p>
+        <div className="flex items-center gap-4">
+          <Button onClick={handleBack} variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Deep Research</h1>
+            <p className="text-muted-foreground">
+              AI-powered market intelligence and evidence-based analysis
+            </p>
+          </div>
         </div>
-        <ResearchTrigger
-          companyId={companyId}
-          sectorId={sectorId}
-          onStart={handleStartResearch}
-          isLoading={isStarting || latestJob?.status === "running"}
-        />
+        {showResearchTrigger && (
+          <ResearchTrigger
+            companyId={companyId}
+            sectorId={sectorId}
+            onStart={handleStartResearch}
+            isLoading={isStarting}
+          />
+        )}
       </div>
 
       {/* Show progress indicator if research is running */}
