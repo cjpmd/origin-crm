@@ -8,15 +8,16 @@ import { Link } from 'react-router-dom';
 import { SectorExplorer } from '@/components/Sectoral/SectorExplorer';
 import { SectorProfile } from '@/components/Sectoral/SectorProfile';
 import { ScenarioModeler } from '@/components/Sectoral/ScenarioModeler';
-import { getSectorById } from '@/lib/mockData';
 import { ResearchTrigger } from '@/components/Research/ResearchTrigger';
 import { useResearch } from '@/hooks/useResearch';
+import { useSectors } from '@/hooks/useSectors';
 
 const SectoralAnalysis = () => {
   const { sectorId } = useParams<{ sectorId?: string }>();
   const [activeTab, setActiveTab] = useState('explorer');
   const navigate = useNavigate();
   const { startResearch, isStarting } = useResearch();
+  const { getSectorById } = useSectors();
 
   // If a specific sector is selected, show the sector profile
   const selectedSector = sectorId ? getSectorById(sectorId) : null;
