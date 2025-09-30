@@ -14,7 +14,423 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          last_contact_date: string | null
+          linkedin: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_contact_date?: string | null
+          linkedin?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_contact_date?: string | null
+          linkedin?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      esg_ratings: {
+        Row: {
+          company_id: string
+          created_at: string
+          environmental_score: number | null
+          governance_score: number | null
+          id: string
+          notes: string | null
+          overall_score: number | null
+          rating_date: string
+          social_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          environmental_score?: number | null
+          governance_score?: number | null
+          id?: string
+          notes?: string | null
+          overall_score?: number | null
+          rating_date: string
+          social_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          environmental_score?: number | null
+          governance_score?: number | null
+          id?: string
+          notes?: string | null
+          overall_score?: number | null
+          rating_date?: string
+          social_score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esg_ratings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investors: {
+        Row: {
+          check_size: string | null
+          created_at: string
+          focus_sectors: string[] | null
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          status: string | null
+          type: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          check_size?: string | null
+          created_at?: string
+          focus_sectors?: string[] | null
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          check_size?: string | null
+          created_at?: string
+          focus_sectors?: string[] | null
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      market_data: {
+        Row: {
+          close_price: number | null
+          company_id: string
+          created_at: string
+          date: string
+          high_price: number | null
+          id: string
+          low_price: number | null
+          open_price: number | null
+          volume: number | null
+        }
+        Insert: {
+          close_price?: number | null
+          company_id: string
+          created_at?: string
+          date: string
+          high_price?: number | null
+          id?: string
+          low_price?: number | null
+          open_price?: number | null
+          volume?: number | null
+        }
+        Update: {
+          close_price?: number | null
+          company_id?: string
+          created_at?: string
+          date?: string
+          high_price?: number | null
+          id?: string
+          low_price?: number | null
+          open_price?: number | null
+          volume?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_data_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_companies: {
+        Row: {
+          created_at: string
+          current_stock_price: number | null
+          description: string | null
+          enterprise_value: number | null
+          id: string
+          investment_amount: number | null
+          investment_date: string | null
+          is_public: boolean | null
+          location: string | null
+          market_cap: number | null
+          name: string
+          ownership_percentage: number | null
+          sector_id: string | null
+          stage: string | null
+          status: string | null
+          stock_ticker: string | null
+          updated_at: string
+          user_id: string
+          valuation: number | null
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_stock_price?: number | null
+          description?: string | null
+          enterprise_value?: number | null
+          id?: string
+          investment_amount?: number | null
+          investment_date?: string | null
+          is_public?: boolean | null
+          location?: string | null
+          market_cap?: number | null
+          name: string
+          ownership_percentage?: number | null
+          sector_id?: string | null
+          stage?: string | null
+          status?: string | null
+          stock_ticker?: string | null
+          updated_at?: string
+          user_id: string
+          valuation?: number | null
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_stock_price?: number | null
+          description?: string | null
+          enterprise_value?: number | null
+          id?: string
+          investment_amount?: number | null
+          investment_date?: string | null
+          is_public?: boolean | null
+          location?: string | null
+          market_cap?: number | null
+          name?: string
+          ownership_percentage?: number | null
+          sector_id?: string | null
+          stage?: string | null
+          status?: string | null
+          stock_ticker?: string | null
+          updated_at?: string
+          user_id?: string
+          valuation?: number | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_companies_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      public_comparables: {
+        Row: {
+          created_at: string
+          ebitda: number | null
+          ev_ebitda: number | null
+          ev_revenue: number | null
+          id: string
+          market_cap: number | null
+          name: string
+          pe_ratio: number | null
+          revenue: number | null
+          sector_id: string | null
+          ticker: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ebitda?: number | null
+          ev_ebitda?: number | null
+          ev_revenue?: number | null
+          id?: string
+          market_cap?: number | null
+          name: string
+          pe_ratio?: number | null
+          revenue?: number | null
+          sector_id?: string | null
+          ticker?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ebitda?: number | null
+          ev_ebitda?: number | null
+          ev_revenue?: number | null
+          id?: string
+          market_cap?: number | null
+          name?: string
+          pe_ratio?: number | null
+          revenue?: number | null
+          sector_id?: string | null
+          ticker?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comparables_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sectors: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          company_id: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
