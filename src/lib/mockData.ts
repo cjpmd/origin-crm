@@ -1,4 +1,4 @@
-import { Contact, Deal, Fund, Investor, PortfolioCompany, InvestorCommitment, PortfolioKPI, Task, Note, Document, ESGRating, ESGHistory, SectorBenchmark, ESGAlert, Sector, SectorFinancialBenchmark, SectorScenario } from '@/types';
+import { Contact, Deal, Fund, Investor, PortfolioCompany, InvestorCommitment, PortfolioKPI, Task, Note, Document, ESGRating, ESGHistory, SectorBenchmark, ESGAlert, Sector, SectorFinancialBenchmark, SectorScenario, MarketData, PublicComparable } from '@/types';
 
 export type { Task } from '@/types';
 
@@ -126,6 +126,11 @@ export const mockPortfolioCompanies: PortfolioCompany[] = [
     investment_date: '2023-03-15',
     fund_id: '1',
     deal_id: '1',
+    is_public: true,
+    stock_ticker: 'DFLW',
+    current_stock_price: 142.50,
+    market_cap: 7200000000,
+    enterprise_value: 7800000000,
     created_at: '2023-03-15T00:00:00Z'
   },
   {
@@ -136,6 +141,7 @@ export const mockPortfolioCompanies: PortfolioCompany[] = [
     investment_date: '2023-06-20',
     fund_id: '1',
     deal_id: '2',
+    is_public: false,
     created_at: '2023-06-20T00:00:00Z'
   }
 ];
@@ -150,6 +156,9 @@ export const mockKPIs: PortfolioKPI[] = [
     arr: 3200000,
     headcount: 25,
     esg_score: 78,
+    ev_revenue_multiple: 3.1,
+    ev_ebitda_multiple: 17.3,
+    pe_ratio: 50.5,
     created_at: '2024-01-31T00:00:00Z'
   },
   {
@@ -506,3 +515,75 @@ export const getCompaniesInSector = (sectorName: string): PortfolioCompany[] => 
 export const getDealsInSector = (sectorName: string): Deal[] => {
   return mockDeals.filter(deal => deal.sector === sectorName);
 };
+
+// Market Data
+export const mockMarketData: MarketData[] = [
+  { id: '1', company_id: '1', date: '2025-01-15', stock_price: 142.50, volume: 1250000, market_cap: 7200000000, created_at: '2025-01-15T16:00:00Z' },
+  { id: '2', company_id: '1', date: '2025-01-14', stock_price: 139.80, volume: 1180000, market_cap: 7050000000, created_at: '2025-01-14T16:00:00Z' },
+  { id: '3', company_id: '1', date: '2025-01-13', stock_price: 137.50, volume: 980000, market_cap: 6920000000, created_at: '2025-01-13T16:00:00Z' },
+  { id: '4', company_id: '1', date: '2025-01-10', stock_price: 135.20, volume: 1050000, market_cap: 6810000000, created_at: '2025-01-10T16:00:00Z' },
+  { id: '5', company_id: '1', date: '2025-01-09', stock_price: 133.40, volume: 890000, market_cap: 6720000000, created_at: '2025-01-09T16:00:00Z' },
+];
+
+export const mockPublicComparables: PublicComparable[] = [
+  {
+    id: '1',
+    name: 'Microsoft Corporation',
+    ticker: 'MSFT',
+    sector: 'SaaS',
+    market_cap: 3100000000000,
+    enterprise_value: 3050000000000,
+    revenue: 211000000000,
+    ebitda: 89000000000,
+    pe_ratio: 35.8,
+    ev_revenue_multiple: 14.5,
+    ev_ebitda_multiple: 34.3,
+    stock_price: 415.20,
+    price_change_1d: 1.2,
+  },
+  {
+    id: '2',
+    name: 'Salesforce Inc',
+    ticker: 'CRM',
+    sector: 'SaaS',
+    market_cap: 285000000000,
+    enterprise_value: 275000000000,
+    revenue: 34000000000,
+    ebitda: 7200000000,
+    pe_ratio: 42.5,
+    ev_revenue_multiple: 8.1,
+    ev_ebitda_multiple: 38.2,
+    stock_price: 289.50,
+    price_change_1d: -0.8,
+  },
+  {
+    id: '3',
+    name: 'CrowdStrike Holdings',
+    ticker: 'CRWD',
+    sector: 'Cybersecurity',
+    market_cap: 78000000000,
+    enterprise_value: 76000000000,
+    revenue: 3000000000,
+    ebitda: 450000000,
+    pe_ratio: 385.5,
+    ev_revenue_multiple: 25.3,
+    ev_ebitda_multiple: 168.9,
+    stock_price: 325.40,
+    price_change_1d: 2.3,
+  },
+  {
+    id: '4',
+    name: 'Palo Alto Networks',
+    ticker: 'PANW',
+    sector: 'Cybersecurity',
+    market_cap: 115000000000,
+    enterprise_value: 112000000000,
+    revenue: 6800000000,
+    ebitda: 1200000000,
+    pe_ratio: 52.8,
+    ev_revenue_multiple: 16.5,
+    ev_ebitda_multiple: 93.3,
+    stock_price: 363.75,
+    price_change_1d: -1.1,
+  },
+];

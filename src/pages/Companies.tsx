@@ -15,6 +15,9 @@ import type { PortfolioCompany } from '@/types';
 import { ESGRatingCard } from "@/components/ESG/ESGRatingCard";
 import { ESGHistoryChart } from "@/components/ESG/ESGHistoryChart";
 import { SectorBenchmarkChart } from "@/components/ESG/SectorBenchmarkChart";
+import { MarketCapCard } from "@/components/Market/MarketCapCard";
+import { StockPriceChart } from "@/components/Market/StockPriceChart";
+import { ValuationMetrics } from "@/components/Market/ValuationMetrics";
 
 export default function Companies() {
   const [companies, setCompanies] = useState(mockPortfolioCompanies);
@@ -215,28 +218,53 @@ export default function Companies() {
                   <Label className="text-sm font-medium text-muted-foreground">Exit Date</Label>
                   <p>{selectedCompany.exit_date ? formatDate(selectedCompany.exit_date) : 'Active'}</p>
                 </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                  <Badge variant={selectedCompany.is_public ? "default" : "secondary"}>
+                    {selectedCompany.is_public ? "Public" : "Private"}
+                  </Badge>
+                </div>
+                {selectedCompany.is_public && selectedCompany.stock_ticker && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Stock Ticker</Label>
+                    <Badge variant="outline" className="mt-1">{selectedCompany.stock_ticker}</Badge>
+                  </div>
+                )}
               </div>
+
+              {/* Market Data Section */}
+              {selectedCompany.is_public && (
+                <div className="grid grid-cols-2 gap-4">
+                  <MarketCapCard company={selectedCompany} />
+                  <StockPriceChart companyId={selectedCompany.id} companyName={selectedCompany.name} />
+                </div>
+              )}
 
               {/* KPI Section */}
               {(() => {
                 const kpi = getKPIForCompany(selectedCompany.id);
                 return kpi && (
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Key Performance Indicators</Label>
-                    <div className="grid grid-cols-3 gap-4 mt-2 p-4 bg-muted/50 rounded-lg">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.revenue || 0)}</p>
-                        <p className="text-sm text-muted-foreground">Revenue</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.ebitda || 0)}</p>
-                        <p className="text-sm text-muted-foreground">EBITDA</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{kpi.headcount || 0}</p>
-                        <p className="text-sm text-muted-foreground">Headcount</p>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Key Performance Indicators</Label>
+                      <div className="grid grid-cols-3 gap-4 mt-2 p-4 bg-muted/50 rounded-lg">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.revenue || 0)}</p>
+                          <p className="text-sm text-muted-foreground">Revenue</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.ebitda || 0)}</p>
+                          <p className="text-sm text-muted-foreground">EBITDA</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-primary">{kpi.headcount || 0}</p>
+                          <p className="text-sm text-muted-foreground">Headcount</p>
+                        </div>
                       </div>
                     </div>
+                    {selectedCompany.is_public && (
+                      <ValuationMetrics kpi={kpi} companyName={selectedCompany.name} />
+                    )}
                   </div>
                 );
               })()}

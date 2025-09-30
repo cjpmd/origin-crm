@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineCh
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { mockSectors, getSectorById, getSectorBenchmark, getCompaniesInSector, getDealsInSector, mockKPIs } from '@/lib/mockData';
 import { Sector } from '@/types';
+import { PublicComparables } from '@/components/Market/PublicComparables';
 
 interface SectorProfileProps {
   sectorId: string;
@@ -254,7 +255,11 @@ export function SectorProfile({ sectorId }: SectorProfileProps) {
               </Card>
             </TabsContent>
 
-            <TabsContent value="trends" className="space-y-4">
+        <TabsContent value="comparables" className="space-y-4">
+          <PublicComparables sector={sector.name} />
+        </TabsContent>
+
+        <TabsContent value="trends" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Market Dynamics</CardTitle>

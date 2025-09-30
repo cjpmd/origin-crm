@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, Users, DollarSign, Plus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, DollarSign, Plus, Building2 } from 'lucide-react';
 import { mockPortfolioCompanies, mockKPIs } from '@/lib/mockData';
 import { PortfolioCompany, PortfolioKPI } from '@/types';
 
@@ -24,6 +24,8 @@ export default function Portfolio() {
     return kpis.find(kpi => kpi.company_id === companyId);
   };
 
+  const publicCompanies = companies.filter(c => c.is_public);
+  const totalMarketCap = publicCompanies.reduce((sum, c) => sum + (c.market_cap || 0), 0);
   const totalPortfolioValue = kpis.reduce((sum, kpi) => sum + (kpi.revenue || 0), 0);
   const totalEmployees = kpis.reduce((sum, kpi) => sum + (kpi.headcount || 0), 0);
   const avgESGScore = kpis.reduce((sum, kpi) => sum + (kpi.esg_score || 0), 0) / kpis.length;
@@ -44,7 +46,36 @@ export default function Portfolio() {
       </div>
 
       {/* Portfolio Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Portfolio Companies
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{companies.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {publicCompanies.length} public · {companies.length - publicCompanies.length} private
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Market Cap
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-bold">${(totalMarketCap / 1000000000).toFixed(1)}B</div>
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Public companies only</p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -56,17 +87,6 @@ export default function Portfolio() {
               <div className="text-2xl font-bold">{formatCurrency(totalPortfolioValue)}</div>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Portfolio Companies
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{companies.length}</div>
           </CardContent>
         </Card>
 
@@ -114,6 +134,9 @@ export default function Portfolio() {
                       )}
                       {company.geography && (
                         <Badge variant="secondary">{company.geography}</Badge>
+                      )}
+                      {company.is_public && company.stock_ticker && (
+                        <Badge variant="default">{company.stock_ticker}</Badge>
                       )}
                     </div>
                   </div>

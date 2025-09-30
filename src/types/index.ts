@@ -86,7 +86,38 @@ export interface PortfolioCompany {
   exit_date?: string;
   fund_id?: string;
   deal_id?: string;
+  is_public?: boolean;
+  stock_ticker?: string;
+  current_stock_price?: number;
+  market_cap?: number;
+  enterprise_value?: number;
   created_at: string;
+}
+
+export interface MarketData {
+  id: string;
+  company_id: string;
+  date: string;
+  stock_price: number;
+  volume?: number;
+  market_cap: number;
+  created_at: string;
+}
+
+export interface PublicComparable {
+  id: string;
+  name: string;
+  ticker: string;
+  sector: string;
+  market_cap: number;
+  enterprise_value: number;
+  revenue: number;
+  ebitda: number;
+  pe_ratio?: number;
+  ev_revenue_multiple?: number;
+  ev_ebitda_multiple?: number;
+  stock_price: number;
+  price_change_1d?: number;
 }
 
 export interface PortfolioKPI {
@@ -98,6 +129,9 @@ export interface PortfolioKPI {
   arr?: number;
   headcount?: number;
   esg_score?: number;
+  ev_revenue_multiple?: number;
+  ev_ebitda_multiple?: number;
+  pe_ratio?: number;
   created_at: string;
 }
 
