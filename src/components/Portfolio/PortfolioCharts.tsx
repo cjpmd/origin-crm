@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react';
-import { mockKPIs, mockPortfolioCompanies } from '@/lib/mockData';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
+import { useDeals } from '@/hooks/useDeals';
 
 const chartConfig = {
   revenue: {
@@ -21,37 +22,49 @@ const chartConfig = {
 };
 
 export function PortfolioCharts() {
-  // Prepare chart data
-  const revenueData = mockKPIs.map(kpi => ({
-    period: new Date(kpi.period).toLocaleDateString('en-US', { month: 'short' }),
-    revenue: (kpi.revenue || 0) / 1000000,
-    ebitda: (kpi.ebitda || 0) / 1000000,
-    arr: (kpi.arr || 0) / 1000000,
-  }));
+  const { analytics, isLoading: analyticsLoading } = useAnalytics();
+  const { companies, isLoading: companiesLoading } = usePortfolioCompanies();
+  const { deals, isLoading: dealsLoading } = useDeals();
 
-  const sectorData = mockPortfolioCompanies.reduce((acc, company) => {
-    const sector = company.sector || 'Other';
-    acc[sector] = (acc[sector] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  if (analyticsLoading || companiesLoading || dealsLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-muted-foreground">Loading analytics...</div>
+      </div>
+    );
+  }
 
+  if (!analytics) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-muted-foreground">No data available</div>
+      </div>
+    );
+  }
+
+  // Prepare sector distribution data
+  const sectorData = analytics.portfolio.bySector;
   const pieData = Object.entries(sectorData).map(([sector, count], index) => ({
     name: sector,
     value: count,
     color: `hsl(${index * 137.5 % 360}, 70%, 50%)`
   }));
 
-  // Risk indicators based on performance
-  const riskCompanies = mockPortfolioCompanies.map(company => {
-    const kpi = mockKPIs.find(k => k.company_id === company.id);
-    const revenueGrowth = Math.random() * 40 - 10; // Mock growth rate
+  // Prepare deal stage data
+  const stageData = Object.entries(analytics.dealFlow.byStage).map(([stage, count]) => ({
+    stage: stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    count
+  }));
+
+  // Calculate risk indicators for companies
+  const riskCompanies = companies.map(company => {
+    const revenueGrowth = Math.random() * 40 - 10; // TODO: Calculate from actual KPIs when available
     const risk = revenueGrowth < 0 ? 'high' : revenueGrowth < 10 ? 'medium' : 'low';
     
     return {
       ...company,
       revenueGrowth,
       risk,
-      kpi
     };
   });
 
@@ -75,25 +88,24 @@ export function PortfolioCharts() {
 
   return (
     <div className="space-y-6">
-      {/* Revenue and Performance Charts */}
+      {/* Deal Flow and Performance Charts */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Trends</CardTitle>
-            <CardDescription>Monthly revenue and EBITDA performance</CardDescription>
+            <CardTitle>Deal Pipeline by Stage</CardTitle>
+            <CardDescription>Current deals distribution across stages</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueData}>
-                  <XAxis dataKey="period" />
+                <BarChart data={stageData}>
+                  <XAxis dataKey="stage" />
                   <YAxis />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
-                    formatter={(value: number) => [`£${value.toFixed(1)}M`, '']}
+                    formatter={(value: number) => [`${value} deals`, '']}
                   />
-                  <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
-                  <Bar dataKey="ebitda" fill="var(--color-ebitda)" radius={4} />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={4} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -102,29 +114,35 @@ export function PortfolioCharts() {
 
         <Card>
           <CardHeader>
-            <CardTitle>ARR Growth</CardTitle>
-            <CardDescription>Annual Recurring Revenue trend</CardDescription>
+            <CardTitle>Key Metrics Overview</CardTitle>
+            <CardDescription>Portfolio and pipeline summary</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData}>
-                  <XAxis dataKey="period" />
-                  <YAxis />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                    formatter={(value: number) => [`£${value.toFixed(1)}M`, 'ARR']}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="arr" 
-                    stroke="var(--color-arr)" 
-                    strokeWidth={3}
-                    dot={{ fill: 'var(--color-arr)', r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <div className="text-sm text-muted-foreground">Total Deal Value</div>
+                  <div className="text-2xl font-bold">
+                    £{(analytics.dealFlow.totalValue / 1000000).toFixed(1)}M
+                  </div>
+                </div>
+                <TrendingUp className="h-8 w-8 text-primary" />
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <div className="text-sm text-muted-foreground">Portfolio Companies</div>
+                  <div className="text-2xl font-bold">{analytics.portfolio.totalCompanies}</div>
+                </div>
+                <TrendingUp className="h-8 w-8 text-primary" />
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <div className="text-sm text-muted-foreground">Active Contacts</div>
+                  <div className="text-2xl font-bold">{analytics.contacts.total}</div>
+                </div>
+                <TrendingUp className="h-8 w-8 text-primary" />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -180,7 +198,7 @@ export function PortfolioCharts() {
                         <RiskIcon className="h-4 w-4" />
                         <div>
                           <div className="font-medium">{company.name}</div>
-                          <div className="text-sm opacity-75">{company.sector}</div>
+                          <div className="text-sm opacity-75">{company.sectors?.name || 'Other'}</div>
                         </div>
                       </div>
                       <div className="text-right">

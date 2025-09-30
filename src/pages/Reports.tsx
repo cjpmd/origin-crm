@@ -3,10 +3,53 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Download, Calendar, TrendingUp, BarChart3, PieChart, Users, Building2 } from 'lucide-react';
+import { FileText, Download, Calendar, TrendingUp, BarChart3, Users, Building2 } from 'lucide-react';
 import { PortfolioCharts } from '@/components/Portfolio/PortfolioCharts';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 
 export default function Reports() {
+  const { analytics, isLoading } = useAnalytics();
+  const [generatingReport, setGeneratingReport] = useState<string | null>(null);
+
+  const handleGenerateReport = async (template: any) => {
+    setGeneratingReport(template.id);
+    toast.info("Generating report with AI. This may take a few moments...");
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-report', {
+        body: {
+          templateType: template.type,
+          includeCharts: true,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.report) {
+        // Create a downloadable markdown file
+        const blob = new Blob([data.report], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${template.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast.success("Report generated and downloaded successfully!");
+      }
+    } catch (error: any) {
+      console.error("Error generating report:", error);
+      toast.error(error.message || "Failed to generate report");
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
   const reportTemplates = [
     {
       id: '1',
@@ -46,32 +89,45 @@ export default function Reports() {
     }
   ];
 
-  const quickReports = [
+  // Real-time quick reports based on actual data
+  const quickReports = analytics ? [
     {
       title: 'Deal Flow Report',
       description: 'Last 30 days pipeline activity',
       icon: BarChart3,
-      metrics: { deals: 12, value: '£156M' }
+      metrics: { 
+        deals: analytics.dealFlow.last30Days, 
+        value: `£${(analytics.dealFlow.totalValue / 1000000).toFixed(1)}M` 
+      }
     },
     {
       title: 'Contact Activity',
       description: 'Relationship engagement summary',
       icon: Users,
-      metrics: { contacts: 89, meetings: 24 }
+      metrics: { 
+        contacts: analytics.contacts.total, 
+        recent: analytics.contacts.recentActivity 
+      }
     },
     {
       title: 'Portfolio Update',
       description: 'Company performance snapshot',
       icon: Building2,
-      metrics: { companies: 8, growth: '+12%' }
+      metrics: { 
+        companies: analytics.portfolio.totalCompanies, 
+        public: analytics.portfolio.publicCompanies 
+      }
     },
     {
       title: 'Fund Metrics',
       description: 'Current fund performance',  
       icon: TrendingUp,
-      metrics: { irr: '24.5%', moic: '2.8x' }
+      metrics: { 
+        valuation: `£${(analytics.portfolio.totalValuation / 1000000).toFixed(1)}M`, 
+        deals: analytics.dealFlow.totalDeals 
+      }
     }
-  ];
+  ] : [];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -164,9 +220,14 @@ export default function Reports() {
                         <Button variant="outline" size="sm">
                           Edit
                         </Button>
-                        <Button size="sm" className="gap-2">
+                        <Button 
+                          size="sm" 
+                          className="gap-2"
+                          onClick={() => handleGenerateReport(template)}
+                          disabled={generatingReport === template.id}
+                        >
                           <Download className="h-3 w-3" />
-                          Generate
+                          {generatingReport === template.id ? "Generating..." : "Generate"}
                         </Button>
                       </div>
                     </div>

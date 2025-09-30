@@ -2,3 +2,6 @@ project_id = "cgqnunehtsnayelvznbj"
 
 [functions.research-agent]
 verify_jwt = true
+
+[functions.generate-report]
+verify_jwt = true
