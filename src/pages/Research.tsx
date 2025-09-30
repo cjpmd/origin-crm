@@ -3,6 +3,7 @@ import { useResearch } from "@/hooks/useResearch";
 import { ResearchReportCard } from "@/components/Research/ResearchReportCard";
 import { EvidenceExplorer } from "@/components/Research/EvidenceExplorer";
 import { ResearchTrigger } from "@/components/Research/ResearchTrigger";
+import { ResearchProgress } from "@/components/Research/ResearchProgress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -38,10 +39,19 @@ export default function Research() {
         />
       </div>
 
+      {/* Show progress indicator if research is running */}
+      {latestJob && (latestJob.status === "pending" || latestJob.status === "running") && (
+        <ResearchProgress
+          status={latestJob.status}
+          depth={latestJob.depth as "quick" | "standard" | "forensic"}
+          createdAt={latestJob.created_at}
+        />
+      )}
+
       <Tabs defaultValue="report" className="w-full">
         <TabsList>
           <TabsTrigger value="report">Report</TabsTrigger>
-          <TabsTrigger value="evidence">Evidence</TabsTrigger>
+          <TabsTrigger value="evidence">Evidence ({evidence.length})</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 

@@ -1,17 +1,21 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { MoreHorizontal, Plus } from 'lucide-react';
-import { mockDeals, dealStageConfig } from '@/lib/mockData';
-import { Deal } from '@/types';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, DollarSign, TrendingUp, Building2, Loader2 } from "lucide-react";
+import { useDeals } from "@/hooks/useDeals";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const dealStageConfig = [
+  { id: "Lead", name: "Lead", color: "bg-slate-100 dark:bg-slate-800" },
+  { id: "Qualified", name: "Qualified", color: "bg-blue-100 dark:bg-blue-900/30" },
+  { id: "Due Diligence", name: "Due Diligence", color: "bg-purple-100 dark:bg-purple-900/30" },
+  { id: "Negotiation", name: "Negotiation", color: "bg-orange-100 dark:bg-orange-900/30" },
+  { id: "Closing", name: "Closing", color: "bg-green-100 dark:bg-green-900/30" },
+];
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -22,76 +26,88 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map(n => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
 export default function Pipeline() {
-  const [deals, setDeals] = useState<Deal[]>(mockDeals);
+  const { deals, isLoading, createDeal, updateDeal, deleteDeal } = useDeals();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [stageDialogOpen, setStageDialogOpen] = useState<string | null>(null);
-  const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    sector: '',
-    geography: '',
-    valuation: '',
-    description: ''
+  const [newDeal, setNewDeal] = useState({
+    name: "",
+    stage: "Lead",
+    valuation: "",
+    probability: "",
+    sector: "",
+    owner: "",
   });
-  const { toast } = useToast();
+  const [draggedDealId, setDraggedDealId] = useState<string | null>(null);
 
   const dealsByStage = dealStageConfig.reduce((acc, stage) => {
-    acc[stage.value] = deals.filter(deal => deal.stage === stage.value);
+    acc[stage.id] = deals.filter(deal => deal.stage === stage.id);
     return acc;
-  }, {} as Record<string, Deal[]>);
+  }, {} as Record<string, typeof deals>);
 
-  const createDeal = (stage?: string) => {
-    if (!formData.name.trim()) return;
-    
-    const dealStage = (stage || 'sourcing') as Deal['stage'];
-    const newDeal: Deal = {
-      id: Date.now().toString(),
-      name: formData.name,
-      stage: dealStage,
-      sector: formData.sector || 'Technology',
-      geography: formData.geography || 'uk',
-      valuation: formData.valuation ? parseInt(formData.valuation) : null,
-      probability: dealStage === 'sourcing' ? 10 : dealStage === 'screening' ? 25 : dealStage === 'diligence' ? 50 : dealStage === 'term_sheet' ? 75 : dealStage === 'close' ? 100 : 5,
-      owner_id: '1',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+  const handleCreateDeal = (stage?: string) => {
+    createDeal({
+      name: newDeal.name || `New Deal ${deals.length + 1}`,
+      stage: stage || newDeal.stage,
+      valuation: Number(newDeal.valuation) || undefined,
+      probability: Number(newDeal.probability) || undefined,
+      sector: newDeal.sector || undefined,
+      owner: newDeal.owner || undefined,
+    });
 
-    setDeals(prev => [...prev, newDeal]);
-    setFormData({ name: '', sector: '', geography: '', valuation: '', description: '' });
+    setNewDeal({
+      name: "",
+      stage: "Lead",
+      valuation: "",
+      probability: "",
+      sector: "",
+      owner: "",
+    });
     setIsDialogOpen(false);
-    setStageDialogOpen(null);
-    toast({ title: "Deal created", description: `${newDeal.name} added to ${dealStageConfig.find(s => s.value === dealStage)?.label} stage` });
   };
 
-  const handleDragStart = (e: React.DragEvent, deal: Deal) => {
-    setDraggedDeal(deal);
-    e.dataTransfer.effectAllowed = 'move';
+  const handleDragStart = (dealId: string) => {
+    setDraggedDealId(dealId);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e: React.DragEvent, targetStage: string) => {
-    e.preventDefault();
-    if (!draggedDeal || draggedDeal.stage === targetStage) return;
+  const handleDrop = (stageId: string) => {
+    if (!draggedDealId) return;
 
-    const validStage = targetStage as Deal['stage'];
-    setDeals(prev => prev.map(deal => 
-      deal.id === draggedDeal.id 
-        ? { ...deal, stage: validStage }
-        : deal
-    ));
-
-    toast({ 
-      title: "Deal moved", 
-      description: `${draggedDeal.name} moved to ${dealStageConfig.find(s => s.value === validStage)?.label}` 
+    updateDeal({
+      id: draggedDealId,
+      updates: { stage: stageId },
     });
-    setDraggedDeal(null);
+
+    setDraggedDealId(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-96" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -122,224 +138,142 @@ export default function Pipeline() {
                 <Input 
                   id="deal-name" 
                   placeholder="Company name" 
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  value={newDeal.name}
+                  onChange={(e) => setNewDeal(prev => ({ ...prev, name: e.target.value }))}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="sector">Sector</Label>
-                  <Select value={formData.sector} onValueChange={(value) => setFormData(prev => ({ ...prev, sector: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select sector" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Technology">Technology</SelectItem>
-                      <SelectItem value="Healthcare">Healthcare</SelectItem>
-                      <SelectItem value="Financial Services">Financial Services</SelectItem>
-                      <SelectItem value="Consumer Goods">Consumer Goods</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="valuation">Valuation ($)</Label>
+                  <Input 
+                    id="valuation" 
+                    type="number" 
+                    placeholder="5000000" 
+                    value={newDeal.valuation}
+                    onChange={(e) => setNewDeal(prev => ({ ...prev, valuation: e.target.value }))}
+                  />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="geography">Geography</Label>
-                  <Select value={formData.geography} onValueChange={(value) => setFormData(prev => ({ ...prev, geography: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="uk">United Kingdom</SelectItem>
-                      <SelectItem value="eu">Europe</SelectItem>
-                      <SelectItem value="us">United States</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="probability">Probability (%)</Label>
+                  <Input 
+                    id="probability" 
+                    type="number" 
+                    placeholder="70" 
+                    min="0"
+                    max="100"
+                    value={newDeal.probability}
+                    onChange={(e) => setNewDeal(prev => ({ ...prev, probability: e.target.value }))}
+                  />
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="valuation">Valuation (£)</Label>
+                <Label htmlFor="sector">Sector</Label>
                 <Input 
-                  id="valuation" 
-                  type="number" 
-                  placeholder="50000000" 
-                  value={formData.valuation}
-                  onChange={(e) => setFormData(prev => ({ ...prev, valuation: e.target.value }))}
+                  id="sector" 
+                  placeholder="Technology" 
+                  value={newDeal.sector}
+                  onChange={(e) => setNewDeal(prev => ({ ...prev, sector: e.target.value }))}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  placeholder="Brief deal description" 
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                <Label htmlFor="owner">Owner</Label>
+                <Input 
+                  id="owner" 
+                  placeholder="John Doe" 
+                  value={newDeal.owner}
+                  onChange={(e) => setNewDeal(prev => ({ ...prev, owner: e.target.value }))}
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => {
-                setIsDialogOpen(false);
-                setFormData({ name: '', sector: '', geography: '', valuation: '', description: '' });
-              }}>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => createDeal()}>
-                Create Deal
-              </Button>
+              <Button onClick={() => handleCreateDeal()}>Create Deal</Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {dealStageConfig.map((stage) => (
-          <div 
-            key={stage.value} 
-            className="space-y-4"
+          <div
+            key={stage.id}
             onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, stage.value)}
+            onDrop={() => handleDrop(stage.id)}
           >
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                {stage.label}
-              </h3>
-              <Badge variant="secondary" className="text-xs">
-                {dealsByStage[stage.value]?.length || 0}
-              </Badge>
-            </div>
-
-            <div className="space-y-3 min-h-32">
-              {dealsByStage[stage.value]?.map((deal) => (
-                <Card 
-                  key={deal.id} 
-                  className="cursor-move hover:shadow-md transition-shadow"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, deal)}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <CardTitle className="text-sm font-medium leading-tight">
-                        {deal.name}
-                      </CardTitle>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                        <MoreHorizontal className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-2">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Valuation</span>
-                        <span className="font-medium">
-                          {deal.valuation ? formatCurrency(deal.valuation) : 'TBD'}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Probability</span>
-                        <span className="font-medium">{deal.probability}%</span>
-                      </div>
-
-                      {deal.sector && (
-                        <Badge variant="outline" className="text-xs">
-                          {deal.sector}
-                        </Badge>
-                      )}
-
-                      <div className="flex items-center gap-2 pt-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs">
-                            {deal.owner_id === '1' ? 'SC' : 'MR'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">
-                          {deal.owner_id === '1' ? 'Sarah Chen' : 'Michael Rodriguez'}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              <Dialog open={stageDialogOpen === stage.value} onOpenChange={(open) => setStageDialogOpen(open ? stage.value : null)}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full h-24 border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50"
+            <Card className={`${stage.color} border-2`}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">{stage.name}</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {dealsByStage[stage.id]?.length || 0} {dealsByStage[stage.id]?.length === 1 ? 'deal' : 'deals'}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {dealsByStage[stage.id]?.map((deal) => (
+                  <Card
+                    key={deal.id}
+                    draggable
+                    onDragStart={() => handleDragStart(deal.id)}
+                    className={`cursor-move hover:shadow-lg transition-all bg-card border-border hover:border-primary/50 ${
+                      draggedDealId === deal.id ? 'opacity-50' : ''
+                    }`}
                   >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Deal
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add Deal to {stage.label}</DialogTitle>
-                    <DialogDescription>
-                      Create a new deal in the {stage.label.toLowerCase()} stage
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor={`deal-name-${stage.value}`}>Deal Name</Label>
-                      <Input 
-                        id={`deal-name-${stage.value}`}
-                        placeholder="Company name" 
-                        value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Sector</Label>
-                        <Select value={formData.sector} onValueChange={(value) => setFormData(prev => ({ ...prev, sector: value }))}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select sector" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Technology">Technology</SelectItem>
-                            <SelectItem value="Healthcare">Healthcare</SelectItem>
-                            <SelectItem value="Financial Services">Financial Services</SelectItem>
-                            <SelectItem value="Consumer Goods">Consumer Goods</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="space-y-2">
+                        <h3 className="font-semibold text-base leading-tight">{deal.name}</h3>
+                        
+                        <div className="flex items-center gap-3 flex-wrap">
+                          {deal.valuation && (
+                            <div className="flex items-center text-sm font-medium">
+                              <DollarSign className="h-3.5 w-3.5 mr-1 text-primary" />
+                              <span>{formatCurrency(deal.valuation)}</span>
+                            </div>
+                          )}
+                          {deal.probability !== null && deal.probability !== undefined && (
+                            <div className="flex items-center text-sm font-medium">
+                              <TrendingUp className="h-3.5 w-3.5 mr-1 text-success" />
+                              <span>{deal.probability}%</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="grid gap-2">
-                        <Label>Geography</Label>
-                        <Select value={formData.geography} onValueChange={(value) => setFormData(prev => ({ ...prev, geography: value }))}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select region" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="uk">United Kingdom</SelectItem>
-                            <SelectItem value="eu">Europe</SelectItem>
-                            <SelectItem value="us">United States</SelectItem>
-                          </SelectContent>
-                        </Select>
+
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        {deal.sector && (
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Building2 className="h-3.5 w-3.5 mr-1" />
+                            <span className="truncate max-w-[100px]">{deal.sector}</span>
+                          </div>
+                        )}
+                        {deal.owner && (
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                              {getInitials(deal.owner)}
+                            </div>
+                            <span className="text-xs text-muted-foreground truncate max-w-[80px]">
+                              {deal.owner}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Valuation (£)</Label>
-                      <Input 
-                        type="number" 
-                        placeholder="50000000" 
-                        value={formData.valuation}
-                        onChange={(e) => setFormData(prev => ({ ...prev, valuation: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => {
-                      setStageDialogOpen(null);
-                      setFormData({ name: '', sector: '', geography: '', valuation: '', description: '' });
-                    }}>
-                      Cancel
-                    </Button>
-                    <Button onClick={() => createDeal(stage.value)}>
-                      Create Deal
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                <Button
+                  variant="outline"
+                  className="w-full border-dashed hover:border-primary hover:bg-primary/5"
+                  onClick={() => {
+                    setNewDeal({ ...newDeal, stage: stage.id });
+                    setIsDialogOpen(true);
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Deal
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         ))}
       </div>

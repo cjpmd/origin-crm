@@ -67,6 +67,62 @@ export type Database = {
           },
         ]
       }
+      deals: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          expected_close_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner: string | null
+          probability: number | null
+          sector: string | null
+          stage: string
+          updated_at: string
+          user_id: string
+          valuation: number | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          expected_close_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner?: string | null
+          probability?: number | null
+          sector?: string | null
+          stage?: string
+          updated_at?: string
+          user_id: string
+          valuation?: number | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          expected_close_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner?: string | null
+          probability?: number | null
+          sector?: string | null
+          stage?: string
+          updated_at?: string
+          user_id?: string
+          valuation?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       esg_ratings: {
         Row: {
           company_id: string
