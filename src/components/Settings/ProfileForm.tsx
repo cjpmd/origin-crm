@@ -86,6 +86,62 @@ export function ProfileForm() {
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Error',
+        description: 'Please upload an image file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: 'Error',
+        description: 'File size must be less than 2MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setProfile({ ...profile, avatar_url: publicUrl });
+
+      toast({
+        title: 'Success',
+        description: 'Avatar uploaded successfully',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const getInitials = () => {
     if (profile.full_name) {
       return profile.full_name
@@ -140,12 +196,24 @@ export function ProfileForm() {
                 value={profile.avatar_url}
                 onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
               />
-              <Button variant="outline" size="icon">
+              <input
+                type="file"
+                id="avatar-upload"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => document.getElementById('avatar-upload')?.click()}
+                disabled={saving}
+              >
                 <Upload className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
-              Enter a URL to your profile picture
+              Upload an image or enter a URL
             </p>
           </div>
         </div>
