@@ -3,12 +3,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { mockDeals, mockContacts, mockTasks } from '@/lib/mockData';
 import { DashboardCards } from '@/components/Dashboard/DashboardCards';
 import { FundMetrics } from '@/components/Analytics/FundMetrics';
+import { useTasks } from '@/hooks/useTasks';
+import { useDeals } from '@/hooks/useDeals';
+import { useContacts } from '@/hooks/useContacts';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const Index = () => {
-  const recentTasks = mockTasks.filter(task => task.status !== 'done').slice(0, 3);
+  const { tasks, updateTask } = useTasks();
+  const { deals } = useDeals();
+  const { contacts } = useContacts();
+  
+  const recentTasks = tasks.filter(task => task.status !== 'completed').slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -53,7 +60,7 @@ const Index = () => {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mockDeals.slice(0, 4).map((deal) => (
+            {deals.slice(0, 4).map((deal) => (
               <div key={deal.id} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{deal.name}</p>
@@ -75,15 +82,15 @@ const Index = () => {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mockContacts.slice(0, 4).map((contact) => (
+            {contacts.slice(0, 4).map((contact) => (
               <div key={contact.id} className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{contact.first_name} {contact.last_name}</p>
-                  <p className="text-sm text-muted-foreground">{contact.company}</p>
+                  <p className="font-medium">{contact.name}</p>
+                  <p className="text-sm text-muted-foreground">{contact.portfolio_companies?.name || 'N/A'}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium">{contact.relationship_strength}/100</div>
-                  <div className="text-xs text-muted-foreground">strength</div>
+                  <div className="text-sm font-medium">{contact.role || 'N/A'}</div>
+                  <div className="text-xs text-muted-foreground">role</div>
                 </div>
               </div>
             ))}
@@ -102,13 +109,19 @@ const Index = () => {
           <CardContent className="space-y-4">
             {recentTasks.map((task) => (
               <div key={task.id} className="flex items-start gap-3">
+                <Checkbox 
+                  checked={task.status === 'completed'}
+                  onCheckedChange={(checked) => {
+                    updateTask({ id: task.id, status: checked ? 'completed' : 'pending', completed_at: checked ? new Date().toISOString() : null });
+                  }}
+                />
                 <div className="flex-1">
                   <p className="font-medium text-sm">{task.title}</p>
                   <p className="text-xs text-muted-foreground">
                     Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
                   </p>
                 </div>
-                <Badge variant={task.status === 'open' ? 'destructive' : 'secondary'} className="text-xs">
+                <Badge variant={task.status === 'pending' ? 'destructive' : 'secondary'} className="text-xs">
                   {task.status}
                 </Badge>
               </div>

@@ -1,10 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { mockESGRatings, mockPortfolioCompanies, getESGRiskLevel } from "@/lib/mockData";
 import { Leaf, Users, Shield, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
+import { usePortfolioCompanies } from "@/hooks/usePortfolioCompanies";
+import { useDeals } from "@/hooks/useDeals";
 
 const chartConfig = {
   low: {
@@ -22,20 +25,46 @@ const chartConfig = {
 };
 
 export default function ESGAnalytics() {
-  // Calculate portfolio ESG metrics
+  const { companies } = usePortfolioCompanies();
+  const { deals } = useDeals();
+  
+  // Calculate portfolio ESG metrics (using mock data for now until ESG data exists in DB)
   const portfolioESGData = mockESGRatings.map(rating => {
-    const company = mockPortfolioCompanies.find(c => c.id === rating.company_id);
+    const company = companies.find(c => c.id === rating.company_id) || mockPortfolioCompanies.find(c => c.id === rating.company_id);
     const riskLevel = getESGRiskLevel(rating.overall_score);
+    const sectorName = company && 'sectors' in company && company.sectors ? company.sectors.name : 
+                       company && 'sector' in company ? company.sector : 'Unknown';
     return {
       ...rating,
       company_name: company?.name || 'Unknown',
-      sector: company?.sector || 'Unknown',
-      risk_level: riskLevel.value
+      sector: sectorName,
+      risk_level: riskLevel.value,
+      source: 'portfolio'
     };
   });
 
+  // Add pipeline deals with mock ESG data
+  const pipelineESGData = deals.slice(0, 3).map(deal => {
+    const mockScore = Math.floor(Math.random() * 40) + 50; // 50-90
+    const riskLevel = getESGRiskLevel(mockScore);
+    return {
+      id: deal.id,
+      company_id: deal.id,
+      company_name: deal.name,
+      sector: deal.sector || 'Unknown',
+      overall_score: mockScore,
+      e_score: Math.floor(Math.random() * 40) + 50,
+      s_score: Math.floor(Math.random() * 40) + 50,
+      g_score: Math.floor(Math.random() * 40) + 50,
+      risk_level: riskLevel.value,
+      source: 'pipeline'
+    };
+  });
+
+  const allESGData = [...portfolioESGData, ...pipelineESGData];
+
   // Calculate risk distribution
-  const riskDistribution = portfolioESGData.reduce((acc, item) => {
+  const riskDistribution = allESGData.reduce((acc, item) => {
     acc[item.risk_level] = (acc[item.risk_level] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -47,13 +76,13 @@ export default function ESGAnalytics() {
   }));
 
   // Calculate average scores
-  const avgOverallScore = Math.round(portfolioESGData.reduce((sum, item) => sum + item.overall_score, 0) / portfolioESGData.length);
-  const avgEScore = Math.round(portfolioESGData.reduce((sum, item) => sum + item.e_score, 0) / portfolioESGData.length);
-  const avgSScore = Math.round(portfolioESGData.reduce((sum, item) => sum + item.s_score, 0) / portfolioESGData.length);
-  const avgGScore = Math.round(portfolioESGData.reduce((sum, item) => sum + item.g_score, 0) / portfolioESGData.length);
+  const avgOverallScore = Math.round(allESGData.reduce((sum, item) => sum + item.overall_score, 0) / allESGData.length);
+  const avgEScore = Math.round(allESGData.reduce((sum, item) => sum + item.e_score, 0) / allESGData.length);
+  const avgSScore = Math.round(allESGData.reduce((sum, item) => sum + item.s_score, 0) / allESGData.length);
+  const avgGScore = Math.round(allESGData.reduce((sum, item) => sum + item.g_score, 0) / allESGData.length);
 
   // Sector breakdown
-  const sectorData = portfolioESGData.reduce((acc, item) => {
+  const sectorData = allESGData.reduce((acc, item) => {
     const sector = item.sector;
     if (!acc[sector]) {
       acc[sector] = { count: 0, totalScore: 0 };
@@ -75,24 +104,32 @@ export default function ESGAnalytics() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">ESG Analytics</h1>
         <p className="text-muted-foreground">
-          Environmental, Social, and Governance insights across your portfolio
+          Environmental, Social, and Governance insights across portfolio and pipeline
         </p>
       </div>
 
-      {/* Portfolio Overview */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Portfolio ESG Score</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{avgOverallScore}</div>
-            <p className="text-xs text-muted-foreground">
-              Average across {portfolioESGData.length} companies
-            </p>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="all" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="all">All ({allESGData.length})</TabsTrigger>
+          <TabsTrigger value="portfolio">Portfolio ({portfolioESGData.length})</TabsTrigger>
+          <TabsTrigger value="pipeline">Pipeline ({pipelineESGData.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-6">
+          {/* Portfolio Overview */}
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Average ESG Score</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{avgOverallScore}</div>
+                <p className="text-xs text-muted-foreground">
+                  Across {allESGData.length} entities
+                </p>
+              </CardContent>
+            </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -226,31 +263,36 @@ export default function ESGAnalytics() {
       {/* Company Rankings */}
       <Card>
         <CardHeader>
-          <CardTitle>Company ESG Rankings</CardTitle>
+          <CardTitle>ESG Rankings</CardTitle>
           <CardDescription>
-            ESG performance across all portfolio companies
+            ESG performance across portfolio and pipeline
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {portfolioESGData
+            {allESGData
               .sort((a, b) => b.overall_score - a.overall_score)
-              .map((company, index) => {
-                const riskLevel = getESGRiskLevel(company.overall_score);
+              .map((entity, index) => {
+                const riskLevel = getESGRiskLevel(entity.overall_score);
                 return (
-                  <div key={company.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={entity.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-medium">
                         {index + 1}
                       </div>
                       <div>
-                        <h4 className="font-medium">{company.company_name}</h4>
-                        <p className="text-sm text-muted-foreground">{company.sector}</p>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium">{entity.company_name}</h4>
+                          <Badge variant={entity.source === 'pipeline' ? 'outline' : 'secondary'}>
+                            {entity.source}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{entity.sector}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <div className="font-medium">{company.overall_score}</div>
+                        <div className="font-medium">{entity.overall_score}</div>
                         <div className="text-xs text-muted-foreground">ESG Score</div>
                       </div>
                       <Badge variant="outline" className={`${riskLevel.color} border-current`}>
@@ -263,6 +305,84 @@ export default function ESGAnalytics() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="portfolio" className="space-y-6">
+          {/* Similar layout but filtered for portfolioESGData */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Portfolio Companies</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {portfolioESGData.map((entity, index) => {
+                  const riskLevel = getESGRiskLevel(entity.overall_score);
+                  return (
+                    <div key={entity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{entity.company_name}</h4>
+                          <p className="text-sm text-muted-foreground">{entity.sector}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="font-medium">{entity.overall_score}</div>
+                          <div className="text-xs text-muted-foreground">ESG Score</div>
+                        </div>
+                        <Badge variant="outline" className={`${riskLevel.color} border-current`}>
+                          {riskLevel.label}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pipeline" className="space-y-6">
+          {/* Similar layout but filtered for pipelineESGData */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pipeline Deals</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {pipelineESGData.map((entity, index) => {
+                  const riskLevel = getESGRiskLevel(entity.overall_score);
+                  return (
+                    <div key={entity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{entity.company_name}</h4>
+                          <p className="text-sm text-muted-foreground">{entity.sector}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="font-medium">{entity.overall_score}</div>
+                          <div className="text-xs text-muted-foreground">ESG Score</div>
+                        </div>
+                        <Badge variant="outline" className={`${riskLevel.color} border-current`}>
+                          {riskLevel.label}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

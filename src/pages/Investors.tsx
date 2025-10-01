@@ -8,70 +8,73 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { TrendingUp, Users, Search, Plus, Building, User, CreditCard } from 'lucide-react';
-import { mockInvestors, mockFunds, mockContacts } from '@/lib/mockData';
+import { mockFunds } from '@/lib/mockData';
 import { FundMetrics } from '@/components/Analytics/FundMetrics';
 import { useToast } from '@/hooks/use-toast';
+import { useInvestors, Investor } from '@/hooks/useInvestors';
+import { ViewInvestorDialog } from '@/components/Investors/ViewInvestorDialog';
 
 export default function Investors() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'individual' | 'institution' | 'family_office'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedInvestor, setSelectedInvestor] = useState<Investor | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    type: '',
+    check_size: '',
+    location: '',
+    website: '',
+    notes: '',
+  });
   const { toast } = useToast();
+  const { investors, createInvestor } = useInvestors();
+  
   const formatCurrency = (amount: number) => {
     return `£${(amount / 1000000).toFixed(1)}M`;
   };
 
-  const getContactForInvestor = (contactId?: string) => {
-    return mockContacts.find(contact => contact.id === contactId);
+  const getInvestorTypeIcon = (type?: string) => {
+    if (type?.toLowerCase().includes('institution')) return Building;
+    if (type?.toLowerCase().includes('family')) return Users;
+    return User;
   };
 
-  const getInvestorTypeIcon = (type: 'individual' | 'institution' | 'family_office') => {
-    switch (type) {
-      case 'individual':
-        return User;
-      case 'institution':
-        return Building;
-      case 'family_office':
-        return Users;
-      default:
-        return User;
-    }
+  const getInvestorTypeColor = (type?: string) => {
+    if (type?.toLowerCase().includes('institution')) return 'bg-green-100 text-green-800';
+    if (type?.toLowerCase().includes('family')) return 'bg-purple-100 text-purple-800';
+    return 'bg-blue-100 text-blue-800';
   };
 
-  const getInvestorTypeColor = (type: 'individual' | 'institution' | 'family_office') => {
-    switch (type) {
-      case 'individual':
-        return 'bg-blue-100 text-blue-800';
-      case 'institution':
-        return 'bg-green-100 text-green-800';
-      case 'family_office':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const filteredInvestors = mockInvestors.filter(investor => {
-    const contact = getContactForInvestor(investor.contact_id);
-    const matchesSearch = investor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contact?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contact?.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredInvestors = investors.filter(investor => {
+    const matchesSearch = investor.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || investor.type === typeFilter;
     return matchesSearch && matchesType;
   });
 
   const handleCreateInvestor = () => {
-    toast({ title: "Investor added", description: "New investor has been added to your network" });
+    if (!formData.name.trim()) return;
+    createInvestor(formData);
+    setFormData({ name: '', type: '', check_size: '', location: '', website: '', notes: '' });
     setIsDialogOpen(false);
   };
 
-  const handleViewInvestor = (investorId: string) => {
-    toast({ title: "Investor details", description: "Investor profile view will be implemented" });
+  const handleViewInvestor = (investor: Investor) => {
+    setSelectedInvestor(investor);
+    setIsViewDialogOpen(true);
   };
 
-  const handleEditInvestor = (investorId: string) => {
-    toast({ title: "Edit investor", description: "Investor editing functionality will be implemented" });
+  const handleContactInvestor = (investor: Investor) => {
+    if (investor.website) {
+      window.open(investor.website.startsWith('http') ? investor.website : `https://${investor.website}`, '_blank');
+    }
+    toast({ 
+      title: "Contact Investor", 
+      description: `Initiating contact with ${investor.name}` 
+    });
   };
 
   return (
@@ -84,10 +87,94 @@ export default function Investors() {
             Manage investor relationships and fund commitments
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Investor
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Investor
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Investor</DialogTitle>
+              <DialogDescription>
+                Add a new investor or LP to your network
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="investor-name">Name</Label>
+                <Input 
+                  id="investor-name" 
+                  placeholder="Investor name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="type">Type</Label>
+                  <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Institutional">Institutional</SelectItem>
+                      <SelectItem value="Family Office">Family Office</SelectItem>
+                      <SelectItem value="Angel">Angel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="check-size">Check Size</Label>
+                  <Input 
+                    id="check-size" 
+                    placeholder="£1M-£5M"
+                    value={formData.check_size}
+                    onChange={(e) => setFormData(prev => ({ ...prev, check_size: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input 
+                    id="location" 
+                    placeholder="London, UK"
+                    value={formData.location}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input 
+                    id="website" 
+                    placeholder="example.com"
+                    value={formData.website}
+                    onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea 
+                  id="notes" 
+                  placeholder="Additional notes..."
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateInvestor}>
+                Add Investor
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Tabs defaultValue="investors" className="space-y-6">
@@ -123,7 +210,7 @@ export default function Investors() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockInvestors.length}</div>
+                <div className="text-2xl font-bold">{investors.length}</div>
                 <p className="text-xs text-muted-foreground">
                   Active relationships
                 </p>
@@ -137,7 +224,7 @@ export default function Investors() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {mockInvestors.filter(inv => inv.type === 'institution').length}
+                  {investors.filter(inv => inv.type?.toLowerCase().includes('institution')).length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Institutional investors
@@ -152,7 +239,7 @@ export default function Investors() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {mockInvestors.filter(inv => inv.type === 'family_office').length}
+                  {investors.filter(inv => inv.type?.toLowerCase().includes('family')).length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Family office relationships
@@ -175,15 +262,14 @@ export default function Investors() {
                   <TableRow>
                     <TableHead>Investor</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Relationship</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Check Size</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockInvestors.map((investor) => {
-                    const contact = getContactForInvestor(investor.contact_id);
+                  {filteredInvestors.map((investor) => {
                     const TypeIcon = getInvestorTypeIcon(investor.type);
                     
                     return (
@@ -196,43 +282,32 @@ export default function Investors() {
                         </TableCell>
                         <TableCell>
                           <Badge className={getInvestorTypeColor(investor.type)}>
-                            {investor.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            {investor.type || 'N/A'}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {contact ? (
-                            <div>
-                              <div className="font-medium">{contact.first_name} {contact.last_name}</div>
-                              <div className="text-sm text-muted-foreground">{contact.email}</div>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">No contact assigned</span>
-                          )}
+                          {investor.location || <span className="text-muted-foreground">N/A</span>}
                         </TableCell>
                         <TableCell>
-                          {contact && (
-                            <Badge 
-                              variant="outline"
-                              className={
-                                contact.relationship_strength > 70 ? 'border-green-200 text-green-700' :
-                                contact.relationship_strength > 40 ? 'border-yellow-200 text-yellow-700' :
-                                'border-red-200 text-red-700'
-                              }
-                            >
-                              {contact.relationship_strength > 70 ? 'Strong' :
-                               contact.relationship_strength > 40 ? 'Medium' : 'Weak'}
-                            </Badge>
-                          )}
+                          {investor.check_size || <span className="text-muted-foreground">N/A</span>}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="default">Active</Badge>
+                          <Badge variant="default">{investor.status}</Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewInvestor(investor)}
+                            >
                               View
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleContactInvestor(investor)}
+                            >
                               Contact
                             </Button>
                           </div>
@@ -294,13 +369,13 @@ export default function Investors() {
                           <div className="text-muted-foreground">£0.0M</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium">LPs</div>
-                          <div className="text-muted-foreground">{mockInvestors.length} investors</div>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">LPs</div>
+                            <div className="text-muted-foreground">{investors.length} investors</div>
+                          </div>
                         </div>
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -309,6 +384,13 @@ export default function Investors() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ViewInvestorDialog
+        investor={selectedInvestor}
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        onContact={handleContactInvestor}
+      />
     </div>
   );
 }

@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, Users, DollarSign, Plus, Building2 } from 'lucide-react';
-import { mockPortfolioCompanies, mockKPIs } from '@/lib/mockData';
-import { PortfolioCompany, PortfolioKPI } from '@/types';
+import { TrendingUp, TrendingDown, Users, DollarSign, Plus, Building2, Edit } from 'lucide-react';
+import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
+import { useNavigate } from 'react-router-dom';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -17,18 +17,18 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function Portfolio() {
-  const [companies] = useState<PortfolioCompany[]>(mockPortfolioCompanies);
-  const [kpis] = useState<PortfolioKPI[]>(mockKPIs);
+  const { companies, isLoading } = usePortfolioCompanies();
+  const navigate = useNavigate();
 
-  const getCompanyKPIs = (companyId: string) => {
-    return kpis.find(kpi => kpi.company_id === companyId);
-  };
+  if (isLoading) {
+    return <div>Loading portfolio...</div>;
+  }
 
   const publicCompanies = companies.filter(c => c.is_public);
   const totalMarketCap = publicCompanies.reduce((sum, c) => sum + (c.market_cap || 0), 0);
-  const totalPortfolioValue = kpis.reduce((sum, kpi) => sum + (kpi.revenue || 0), 0);
-  const totalEmployees = kpis.reduce((sum, kpi) => sum + (kpi.headcount || 0), 0);
-  const avgESGScore = kpis.reduce((sum, kpi) => sum + (kpi.esg_score || 0), 0) / kpis.length;
+  const totalValuation = companies.reduce((sum, c) => sum + (c.valuation || 0), 0);
+  const totalInvestment = companies.reduce((sum, c) => sum + (c.investment_amount || 0), 0);
+  const avgOwnership = companies.reduce((sum, c) => sum + (c.ownership_percentage || 0), 0) / companies.length;
 
   return (
     <div className="space-y-6">
@@ -39,7 +39,7 @@ export default function Portfolio() {
             Monitor performance and track key metrics
           </p>
         </div>
-        <Button>
+        <Button onClick={() => navigate('/companies')}>
           <Plus className="mr-2 h-4 w-4" />
           Add Company
         </Button>
@@ -79,27 +79,28 @@ export default function Portfolio() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Revenue
+              Total Valuation
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <div className="text-2xl font-bold">{formatCurrency(totalPortfolioValue)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalValuation)}</div>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </div>
+            <p className="text-xs text-muted-foreground mt-1">Portfolio valuation</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Employees
+              Total Investment
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <div className="text-2xl font-bold">{totalEmployees}</div>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="text-2xl font-bold">{formatCurrency(totalInvestment)}</div>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -107,12 +108,12 @@ export default function Portfolio() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Avg ESG Score
+              Avg Ownership
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgESGScore.toFixed(0)}/100</div>
-            <Progress value={avgESGScore} className="mt-2" />
+            <div className="text-2xl font-bold">{avgOwnership.toFixed(1)}%</div>
+            <Progress value={avgOwnership} className="mt-2" />
           </CardContent>
         </Card>
       </div>
@@ -120,76 +121,92 @@ export default function Portfolio() {
       {/* Company Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {companies.map((company) => {
-          const companyKPIs = getCompanyKPIs(company.id);
-          
           return (
-            <Card key={company.id} className="cursor-pointer hover:shadow-md transition-shadow">
+            <Card 
+              key={company.id} 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => navigate(`/companies`)}
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-xl">{company.name}</CardTitle>
                     <div className="flex items-center gap-2 mt-1">
-                      {company.sector && (
-                        <Badge variant="outline">{company.sector}</Badge>
+                      {company.sectors?.name && (
+                        <Badge variant="outline">{company.sectors.name}</Badge>
                       )}
-                      {company.geography && (
-                        <Badge variant="secondary">{company.geography}</Badge>
+                      {company.location && (
+                        <Badge variant="secondary">{company.location}</Badge>
                       )}
                       {company.is_public && company.stock_ticker && (
                         <Badge variant="default">{company.stock_ticker}</Badge>
                       )}
                     </div>
                   </div>
-                  <div className="text-right text-sm text-muted-foreground">
-                    Invested: {company.investment_date ? 
-                      new Date(company.investment_date).toLocaleDateString() : 'N/A'}
-                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/companies`);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardHeader>
               
               <CardContent className="space-y-4">
-                {companyKPIs && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-sm text-muted-foreground">Revenue</div>
-                        <div className="text-lg font-semibold">
-                          {formatCurrency(companyKPIs.revenue || 0)}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-muted-foreground">EBITDA</div>
-                        <div className="text-lg font-semibold">
-                          {formatCurrency(companyKPIs.ebitda || 0)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-sm text-muted-foreground">ARR</div>
-                        <div className="text-lg font-semibold">
-                          {formatCurrency(companyKPIs.arr || 0)}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-muted-foreground">Headcount</div>
-                        <div className="text-lg font-semibold flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {companyKPIs.headcount || 0}
-                        </div>
-                      </div>
-                    </div>
-
+                <div className="grid grid-cols-2 gap-4">
+                  {company.valuation && (
                     <div>
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">ESG Score</span>
-                        <span className="font-medium">{companyKPIs.esg_score}/100</span>
+                      <div className="text-sm text-muted-foreground">Valuation</div>
+                      <div className="text-lg font-semibold">
+                        {formatCurrency(company.valuation)}
                       </div>
-                      <Progress value={companyKPIs.esg_score || 0} />
                     </div>
-                  </>
+                  )}
+                  {company.investment_amount && (
+                    <div>
+                      <div className="text-sm text-muted-foreground">Investment</div>
+                      <div className="text-lg font-semibold">
+                        {formatCurrency(company.investment_amount)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {company.ownership_percentage && (
+                    <div>
+                      <div className="text-sm text-muted-foreground">Ownership</div>
+                      <div className="text-lg font-semibold">{company.ownership_percentage}%</div>
+                    </div>
+                  )}
+                  {company.investment_date && (
+                    <div>
+                      <div className="text-sm text-muted-foreground">Investment Date</div>
+                      <div className="text-sm">
+                        {new Date(company.investment_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {company.is_public && company.market_cap && (
+                  <div>
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Market Cap</span>
+                      <span className="font-medium">{formatCurrency(company.market_cap)}</span>
+                    </div>
+                  </div>
                 )}
+
+                <div className="pt-2 border-t">
+                  <Badge variant={company.status === 'Active' ? 'default' : 'secondary'}>
+                    {company.status}
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
           );

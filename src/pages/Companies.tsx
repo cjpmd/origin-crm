@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Building2, Search, Plus, MapPin, Calendar, TrendingUp, Eye, Edit } from 'lucide-react';
 import { mockPortfolioCompanies, mockKPIs, mockESGRatings, mockESGHistory, mockSectorBenchmarks, getESGRiskLevel } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { useSectors } from '@/hooks/useSectors';
 import type { PortfolioCompany } from '@/types';
 import { ESGRatingCard } from "@/components/ESG/ESGRatingCard";
 import { ESGHistoryChart } from "@/components/ESG/ESGHistoryChart";
@@ -34,6 +35,7 @@ export default function Companies() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { startResearch, isStarting } = useResearch();
+  const { sectors } = useSectors();
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -61,8 +63,6 @@ export default function Companies() {
     const matchesSector = sectorFilter === 'all' || company.sector === sectorFilter;
     return matchesSearch && matchesSector;
   });
-
-  const sectors = [...new Set(companies.map(c => c.sector))];
 
   const handleCreateCompany = () => {
     toast({ title: "Company added", description: "New portfolio company has been added successfully" });
@@ -147,10 +147,9 @@ export default function Companies() {
                       <SelectValue placeholder="Select sector" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Technology">Technology</SelectItem>
-                      <SelectItem value="Healthcare">Healthcare</SelectItem>
-                      <SelectItem value="FinTech">FinTech</SelectItem>
-                      <SelectItem value="Consumer">Consumer</SelectItem>
+                      {sectors.map(sector => (
+                        <SelectItem key={sector.id} value={sector.name}>{sector.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -354,10 +353,9 @@ export default function Companies() {
                     <SelectValue placeholder="Select sector" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Technology">Technology</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                    <SelectItem value="FinTech">FinTech</SelectItem>
-                    <SelectItem value="Consumer">Consumer</SelectItem>
+                    {sectors.map(sector => (
+                      <SelectItem key={sector.id} value={sector.name}>{sector.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -411,7 +409,7 @@ export default function Companies() {
                 <SelectContent>
                   <SelectItem value="all">All Sectors</SelectItem>
                   {sectors.map(sector => (
-                    <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                    <SelectItem key={sector.id} value={sector.name}>{sector.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
