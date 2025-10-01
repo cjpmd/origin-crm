@@ -36,6 +36,36 @@ export default function Pipeline() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStage, setFilterStage] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
+  const [draggedDeal, setDraggedDeal] = useState<any>(null);
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, deal: any) => {
+    setDraggedDeal(deal);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, stage: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverStage(stage);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverStage(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetStage: string) => {
+    e.preventDefault();
+    setDragOverStage(null);
+    
+    if (draggedDeal && draggedDeal.stage !== targetStage) {
+      await updateDeal({
+        id: draggedDeal.id,
+        updates: { stage: targetStage }
+      });
+    }
+    setDraggedDeal(null);
+  };
 
   const filteredDeals = deals?.filter((deal) => {
     const matchesSearch = deal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -126,7 +156,13 @@ export default function Pipeline() {
             const stageValue = stageDeals.reduce((sum, deal) => sum + (Number(deal.valuation) || 0), 0);
             
             return (
-              <Card key={stage} className={`border-2 ${stageColors[stage]}`}>
+              <Card 
+                key={stage} 
+                className={`border-2 ${stageColors[stage]} ${dragOverStage === stage ? 'ring-2 ring-primary' : ''}`}
+                onDragOver={(e) => handleDragOver(e, stage)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, stage)}
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-semibold">{stage}</CardTitle>
@@ -144,8 +180,14 @@ export default function Pipeline() {
                     return (
                       <Card
                         key={deal.id}
-                        className="p-3 cursor-pointer hover:shadow-md transition-shadow bg-background"
-                        onClick={() => setSelectedDeal(deal)}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, deal)}
+                        className={`p-3 cursor-move hover:shadow-md transition-shadow bg-background ${
+                          draggedDeal?.id === deal.id ? 'opacity-50' : ''
+                        }`}
+                        onClick={(e) => {
+                          if (!draggedDeal) setSelectedDeal(deal);
+                        }}
                       >
                         <div className="space-y-3">
                           {/* Company Logo/Icon */}

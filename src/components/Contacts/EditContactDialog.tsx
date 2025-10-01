@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Contact } from '@/hooks/useContacts';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useLinkedInData } from '@/hooks/useLinkedInData';
+import { TrendingUp, TrendingDown, Minus, Download } from 'lucide-react';
 
 interface EditContactDialogProps {
   contact: Contact | null;
@@ -15,6 +16,7 @@ interface EditContactDialogProps {
 }
 
 export function EditContactDialog({ contact, open, onOpenChange, onSave }: EditContactDialogProps) {
+  const { fetchLinkedInData, fetching } = useLinkedInData();
   const [formData, setFormData] = useState({
     name: '',
     role: '',
@@ -49,6 +51,12 @@ export function EditContactDialog({ contact, open, onOpenChange, onSave }: EditC
     if (contact) {
       onSave({ id: contact.id, ...formData });
       onOpenChange(false);
+    }
+  };
+
+  const handleFetchLinkedIn = async () => {
+    if (contact && formData.linkedin) {
+      await fetchLinkedInData(formData.linkedin, 'contact', contact.id);
     }
   };
 
@@ -100,11 +108,27 @@ export function EditContactDialog({ contact, open, onOpenChange, onSave }: EditC
             </div>
             <div className="grid gap-2">
               <Label htmlFor="edit-linkedin">LinkedIn</Label>
-              <Input 
-                id="edit-linkedin" 
-                value={formData.linkedin}
-                onChange={(e) => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
-              />
+              <div className="flex gap-2">
+                <Input 
+                  id="edit-linkedin" 
+                  placeholder="https://linkedin.com/in/..."
+                  value={formData.linkedin}
+                  onChange={(e) => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleFetchLinkedIn}
+                  disabled={fetching || !formData.linkedin}
+                  title="Fetch LinkedIn data"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Add LinkedIn URL and click fetch to auto-populate image
+              </p>
             </div>
           </div>
           <div className="grid gap-2">

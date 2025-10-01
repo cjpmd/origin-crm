@@ -27,6 +27,7 @@ import { StockPriceChart } from "@/components/Market/StockPriceChart";
 import { ValuationMetrics } from "@/components/Market/ValuationMetrics";
 import { ResearchTrigger } from "@/components/Research/ResearchTrigger";
 import { KPIManagementDialog } from "@/components/Portfolio/KPIManagementDialog";
+import { EditCompanyDialog } from "@/components/Companies/EditCompanyDialog";
 import { AIInsightCard } from "@/components/Intelligence/AIInsightCard";
 import { ActivityTimeline } from "@/components/Activity/ActivityTimeline";
 import { useResearch } from "@/hooks/useResearch";
@@ -167,58 +168,18 @@ export default function Companies() {
     const company = companies.find(c => c.id === companyId);
     if (company) {
       setSelectedCompany(company);
-      setFormData({
-        name: company.name,
-        sector_id: company.sector_id || '',
-        stage: company.stage || '',
-        investment_date: company.investment_date || '',
-        investment_amount: company.investment_amount || undefined,
-        ownership_percentage: company.ownership_percentage || undefined,
-        valuation: company.valuation || undefined,
-        location: company.location || '',
-        website: company.website || '',
-        description: company.description || '',
-        status: company.status || 'Active',
-        is_public: company.is_public || false,
-        stock_ticker: company.stock_ticker || '',
-        current_stock_price: company.current_stock_price || undefined,
-        market_cap: company.market_cap || undefined,
-        enterprise_value: company.enterprise_value || undefined,
-        fund_id: company.fund_id || '',
-        deal_id: company.deal_id || '',
-        exit_date: company.exit_date || '',
-      });
       setIsEditDialogOpen(true);
     }
   };
 
-  const handleUpdateCompany = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedCompany && formData.name) {
+  const handleUpdateCompany = (data: any) => {
+    if (selectedCompany) {
       updateCompany({
         id: selectedCompany.id,
-        name: formData.name,
-        sector_id: formData.sector_id || undefined,
-        stage: formData.stage || undefined,
-        investment_date: formData.investment_date || undefined,
-        investment_amount: formData.investment_amount || undefined,
-        ownership_percentage: formData.ownership_percentage || undefined,
-        valuation: formData.valuation || undefined,
-        location: formData.location || undefined,
-        website: formData.website || undefined,
-        description: formData.description || undefined,
-        status: formData.status || 'Active',
-        is_public: formData.is_public || false,
-        stock_ticker: formData.stock_ticker || undefined,
-        current_stock_price: formData.current_stock_price || undefined,
-        market_cap: formData.market_cap || undefined,
-        enterprise_value: formData.enterprise_value || undefined,
-        fund_id: formData.fund_id || undefined,
-        deal_id: formData.deal_id || undefined,
-        exit_date: formData.exit_date || undefined,
+        ...data
       });
       setIsEditDialogOpen(false);
-      resetForm();
+      setSelectedCompany(null);
     }
   };
 
@@ -676,30 +637,14 @@ export default function Companies() {
       </Dialog>
 
       {/* Edit Company Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) resetForm(); }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Edit className="h-5 w-5" />
-              Edit Company
-            </DialogTitle>
-            <DialogDescription>
-              Update details for {selectedCompany?.name}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateCompany} className="grid gap-4 py-4">
-            <CompanyFormFields />
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                Update Company
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {selectedCompany && (
+        <EditCompanyDialog
+          company={selectedCompany}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSave={handleUpdateCompany}
+        />
+      )}
 
       {/* KPI Management Dialog */}
       {selectedCompany && (

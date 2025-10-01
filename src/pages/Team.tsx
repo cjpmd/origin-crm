@@ -11,12 +11,13 @@ import { useProfiles } from "@/hooks/useProfiles";
 import { useContacts } from "@/hooks/useContacts";
 import { useActivities } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
+import { useDeals } from "@/hooks/useDeals";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamMemberDialog } from "@/components/Settings/TeamMemberDialog";
 import { 
   Search, UserPlus, Mail, Calendar, Edit, Trash2, 
   Phone, Building2, MapPin, Linkedin, FileText,
-  Users, TrendingUp, CheckCircle, Clock
+  Users, TrendingUp, CheckCircle, Clock, GitBranch
 } from "lucide-react";
 
 export default function Team() {
@@ -90,10 +91,13 @@ export default function Team() {
     }
   };
 
+  const { deals } = useDeals();
+  
   const memberContacts = contacts?.filter(c => c.user_id === selectedMemberData?.user_id) || [];
   const memberActivities = activities?.filter(a => a.user_id === selectedMemberData?.user_id).slice(0, 10) || [];
   const memberTasks = tasks?.filter(t => t.user_id === selectedMemberData?.user_id) || [];
   const completedTasks = memberTasks.filter(t => t.status === 'Completed').length;
+  const memberDeals = deals?.filter(d => d.owner === selectedMemberData?.id || d.user_id === selectedMemberData?.user_id) || [];
 
   return (
     <div className="space-y-6">
@@ -233,7 +237,16 @@ export default function Team() {
 
                   <TabsContent value="overview" className="space-y-6 mt-6">
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-5 gap-4">
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col items-center text-center">
+                            <GitBranch className="h-8 w-8 text-purple-600 mb-2" />
+                            <p className="text-2xl font-bold">{memberDeals.length}</p>
+                            <p className="text-xs text-muted-foreground">Deals</p>
+                          </div>
+                        </CardContent>
+                      </Card>
                       <Card>
                         <CardContent className="pt-6">
                           <div className="flex flex-col items-center text-center">
@@ -358,7 +371,38 @@ export default function Team() {
                   </TabsContent>
 
                   <TabsContent value="introductions" className="mt-6">
-                    <p className="text-sm text-muted-foreground">Introduction tracking coming soon...</p>
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Pipeline Deals ({memberDeals.length})</h3>
+                      {memberDeals.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No deals assigned</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {memberDeals.map((deal) => (
+                            <Card key={deal.id} className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-full bg-primary/10">
+                                    <GitBranch className="h-4 w-4 text-primary" />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium">{deal.name}</p>
+                                    <p className="text-sm text-muted-foreground">{deal.sector || 'No sector'}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <Badge>{deal.stage}</Badge>
+                                  {deal.valuation && (
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      ${(deal.valuation / 1000000).toFixed(1)}M
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="notes" className="mt-6">
