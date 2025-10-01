@@ -52,6 +52,7 @@ const navigation = [
   { name: 'Investors', href: '/investors', icon: TrendingUp },
   { name: 'Portfolio', href: '/portfolio', icon: BarChart3 },
   { name: 'Analytics', href: '/analytics', icon: LineChart },
+  { name: 'Intermediaries', href: '/intermediaries', icon: Users },
   { name: 'ESG Analytics', href: '/esg-analytics', icon: Leaf },
   { name: 'Sectoral Analysis', href: '/sectoral-analysis', icon: TreePine },
   { name: 'Reports', href: '/reports', icon: BarChart3 },

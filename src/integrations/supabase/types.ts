@@ -324,6 +324,63 @@ export type Database = {
           },
         ]
       }
+      deal_sources: {
+        Row: {
+          attribution_notes: string | null
+          contact_id: string | null
+          created_at: string
+          deal_id: string
+          id: string
+          intermediary_id: string | null
+          introduction_date: string | null
+          source_quality_score: number | null
+          source_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attribution_notes?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id: string
+          id?: string
+          intermediary_id?: string | null
+          introduction_date?: string | null
+          source_quality_score?: number | null
+          source_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attribution_notes?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string
+          id?: string
+          intermediary_id?: string | null
+          introduction_date?: string | null
+          source_quality_score?: number | null
+          source_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_sources_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_sources_intermediary_id_fkey"
+            columns: ["intermediary_id"]
+            isOneToOne: false
+            referencedRelation: "intermediaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           company_id: string | null
@@ -731,6 +788,114 @@ export type Database = {
           vintage_year?: number | null
         }
         Relationships: []
+      }
+      intermediaries: {
+        Row: {
+          created_at: string
+          email: string | null
+          firm: string | null
+          id: string
+          last_contact_date: string | null
+          linkedin: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          relationship_strength: number | null
+          successful_deals: number | null
+          total_deals_sourced: number | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          firm?: string | null
+          id?: string
+          last_contact_date?: string | null
+          linkedin?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          relationship_strength?: number | null
+          successful_deals?: number | null
+          total_deals_sourced?: number | null
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          firm?: string | null
+          id?: string
+          last_contact_date?: string | null
+          linkedin?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          relationship_strength?: number | null
+          successful_deals?: number | null
+          total_deals_sourced?: number | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      intermediary_coverage: {
+        Row: {
+          coverage_strength: number | null
+          created_at: string
+          id: string
+          interaction_count: number | null
+          intermediary_id: string
+          last_interaction_date: string | null
+          notes: string | null
+          sector_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coverage_strength?: number | null
+          created_at?: string
+          id?: string
+          interaction_count?: number | null
+          intermediary_id: string
+          last_interaction_date?: string | null
+          notes?: string | null
+          sector_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coverage_strength?: number | null
+          created_at?: string
+          id?: string
+          interaction_count?: number | null
+          intermediary_id?: string
+          last_interaction_date?: string | null
+          notes?: string | null
+          sector_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intermediary_coverage_intermediary_id_fkey"
+            columns: ["intermediary_id"]
+            isOneToOne: false
+            referencedRelation: "intermediaries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intermediary_coverage_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       investor_contacts: {
         Row: {

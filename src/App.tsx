@@ -22,6 +22,7 @@ import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Tasks from "./pages/Tasks";
+import Intermediaries from "./pages/Intermediaries";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="research/company/:companyId" element={<Research />} />
             <Route path="research/sector/:sectorId" element={<Research />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="intermediaries" element={<Intermediaries />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="tasks" element={<Tasks />} />

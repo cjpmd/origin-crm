@@ -11,6 +11,7 @@ import { useSectors } from "@/hooks/useSectors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditDealDialog } from "@/components/Pipeline/EditDealDialog";
 import { PromoteDealDialog } from "@/components/Pipeline/PromoteDealDialog";
+import { DealDetailsDialog } from "@/components/Pipeline/DealDetailsDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +52,7 @@ export default function Pipeline() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null);
   const [promotingDeal, setPromotingDeal] = useState<Deal | null>(null);
+  const [viewingDeal, setViewingDeal] = useState<Deal | null>(null);
   const [newDeal, setNewDeal] = useState({
     name: "",
     stage: "Lead",
@@ -256,11 +258,12 @@ export default function Pipeline() {
                   const isClosing = stage.id === "Closing";
                   
                   return (
-                    <Card
+                     <Card
                       key={deal.id}
                       draggable
                       onDragStart={() => handleDragStart(deal.id)}
-                      className={`cursor-move hover:shadow-lg transition-all bg-card border-border hover:border-primary/50 ${
+                      onClick={() => setViewingDeal(deal)}
+                      className={`cursor-pointer hover:shadow-lg transition-all bg-card border-border hover:border-primary/50 ${
                         draggedDealId === deal.id ? 'opacity-50' : ''
                       }`}
                     >
@@ -370,6 +373,15 @@ export default function Pipeline() {
           open={!!promotingDeal}
           onOpenChange={(open) => !open && setPromotingDeal(null)}
           onSuccess={() => setPromotingDeal(null)}
+        />
+      )}
+
+      {/* View Deal Details Dialog */}
+      {viewingDeal && (
+        <DealDetailsDialog
+          deal={viewingDeal}
+          open={!!viewingDeal}
+          onOpenChange={(open) => !open && setViewingDeal(null)}
         />
       )}
     </div>
