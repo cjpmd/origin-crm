@@ -24,7 +24,8 @@ import {
   Search,
   Leaf,
   LogOut,
-  User
+  User,
+  Briefcase
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -42,6 +43,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Pipeline', href: '/pipeline', icon: GitBranch },
+  { name: 'Funds', href: '/funds', icon: Briefcase },
   { name: 'Contacts', href: '/contacts', icon: Users },
   { name: 'Companies', href: '/companies', icon: Building2 },
   { name: 'Investors', href: '/investors', icon: TrendingUp },

@@ -2,44 +2,78 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, PieChart, Calculator, Target } from 'lucide-react';
-import { mockFunds, mockKPIs } from '@/lib/mockData';
+import { useFunds } from '@/hooks/useFunds';
+import { useFundCommitments } from '@/hooks/useFundCommitments';
+import { usePortfolioKPIs } from '@/hooks/usePortfolioKPIs';
+import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
 
 export function FundMetrics() {
-  const fund = mockFunds[0];
-  const totalKPIs = mockKPIs.reduce((acc, kpi) => ({
+  const { funds, isLoading: fundsLoading } = useFunds();
+  const fund = funds[0]; // Default to first fund
+  const { commitments } = useFundCommitments(fund?.id);
+  const { kpis } = usePortfolioKPIs();
+  const { companies } = usePortfolioCompanies();
+
+  // Calculate actual totals from portfolio companies linked to this fund
+  const fundCompanies = companies.filter(c => c.fund_id === fund?.id);
+  const fundCompanyIds = fundCompanies.map(c => c.id);
+  const fundKPIs = kpis.filter(kpi => fundCompanyIds.includes(kpi.company_id));
+  
+  const totalKPIs = fundKPIs.reduce((acc, kpi) => ({
     revenue: acc.revenue + (kpi.revenue || 0),
     ebitda: acc.ebitda + (kpi.ebitda || 0),
     arr: acc.arr + (kpi.arr || 0)
   }), { revenue: 0, ebitda: 0, arr: 0 });
 
-  // Mock calculations for PE metrics
-  const irr = 24.5; // Internal Rate of Return %
-  const moic = 2.8; // Multiple of Invested Capital
-  const dpi = 1.2; // Distributions to Paid-In capital
-  const tvpi = 2.1; // Total Value to Paid-In capital
+  // Calculate actual commitment metrics
+  const totalCommitment = commitments.reduce((sum, c) => sum + c.commitment_amount, 0);
+  const totalCalled = commitments.reduce((sum, c) => sum + (c.called_amount || 0), 0);
+  const totalDistributed = commitments.reduce((sum, c) => sum + (c.distributed_amount || 0), 0);
 
-  const commitmentProgress = ((fund?.total_commitment || 0) / (fund?.target_commitment || 1)) * 100;
+  // Calculate PE metrics (simplified calculations)
+  const investedCapital = totalCalled || 1;
+  const currentValue = fundCompanies.reduce((sum, c) => sum + (c.valuation || 0), 0);
+  const dpi = totalDistributed / investedCapital; // Distributions to Paid-In
+  const rvpi = currentValue / investedCapital; // Residual Value to Paid-In
+  const tvpi = dpi + rvpi; // Total Value to Paid-In
+  const moic = tvpi; // Multiple of Invested Capital
+  
+  // Simplified IRR calculation (would need actual cash flow dates for precision)
+  const years = fund?.vintage_year ? new Date().getFullYear() - fund.vintage_year : 1;
+  const irr = years > 0 ? ((Math.pow(moic, 1/years) - 1) * 100) : 0;
+
+  const commitmentProgress = fund?.fund_size ? (totalCommitment / fund.fund_size) * 100 : 0;
+
+  if (fundsLoading || !fund) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">No fund data available. Create a fund to get started.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const metrics = [
     {
       label: 'IRR',
-      value: `${irr}%`,
+      value: `${irr.toFixed(1)}%`,
       description: 'Internal Rate of Return',
-      trend: 'up',
+      trend: irr > (fund.target_irr || 0) ? 'up' : 'stable',
       icon: TrendingUp,
       color: 'text-green-600'
     },
     {
       label: 'MOIC',
-      value: `${moic}x`,
+      value: `${moic.toFixed(1)}x`,
       description: 'Multiple of Invested Capital',
-      trend: 'up',
+      trend: moic > (fund.target_moic || 1) ? 'up' : 'stable',
       icon: Calculator,
       color: 'text-blue-600'
     },
     {
       label: 'DPI',
-      value: `${dpi}x`,
+      value: `${dpi.toFixed(2)}x`,
       description: 'Distributions to Paid-In',
       trend: 'stable',
       icon: PieChart,
@@ -47,9 +81,9 @@ export function FundMetrics() {
     },
     {
       label: 'TVPI',
-      value: `${tvpi}x`,
+      value: `${tvpi.toFixed(2)}x`,
       description: 'Total Value to Paid-In',
-      trend: 'up',
+      trend: tvpi > 1 ? 'up' : 'stable',
       icon: Target,
       color: 'text-purple-600'
     }
@@ -60,9 +94,10 @@ export function FundMetrics() {
       {/* Fund Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>{fund?.name}</CardTitle>
+          <CardTitle>{fund.name}</CardTitle>
           <CardDescription>
-            Vintage {fund?.vintage_year} • Target £{((fund?.target_commitment || 0) / 1000000).toFixed(0)}M
+            {fund.strategy && <span>{fund.strategy} • </span>}
+            Vintage {fund.vintage_year} • Fund Size £{((fund.fund_size || 0) / 1000000).toFixed(0)}M
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -71,7 +106,7 @@ export function FundMetrics() {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Commitment Progress</span>
                 <span className="text-sm text-muted-foreground">
-                  £{((fund?.total_commitment || 0) / 1000000).toFixed(0)}M / £{((fund?.target_commitment || 0) / 1000000).toFixed(0)}M
+                  £{(totalCommitment / 1000000).toFixed(1)}M / £{((fund.fund_size || 0) / 1000000).toFixed(0)}M
                 </span>
               </div>
               <Progress value={commitmentProgress} className="h-2" />
@@ -79,6 +114,16 @@ export function FundMetrics() {
                 <span>0%</span>
                 <span>{commitmentProgress.toFixed(0)}% committed</span>
                 <span>100%</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+              <div>
+                <p className="text-xs text-muted-foreground">Capital Called</p>
+                <p className="text-lg font-semibold">£{(totalCalled / 1000000).toFixed(2)}M</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Distributed</p>
+                <p className="text-lg font-semibold">£{(totalDistributed / 1000000).toFixed(2)}M</p>
               </div>
             </div>
           </div>

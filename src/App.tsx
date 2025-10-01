@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Pipeline from "./pages/Pipeline";
 import Contacts from "./pages/Contacts";
 import Portfolio from "./pages/Portfolio";
+import Funds from "./pages/Funds";
 import Companies from "./pages/Companies";
 import Investors from "./pages/Investors";
 import ESGAnalytics from "./pages/ESGAnalytics";
@@ -54,6 +55,7 @@ const App = () => (
             <Route index element={<Index />} />
             <Route path="pipeline" element={<Pipeline />} />
             <Route path="contacts" element={<Contacts />} />
+            <Route path="funds" element={<Funds />} />
             <Route path="companies" element={<Companies />} />
             <Route path="investors" element={<Investors />} />
             <Route path="portfolio" element={<Portfolio />} />
