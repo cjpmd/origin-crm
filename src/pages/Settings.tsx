@@ -1,6 +1,7 @@
 import { SectorManagement } from '@/components/Settings/SectorManagement';
 import { CompanyProfileForm } from '@/components/Settings/CompanyProfileForm';
 import { CurrencySettings } from '@/components/Settings/CurrencySettings';
+import { ProfileForm } from '@/components/Settings/ProfileForm';
 import { TeamMemberDialog } from '@/components/Settings/TeamMemberDialog';
 import { RoleDialog } from '@/components/Settings/RoleDialog';
 import { PermissionsMatrix } from '@/components/Settings/PermissionsMatrix';
@@ -184,54 +185,7 @@ export default function Settings() {
         </TabsContent>
 
         <TabsContent value="profile" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Profile Information
-              </CardTitle>
-              <CardDescription>
-                Update your personal information and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" defaultValue="John" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" defaultValue="Doe" />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue="john.doe@company.com" />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <Select defaultValue="admin">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {userRoles.map((role) => (
-                      <SelectItem key={role.value} value={role.value}>
-                        {role.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex justify-end pt-4">
-                <Button>Save Changes</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <ProfileForm />
         </TabsContent>
 
         <TabsContent value="sectors" className="space-y-6">
