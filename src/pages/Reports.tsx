@@ -3,16 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Download, Calendar, TrendingUp, BarChart3, Users, Building2 } from 'lucide-react';
+import { FileText, Download, Calendar, TrendingUp, BarChart3, Users, Building2, Plus, Edit } from 'lucide-react';
 import { PortfolioCharts } from '@/components/Portfolio/PortfolioCharts';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import { useReportTemplates } from '@/hooks/useReportTemplates';
+import { ReportTemplateDialog } from '@/components/Reports/ReportTemplateDialog';
 
 export default function Reports() {
   const { analytics, isLoading } = useAnalytics();
+  const { templates, createTemplate, updateTemplate, deleteTemplate } = useReportTemplates();
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<any>(null);
 
   const handleGenerateReport = async (template: any) => {
     setGeneratingReport(template.id);
@@ -50,44 +55,23 @@ export default function Reports() {
     }
   };
 
-  const reportTemplates = [
-    {
-      id: '1',
-      name: 'Quarterly LP Report',
-      description: 'Comprehensive quarterly update for limited partners',
-      type: 'LP Communication',
-      frequency: 'Quarterly',
-      lastGenerated: '2024-01-15',
-      status: 'Ready'
-    },
-    {
-      id: '2',
-      name: 'Deal Pipeline Summary',
-      description: 'Current pipeline status and deal flow analysis',
-      type: 'Internal',
-      frequency: 'Monthly',
-      lastGenerated: '2024-01-20',
-      status: 'Ready'
-    },
-    {
-      id: '3',
-      name: 'Portfolio Performance',
-      description: 'Portfolio company KPIs and performance metrics', 
-      type: 'Investment Committee',
-      frequency: 'Monthly',
-      lastGenerated: '2024-01-18',
-      status: 'Ready'
-    },
-    {
-      id: '4',
-      name: 'Fund Performance Summary',
-      description: 'IRR, MOIC, and fund-level metrics',
-      type: 'LP Communication',
-      frequency: 'Quarterly',
-      lastGenerated: '2024-01-10',
-      status: 'Draft'
+  const handleEditTemplate = (template: any) => {
+    setEditingTemplate(template);
+    setTemplateDialogOpen(true);
+  };
+
+  const handleCreateTemplate = () => {
+    setEditingTemplate(null);
+    setTemplateDialogOpen(true);
+  };
+
+  const handleSaveTemplate = async (data: any) => {
+    if (editingTemplate) {
+      await updateTemplate(data);
+    } else {
+      await createTemplate(data);
     }
-  ];
+  };
 
   // Real-time quick reports based on actual data
   const quickReports = analytics ? [
@@ -188,7 +172,7 @@ export default function Reports() {
         <TabsContent value="templates" className="space-y-6">
           {/* Report Templates */}
           <div className="grid gap-4">
-            {reportTemplates.map((template) => (
+            {templates?.map((template) => (
               <Card key={template.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -204,20 +188,25 @@ export default function Reports() {
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {template.frequency}
+                            {template.frequency || 'On-Demand'}
                           </div>
-                          <span>Last: {formatDate(template.lastGenerated)}</span>
+                          <span>Created: {formatDate(template.created_at)}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-3">
                       <Badge variant="outline">{template.type}</Badge>
-                      <Badge className={getStatusColor(template.status)}>
-                        {template.status}
+                      <Badge variant={template.is_active ? "default" : "secondary"}>
+                        {template.is_active ? "Active" : "Inactive"}
                       </Badge>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditTemplate(template)}
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
                           Edit
                         </Button>
                         <Button 
@@ -246,13 +235,25 @@ export default function Reports() {
                 <p className="text-sm text-muted-foreground">
                   Build custom report templates for your specific needs
                 </p>
-                <Button variant="outline" className="mt-4">
+                <Button 
+                  variant="outline" 
+                  className="mt-4 gap-2"
+                  onClick={handleCreateTemplate}
+                >
+                  <Plus className="h-4 w-4" />
                   Create Template
                 </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
+
+        <ReportTemplateDialog
+          open={templateDialogOpen}
+          onOpenChange={setTemplateDialogOpen}
+          template={editingTemplate}
+          onSave={handleSaveTemplate}
+        />
 
         <TabsContent value="analytics" className="space-y-6">
           <PortfolioCharts />

@@ -1,4 +1,8 @@
 import { SectorManagement } from '@/components/Settings/SectorManagement';
+import { CompanyProfileForm } from '@/components/Settings/CompanyProfileForm';
+import { TeamMemberDialog } from '@/components/Settings/TeamMemberDialog';
+import { RoleDialog } from '@/components/Settings/RoleDialog';
+import { PermissionsMatrix } from '@/components/Settings/PermissionsMatrix';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { useRolesPermissions } from '@/hooks/useRolesPermissions';
+import { useState } from 'react';
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -19,10 +26,70 @@ import {
   Users,
   Mail,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  Edit,
+  Trash,
+  Plus,
+  Building2
 } from 'lucide-react';
 
 export default function Settings() {
+  const { members, inviteMember, updateMember, deleteMember } = useTeamMembers();
+  const { roles, permissions, createRole, updateRole, deleteRole } = useRolesPermissions();
+  const [memberDialogOpen, setMemberDialogOpen] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
+  const [editingRole, setEditingRole] = useState<any>(null);
+  const [selectedRole, setSelectedRole] = useState<any>(null);
+
+  const handleInviteMember = () => {
+    setEditingMember(null);
+    setMemberDialogOpen(true);
+  };
+
+  const handleEditMember = (member: any) => {
+    setEditingMember(member);
+    setMemberDialogOpen(true);
+  };
+
+  const handleSaveMember = async (data: any) => {
+    if (editingMember) {
+      await updateMember(data);
+    } else {
+      await inviteMember(data);
+    }
+  };
+
+  const handleDeleteMember = async (id: string) => {
+    if (confirm('Are you sure you want to remove this team member?')) {
+      await deleteMember(id);
+    }
+  };
+
+  const handleCreateRole = () => {
+    setEditingRole(null);
+    setRoleDialogOpen(true);
+  };
+
+  const handleEditRole = (role: any) => {
+    setEditingRole(role);
+    setRoleDialogOpen(true);
+  };
+
+  const handleSaveRole = async (data: any) => {
+    if (editingRole) {
+      await updateRole(data);
+    } else {
+      await createRole(data);
+    }
+  };
+
+  const handleDeleteRole = async (id: string) => {
+    if (confirm('Are you sure you want to delete this role?')) {
+      await deleteRole(id);
+    }
+  };
+
   const userRoles = [
     { value: 'admin', label: 'Admin', description: 'Full system access' },
     { value: 'deal_team', label: 'Deal Team', description: 'Manage deals and contacts' },
@@ -82,8 +149,9 @@ export default function Settings() {
         </div>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+      <Tabs defaultValue="company" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-8">
+          <TabsTrigger value="company">Company</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="sectors">Sectors</TabsTrigger>
@@ -92,6 +160,10 @@ export default function Settings() {
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="company" className="space-y-6">
+          <CompanyProfileForm />
+        </TabsContent>
 
         <TabsContent value="profile" className="space-y-6">
           <Card>
@@ -161,68 +233,132 @@ export default function Settings() {
                     Manage team access and permissions
                   </CardDescription>
                 </div>
-                <Button>Invite Member</Button>
+                <Button onClick={handleInviteMember}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Invite Member
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-medium">
-                      JD
+                {members?.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-medium">
+                        {member.full_name?.substring(0, 2).toUpperCase() || member.email.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="font-medium">{member.full_name || member.email}</div>
+                        <div className="text-sm text-muted-foreground">{member.email}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium">John Doe</div>
-                      <div className="text-sm text-muted-foreground">john.doe@company.com</div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={member.status === 'active' ? 'default' : 'outline'}>
+                        {member.status}
+                      </Badge>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditMember(member)}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteMember(member.id)}
+                      >
+                        <Trash className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="default">Admin</Badge>
-                    <Button variant="outline" size="sm">Edit</Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-secondary-foreground text-sm font-medium">
-                      JS
-                    </div>
-                    <div>
-                      <div className="font-medium">Jane Smith</div>
-                      <div className="text-sm text-muted-foreground">jane.smith@company.com</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">Deal Team</Badge>
-                    <Button variant="outline" size="sm">Edit</Button>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Role Permissions</CardTitle>
-              <CardDescription>
-                Overview of permissions for each role
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Role Management</CardTitle>
+                  <CardDescription>
+                    Create and manage custom roles
+                  </CardDescription>
+                </div>
+                <Button onClick={handleCreateRole}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Role
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {userRoles.map((role) => (
-                  <div key={role.value} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{role.label}</h4>
-                      <Badge variant="outline">{role.value}</Badge>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <h4 className="font-medium">Available Roles</h4>
+                  {roles?.map((role) => (
+                    <div 
+                      key={role.id} 
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        selectedRole?.id === role.id ? 'border-primary bg-accent' : 'hover:bg-accent'
+                      }`}
+                      onClick={() => setSelectedRole(role)}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <h5 className="font-medium">{role.name}</h5>
+                        {role.is_system && <Badge variant="secondary">System</Badge>}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{role.description}</p>
+                      {!role.is_system && (
+                        <div className="flex gap-2 mt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditRole(role);
+                            }}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRole(role.id);
+                            }}
+                          >
+                            <Trash className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{role.description}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div>
+                  <PermissionsMatrix selectedRole={selectedRole} />
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TeamMemberDialog
+          open={memberDialogOpen}
+          onOpenChange={setMemberDialogOpen}
+          member={editingMember}
+          onSave={handleSaveMember}
+        />
+
+        <RoleDialog
+          open={roleDialogOpen}
+          onOpenChange={setRoleDialogOpen}
+          role={editingRole}
+          onSave={handleSaveRole}
+        />
 
         <TabsContent value="notifications" className="space-y-6">
           <Card>

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { 
+import { useCompanyProfile } from '@/hooks/useCompanyProfile';
+import {
   SidebarProvider, 
   Sidebar, 
   SidebarContent, 
@@ -57,6 +58,7 @@ const navigation = [
 export default function AppLayout() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, signOut } = useAuth();
+  const { profile } = useCompanyProfile();
 
   const getUserInitials = () => {
     if (!user?.email) return 'U';
@@ -69,10 +71,16 @@ export default function AppLayout() {
         <Sidebar>
           <SidebarHeader className="border-b border-sidebar-border p-4">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">PE</span>
-              </div>
-              <span className="font-semibold text-sidebar-foreground">Deal Flow CRM</span>
+              {profile?.logo_url ? (
+                <img src={profile.logo_url} alt="Company Logo" className="h-8 w-8 object-contain" />
+              ) : (
+                <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-sm">PE</span>
+                </div>
+              )}
+              <span className="font-semibold text-sidebar-foreground">
+                {profile?.company_name || 'Deal Flow CRM'}
+              </span>
             </div>
           </SidebarHeader>
           
