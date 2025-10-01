@@ -5,20 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, TrendingDown, Users, DollarSign, Plus, Building2, Edit } from 'lucide-react';
 import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { useNavigate } from 'react-router-dom';
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
-
 export default function Portfolio() {
-  const { companies, isLoading } = usePortfolioCompanies();
+  const { formatCurrency } = useCurrency();
   const navigate = useNavigate();
+  const { companies, isLoading } = usePortfolioCompanies();
 
   if (isLoading) {
     return <div>Loading portfolio...</div>;

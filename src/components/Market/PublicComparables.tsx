@@ -3,20 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TrendingUp, TrendingDown, Building2 } from "lucide-react";
 import { mockPublicComparables } from "@/lib/mockData";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface PublicComparablesProps {
   sector: string;
 }
 
 export function PublicComparables({ sector }: PublicComparablesProps) {
+  const { formatCurrency, currencySymbol } = useCurrency();
   const comparables = mockPublicComparables.filter(c => c.sector === sector);
-
-  const formatMarketCap = (value: number) => {
-    if (value >= 1000000000) {
-      return `$${(value / 1000000000).toFixed(1)}B`;
-    }
-    return `$${(value / 1000000).toFixed(1)}M`;
-  };
 
   return (
     <Card>
@@ -48,7 +43,7 @@ export function PublicComparables({ sector }: PublicComparablesProps) {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <span>${comp.stock_price.toFixed(2)}</span>
+                    <span>{currencySymbol}{comp.stock_price.toFixed(2)}</span>
                     {comp.price_change_1d && (
                       <span className={`flex items-center text-xs ${comp.price_change_1d > 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {comp.price_change_1d > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -57,7 +52,7 @@ export function PublicComparables({ sector }: PublicComparablesProps) {
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-right">{formatMarketCap(comp.market_cap)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(comp.market_cap)}</TableCell>
                 <TableCell className="text-right">{comp.ev_revenue_multiple?.toFixed(1)}x</TableCell>
                 <TableCell className="text-right">{comp.ev_ebitda_multiple?.toFixed(1)}x</TableCell>
                 <TableCell className="text-right">{comp.pe_ratio?.toFixed(1)}x</TableCell>

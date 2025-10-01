@@ -26,7 +26,7 @@ interface FundCommitmentsDialogProps {
 }
 
 export function FundCommitmentsDialog({ open, onOpenChange, fundId, fundName }: FundCommitmentsDialogProps) {
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, currencySymbol } = useCurrency();
   const { commitments, isLoading, createCommitment, updateCommitment, deleteCommitment } = useFundCommitments(fundId);
   const { investors } = useInvestors();
   const [isAddMode, setIsAddMode] = useState(false);
@@ -144,7 +144,7 @@ export function FundCommitmentsDialog({ open, onOpenChange, fundId, fundName }: 
               </div>
 
               <div>
-                <Label htmlFor="commitment_amount">Commitment Amount (£) *</Label>
+                <Label htmlFor="commitment_amount">Commitment Amount ({currencySymbol}) *</Label>
                 <Input
                   id="commitment_amount"
                   type="number"
@@ -156,7 +156,7 @@ export function FundCommitmentsDialog({ open, onOpenChange, fundId, fundName }: 
               </div>
 
               <div>
-                <Label htmlFor="called_amount">Called Amount (£)</Label>
+                <Label htmlFor="called_amount">Called Amount ({currencySymbol})</Label>
                 <Input
                   id="called_amount"
                   type="number"
@@ -167,7 +167,7 @@ export function FundCommitmentsDialog({ open, onOpenChange, fundId, fundName }: 
               </div>
 
               <div>
-                <Label htmlFor="distributed_amount">Distributed Amount (£)</Label>
+                <Label htmlFor="distributed_amount">Distributed Amount ({currencySymbol})</Label>
                 <Input
                   id="distributed_amount"
                   type="number"

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import type { Investor } from "@/hooks/useInvestors";
 
 interface EditInvestorDialogProps {
@@ -15,6 +16,7 @@ interface EditInvestorDialogProps {
 }
 
 export function EditInvestorDialog({ investor, open, onOpenChange, onSave }: EditInvestorDialogProps) {
+  const { currencySymbol } = useCurrency();
   const [formData, setFormData] = useState<Partial<Investor>>({});
 
   useEffect(() => {
@@ -84,7 +86,7 @@ export function EditInvestorDialog({ investor, open, onOpenChange, onSave }: Edi
               id="check_size"
               value={formData.check_size || ""}
               onChange={(e) => setFormData({ ...formData, check_size: e.target.value })}
-              placeholder="e.g., $5M-$10M"
+              placeholder={`e.g., ${currencySymbol}5M-${currencySymbol}10M`}
             />
           </div>
           <div className="space-y-2">

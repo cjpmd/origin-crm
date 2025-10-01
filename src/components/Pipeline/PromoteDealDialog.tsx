@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Deal } from "@/hooks/useDeals";
 import { usePortfolioCompanies } from "@/hooks/usePortfolioCompanies";
 import { useSectors } from "@/hooks/useSectors";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ interface PromoteDealDialogProps {
 }
 
 export function PromoteDealDialog({ deal, open, onOpenChange, onSuccess }: PromoteDealDialogProps) {
+  const { currencySymbol } = useCurrency();
   const { createCompany } = usePortfolioCompanies();
   const { getSectorById } = useSectors();
   const [formData, setFormData] = useState({
@@ -138,7 +140,7 @@ export function PromoteDealDialog({ deal, open, onOpenChange, onSuccess }: Promo
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="investment-amount">Investment Amount ($)</Label>
+              <Label htmlFor="investment-amount">Investment Amount ({currencySymbol})</Label>
               <Input
                 id="investment-amount"
                 type="number"
@@ -147,7 +149,7 @@ export function PromoteDealDialog({ deal, open, onOpenChange, onSuccess }: Promo
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="valuation">Valuation ($)</Label>
+              <Label htmlFor="valuation">Valuation ({currencySymbol})</Label>
               <Input
                 id="valuation"
                 type="number"

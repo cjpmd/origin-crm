@@ -16,10 +16,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useInvestors, Investor } from '@/hooks/useInvestors';
 import { useFunds } from '@/hooks/useFunds';
 import { useFundCommitments } from '@/hooks/useFundCommitments';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { ViewInvestorDialog } from '@/components/Investors/ViewInvestorDialog';
 import { EditInvestorDialog } from '@/components/Investors/EditInvestorDialog';
 
 export default function Investors() {
+  const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -39,10 +41,6 @@ export default function Investors() {
   const { investors, createInvestor, updateInvestor, deleteInvestor } = useInvestors();
   const { funds } = useFunds();
   const { commitments } = useFundCommitments();
-
-  const formatCurrency = (amount: number) => {
-    return `$${(amount / 1000000).toFixed(1)}M`;
-  };
 
   const getInvestorTypeIcon = (type?: string) => {
     if (type?.toLowerCase().includes('institution')) return Building;

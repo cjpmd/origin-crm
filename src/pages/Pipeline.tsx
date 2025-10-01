@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, DollarSign, TrendingUp, Building2, Pencil, Trash2, ArrowUpCircle } from "lucide-react";
 import { useDeals, Deal } from "@/hooks/useDeals";
 import { useSectors } from "@/hooks/useSectors";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditDealDialog } from "@/components/Pipeline/EditDealDialog";
 import { PromoteDealDialog } from "@/components/Pipeline/PromoteDealDialog";
@@ -28,15 +29,6 @@ const dealStageConfig = [
   { id: "Closing", name: "Closing", color: "bg-green-100 dark:bg-green-900/30" },
 ];
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
-
 const getInitials = (name: string) => {
   return name
     .split(" ")
@@ -47,6 +39,7 @@ const getInitials = (name: string) => {
 };
 
 export default function Pipeline() {
+  const { formatCurrency } = useCurrency();
   const { deals, isLoading, createDeal, updateDeal, deleteDeal, isUpdating } = useDeals();
   const { activeSectors, getSectorById } = useSectors();
   const [isDialogOpen, setIsDialogOpen] = useState(false);

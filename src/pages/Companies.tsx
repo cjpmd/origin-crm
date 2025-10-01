@@ -1,4 +1,3 @@
-// Portfolio Companies Management Page
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
 import { usePortfolioKPIs } from '@/hooks/usePortfolioKPIs';
 import { useFunds } from '@/hooks/useFunds';
 import { useDeals } from '@/hooks/useDeals';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import type { PortfolioCompany } from '@/hooks/usePortfolioCompanies';
 import { ESGRatingCard } from "@/components/ESG/ESGRatingCard";
 import { ESGHistoryChart } from "@/components/ESG/ESGHistoryChart";
@@ -34,6 +34,7 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Companies() {
+  const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [sectorFilter, setSectorFilter] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -78,10 +79,6 @@ export default function Companies() {
       month: 'short',
       day: 'numeric'
     });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return `$${(amount / 1000000).toFixed(1)}M`;
   };
 
   const getKPIForCompany = (companyId: string) => {

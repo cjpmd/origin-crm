@@ -5,6 +5,7 @@ import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-rea
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
 import { useDeals } from '@/hooks/useDeals';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const chartConfig = {
   revenue: {
@@ -22,6 +23,7 @@ const chartConfig = {
 };
 
 export function PortfolioCharts() {
+  const { formatCurrency } = useCurrency();
   const { analytics, isLoading: analyticsLoading } = useAnalytics();
   const { companies, isLoading: companiesLoading } = usePortfolioCompanies();
   const { deals, isLoading: dealsLoading } = useDeals();
@@ -123,7 +125,7 @@ export function PortfolioCharts() {
                 <div>
                   <div className="text-sm text-muted-foreground">Total Deal Value</div>
                   <div className="text-2xl font-bold">
-                    £{(analytics.dealFlow.totalValue / 1000000).toFixed(1)}M
+                    {formatCurrency(analytics.dealFlow.totalValue)}
                   </div>
                 </div>
                 <TrendingUp className="h-8 w-8 text-primary" />
