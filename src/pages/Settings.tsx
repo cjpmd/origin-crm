@@ -1,5 +1,6 @@
 import { SectorManagement } from '@/components/Settings/SectorManagement';
 import { CompanyProfileForm } from '@/components/Settings/CompanyProfileForm';
+import { CurrencySettings } from '@/components/Settings/CurrencySettings';
 import { TeamMemberDialog } from '@/components/Settings/TeamMemberDialog';
 import { RoleDialog } from '@/components/Settings/RoleDialog';
 import { PermissionsMatrix } from '@/components/Settings/PermissionsMatrix';
@@ -165,6 +166,21 @@ export default function Settings() {
 
         <TabsContent value="company" className="space-y-6">
           <CompanyProfileForm />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Currency Preference
+              </CardTitle>
+              <CardDescription>
+                Choose your preferred currency for displaying monetary values
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CurrencySettings />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="profile" className="space-y-6">

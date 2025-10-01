@@ -28,7 +28,10 @@ import {
   LogOut,
   User,
   Briefcase,
-  LineChart
+  LineChart,
+  Network,
+  FileText,
+  CheckSquare
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -52,10 +55,12 @@ const navigation = [
   { name: 'Investors', href: '/investors', icon: TrendingUp },
   { name: 'Portfolio', href: '/portfolio', icon: BarChart3 },
   { name: 'Analytics', href: '/analytics', icon: LineChart },
-  { name: 'Intermediaries', href: '/intermediaries', icon: Users },
+  { name: 'Intermediaries', href: '/intermediaries', icon: Network },
   { name: 'ESG Analytics', href: '/esg-analytics', icon: Leaf },
   { name: 'Sectoral Analysis', href: '/sectoral-analysis', icon: TreePine },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
+  { name: 'Reports', href: '/reports', icon: FileText },
+  { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+  { name: 'Team', href: '/team', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings }
 ];
 
@@ -134,13 +139,6 @@ export default function AppLayout() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                Add Deal
-              </Button>
-              <Button size="sm">
-                Add Contact
-              </Button>
-              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">

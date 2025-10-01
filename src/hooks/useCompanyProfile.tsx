@@ -11,6 +11,7 @@ export interface CompanyProfile {
   phone?: string;
   email?: string;
   website?: string;
+  currency_preference?: string;
   created_at: string;
   updated_at: string;
 }

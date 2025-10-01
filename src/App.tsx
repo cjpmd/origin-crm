@@ -22,6 +22,7 @@ import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Tasks from "./pages/Tasks";
+import Team from "./pages/Team";
 import Intermediaries from "./pages/Intermediaries";
 import NotFound from "./pages/NotFound";
 
@@ -72,6 +73,7 @@ const App = () => (
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="tasks" element={<Tasks />} />
+            <Route path="team" element={<Team />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
