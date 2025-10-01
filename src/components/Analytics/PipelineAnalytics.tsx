@@ -2,8 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usePipelineAnalytics } from "@/hooks/usePipelineAnalytics";
 import { TrendingUp, TrendingDown, Target, Clock, Award, AlertTriangle } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export function PipelineAnalytics() {
+  const { formatCurrency } = useCurrency();
   const { metrics, isLoading } = usePipelineAnalytics();
 
   if (isLoading) {
@@ -107,7 +109,7 @@ export function PipelineAnalytics() {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    ${(stage.value / 1000000).toFixed(1)}M total value
+                    {formatCurrency(stage.value)} total value
                   </p>
                 </div>
               ))}

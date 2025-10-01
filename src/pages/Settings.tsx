@@ -326,7 +326,7 @@ export default function Settings() {
           open={memberDialogOpen}
           onOpenChange={setMemberDialogOpen}
           member={editingMember}
-          onSave={handleSaveMember}
+          onSubmit={handleSaveMember}
         />
 
         <RoleDialog

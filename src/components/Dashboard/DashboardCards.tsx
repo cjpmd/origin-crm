@@ -2,8 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Users, Building2, Target, DollarSign } from 'lucide-react';
 import { mockDeals, mockContacts, mockInvestors, mockPortfolioCompanies } from '@/lib/mockData';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export function DashboardCards() {
+  const { formatCurrency } = useCurrency();
   const totalDeals = mockDeals.length;
   const activeDeals = mockDeals.filter(deal => !['exit', 'close'].includes(deal.stage)).length;
   const totalContacts = mockContacts.length;
@@ -41,7 +43,7 @@ export function DashboardCards() {
     },
     {
       title: 'Average Deal Size',
-      value: `£${(avgDealSize / 1000000).toFixed(1)}M`,
+      value: formatCurrency(avgDealSize),
       description: 'current pipeline',
       icon: DollarSign,
       trend: 'up',

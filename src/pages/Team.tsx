@@ -1,266 +1,235 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { useTeamMembers } from '@/hooks/useTeamMembers';
-import { useProfiles } from '@/hooks/useProfiles';
-import { 
-  Users, 
-  Search, 
-  FileText, 
-  Calendar, 
-  CheckSquare,
-  Network,
-  UserPlus
-} from 'lucide-react';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
+import { useProfiles } from "@/hooks/useProfiles";
+import { TeamMemberDialog } from "@/components/Settings/TeamMemberDialog";
+import { Search, UserPlus, Mail, Calendar, Edit, Trash2 } from "lucide-react";
 
 export default function Team() {
-  const { members } = useTeamMembers();
+  const { members, isLoading, inviteMember, updateMember, deleteMember } = useTeamMembers();
   const { profiles } = useProfiles();
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
 
-  const filteredMembers = members?.filter(member =>
+  const filteredMembers = members?.filter((member) =>
     member.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getInitials = (name: string | undefined, email: string) => {
+  const selectedMemberData = members?.find(m => m.id === selectedMember);
+
+  const getInitials = (name?: string, email?: string) => {
     if (name) {
       return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
-    return email.slice(0, 2).toUpperCase();
+    return email ? email[0].toUpperCase() : '?';
   };
 
-  const selectedMemberData = members?.find(m => m.id === selectedMember);
+  const handleInvite = async (data: { email: string; full_name: string }) => {
+    if (editingMember) {
+      await updateMember({ id: editingMember.id, full_name: data.full_name });
+    } else {
+      await inviteMember(data);
+    }
+    setIsDialogOpen(false);
+    setEditingMember(null);
+  };
+
+  const handleEdit = (member: any) => {
+    setEditingMember(member);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to remove this team member?')) {
+      await deleteMember(id);
+      if (selectedMember === id) {
+        setSelectedMember(null);
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Team</h1>
           <p className="text-muted-foreground">
-            Manage your team and track collaboration
+            Manage your team members and their access
           </p>
         </div>
-        <Button>
-          <UserPlus className="h-4 w-4 mr-2" />
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <UserPlus className="mr-2 h-4 w-4" />
           Invite Member
         </Button>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Team Members List */}
-        <div className="col-span-4 space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                <CardTitle>Team Members</CardTitle>
-              </div>
-              <div className="relative mt-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search team members..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {filteredMembers?.map((member) => {
-                const profile = profiles.find(p => p.id === member.user_id);
-                return (
-                  <div
-                    key={member.id}
-                    onClick={() => setSelectedMember(member.id)}
-                    className={`p-4 rounded-lg border cursor-pointer transition-colors ${
-                      selectedMember === member.id
-                        ? 'bg-accent border-accent'
-                        : 'hover:bg-accent/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {getInitials(member.full_name, member.email)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
-                          {member.full_name || member.email}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Team Members</CardTitle>
+            <CardDescription>
+              {members?.length || 0} member{members?.length !== 1 ? 's' : ''}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search members..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            <div className="space-y-2">
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : filteredMembers?.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No members found</p>
+              ) : (
+                filteredMembers?.map((member) => {
+                  const profile = profiles.find(p => p.id === member.user_id);
+                  return (
+                    <Card
+                      key={member.id}
+                      className={`p-3 cursor-pointer transition-colors hover:bg-accent ${
+                        selectedMember === member.id ? 'border-primary bg-accent' : ''
+                      }`}
+                      onClick={() => setSelectedMember(member.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={profile?.avatar_url || undefined} />
+                          <AvatarFallback>
+                            {getInitials(member.full_name, member.email)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">
+                            {member.full_name || member.email}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {member.email}
+                          </p>
                         </div>
-                        <div className="text-sm text-muted-foreground truncate">
-                          {member.email}
-                        </div>
-                        <Badge 
-                          variant={member.status === 'active' ? 'default' : 'secondary'}
-                          className="mt-1"
-                        >
+                        <Badge variant={member.status === 'Active' ? 'default' : 'secondary'}>
                           {member.status}
                         </Badge>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-        </div>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Member Details */}
-        <div className="col-span-8">
+        <Card className="lg:col-span-2">
           {selectedMemberData ? (
-            <Card>
+            <>
               <CardHeader>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={profiles.find(p => p.id === selectedMemberData.user_id)?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                      {getInitials(selectedMemberData.full_name, selectedMemberData.email)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle>{selectedMemberData.full_name || selectedMemberData.email}</CardTitle>
-                    <p className="text-muted-foreground">{selectedMemberData.email}</p>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={profiles.find(p => p.id === selectedMemberData.user_id)?.avatar_url || undefined} />
+                      <AvatarFallback className="text-lg">
+                        {getInitials(selectedMemberData.full_name, selectedMemberData.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle>{selectedMemberData.full_name || selectedMemberData.email}</CardTitle>
+                      <CardDescription className="flex items-center gap-2 mt-1">
+                        <Mail className="h-3 w-3" />
+                        {selectedMemberData.email}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(selectedMemberData)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(selectedMemberData.id)}>
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="overview" className="space-y-4">
-                  <TabsList className="grid w-full grid-cols-6">
+                <Tabs defaultValue="overview" className="w-full">
+                  <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="connections">Connections</TabsTrigger>
-                    <TabsTrigger value="introductions">Introductions</TabsTrigger>
-                    <TabsTrigger value="notes">Notes</TabsTrigger>
-                    <TabsTrigger value="reminders">Reminders</TabsTrigger>
-                    <TabsTrigger value="files">Files</TabsTrigger>
+                    <TabsTrigger value="activity">Activity</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="overview" className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="text-2xl font-bold">0</div>
-                          <div className="text-sm text-muted-foreground">Active Deals</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="text-2xl font-bold">0</div>
-                          <div className="text-sm text-muted-foreground">Connections</div>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="text-2xl font-bold">0</div>
-                          <div className="text-sm text-muted-foreground">Introductions</div>
-                        </CardContent>
-                      </Card>
+                  <TabsContent value="overview" className="space-y-4 mt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Status</p>
+                        <Badge variant={selectedMemberData.status === 'Active' ? 'default' : 'secondary'}>
+                          {selectedMemberData.status}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Member Since</p>
+                        <p className="text-sm flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(selectedMemberData.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
 
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Recent Activity</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">No recent activity</p>
-                      </CardContent>
-                    </Card>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Invited At</p>
+                      <p className="text-sm">
+                        {new Date(selectedMemberData.invited_at).toLocaleString()}
+                      </p>
+                    </div>
+
+                    {selectedMemberData.joined_at && (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Joined At</p>
+                        <p className="text-sm">
+                          {new Date(selectedMemberData.joined_at).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
                   </TabsContent>
 
-                  <TabsContent value="connections" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center gap-2">
-                          <Network className="h-5 w-5" />
-                          <CardTitle className="text-base">Network Connections</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">No connections yet</p>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="introductions" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Deal Introductions</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">No introductions yet</p>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="notes" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          <CardTitle className="text-base">Notes</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <Textarea 
-                          placeholder="Add notes about this team member..."
-                          className="min-h-[200px]"
-                        />
-                        <Button>Save Note</Button>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="reminders" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center gap-2">
-                          <CheckSquare className="h-5 w-5" />
-                          <CardTitle className="text-base">Tasks & Reminders</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">No reminders set</p>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="files" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          <CardTitle className="text-base">Documents & Files</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">No files uploaded</p>
-                      </CardContent>
-                    </Card>
+                  <TabsContent value="activity" className="mt-4">
+                    <p className="text-sm text-muted-foreground">Activity tracking coming soon...</p>
                   </TabsContent>
                 </Tabs>
               </CardContent>
-            </Card>
+            </>
           ) : (
-            <Card className="h-full flex items-center justify-center">
-              <CardContent className="text-center py-12">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Select a team member to view their details
-                </p>
-              </CardContent>
-            </Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center text-muted-foreground">
+                <p>Select a team member to view details</p>
+              </div>
+            </CardContent>
           )}
-        </div>
+        </Card>
       </div>
+
+      <TeamMemberDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleInvite}
+        member={editingMember}
+      />
     </div>
   );
 }

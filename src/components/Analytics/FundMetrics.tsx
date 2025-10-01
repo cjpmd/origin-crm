@@ -6,8 +6,10 @@ import { useFunds } from '@/hooks/useFunds';
 import { useFundCommitments } from '@/hooks/useFundCommitments';
 import { usePortfolioKPIs } from '@/hooks/usePortfolioKPIs';
 import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export function FundMetrics() {
+  const { formatCurrency } = useCurrency();
   const { funds, isLoading: fundsLoading } = useFunds();
   const fund = funds[0]; // Default to first fund
   const { commitments } = useFundCommitments(fund?.id);
@@ -97,7 +99,7 @@ export function FundMetrics() {
           <CardTitle>{fund.name}</CardTitle>
           <CardDescription>
             {fund.strategy && <span>{fund.strategy} • </span>}
-            Vintage {fund.vintage_year} • Fund Size £{((fund.fund_size || 0) / 1000000).toFixed(0)}M
+            Vintage {fund.vintage_year} • Fund Size {formatCurrency(fund.fund_size)}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -106,7 +108,7 @@ export function FundMetrics() {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium">Commitment Progress</span>
                 <span className="text-sm text-muted-foreground">
-                  £{(totalCommitment / 1000000).toFixed(1)}M / £{((fund.fund_size || 0) / 1000000).toFixed(0)}M
+                  {formatCurrency(totalCommitment)} / {formatCurrency(fund.fund_size)}
                 </span>
               </div>
               <Progress value={commitmentProgress} className="h-2" />
@@ -119,11 +121,11 @@ export function FundMetrics() {
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">
               <div>
                 <p className="text-xs text-muted-foreground">Capital Called</p>
-                <p className="text-lg font-semibold">£{(totalCalled / 1000000).toFixed(2)}M</p>
+                <p className="text-lg font-semibold">{formatCurrency(totalCalled)}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Distributed</p>
-                <p className="text-lg font-semibold">£{(totalDistributed / 1000000).toFixed(2)}M</p>
+                <p className="text-lg font-semibold">{formatCurrency(totalDistributed)}</p>
               </div>
             </div>
           </div>
@@ -165,15 +167,15 @@ export function FundMetrics() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <div className="text-2xl font-bold">£{(totalKPIs.revenue / 1000000).toFixed(1)}M</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalKPIs.revenue)}</div>
               <p className="text-xs text-muted-foreground">Total Revenue</p>
             </div>
             <div>
-              <div className="text-2xl font-bold">£{(totalKPIs.ebitda / 1000000).toFixed(1)}M</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalKPIs.ebitda)}</div>
               <p className="text-xs text-muted-foreground">Total EBITDA</p>
             </div>
             <div>
-              <div className="text-2xl font-bold">£{(totalKPIs.arr / 1000000).toFixed(1)}M</div>
+              <div className="text-2xl font-bold">{formatCurrency(totalKPIs.arr)}</div>
               <p className="text-xs text-muted-foreground">Total ARR</p>
             </div>
           </div>

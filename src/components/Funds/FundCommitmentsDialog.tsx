@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 import { useFundCommitments } from '@/hooks/useFundCommitments';
 import { useInvestors } from '@/hooks/useInvestors';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import {
   Table,
   TableBody,
@@ -25,6 +26,7 @@ interface FundCommitmentsDialogProps {
 }
 
 export function FundCommitmentsDialog({ open, onOpenChange, fundId, fundName }: FundCommitmentsDialogProps) {
+  const { formatCurrency } = useCurrency();
   const { commitments, isLoading, createCommitment, updateCommitment, deleteCommitment } = useFundCommitments(fundId);
   const { investors } = useInvestors();
   const [isAddMode, setIsAddMode] = useState(false);
@@ -108,15 +110,15 @@ export function FundCommitmentsDialog({ open, onOpenChange, fundId, fundName }: 
         <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
           <div>
             <p className="text-sm text-muted-foreground">Total Committed</p>
-            <p className="text-2xl font-bold">£{(totalCommitment / 1000000).toFixed(2)}M</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalCommitment)}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total Called</p>
-            <p className="text-2xl font-bold">£{(totalCalled / 1000000).toFixed(2)}M</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalCalled)}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total Distributed</p>
-            <p className="text-2xl font-bold">£{(totalDistributed / 1000000).toFixed(2)}M</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalDistributed)}</p>
           </div>
         </div>
 
@@ -240,16 +242,16 @@ export function FundCommitmentsDialog({ open, onOpenChange, fundId, fundName }: 
                       {commitment.investors?.name || 'Unknown'}
                     </TableCell>
                     <TableCell className="text-right">
-                      £{(commitment.commitment_amount / 1000000).toFixed(2)}M
+                      {formatCurrency(commitment.commitment_amount)}
                     </TableCell>
                     <TableCell className="text-right">
-                      £{((commitment.called_amount || 0) / 1000000).toFixed(2)}M
+                      {formatCurrency(commitment.called_amount || 0)}
                     </TableCell>
                     <TableCell className="text-right">
-                      £{((commitment.distributed_amount || 0) / 1000000).toFixed(2)}M
+                      {formatCurrency(commitment.distributed_amount || 0)}
                     </TableCell>
                     <TableCell className="text-right">
-                      £{((commitment.commitment_amount - (commitment.called_amount || 0)) / 1000000).toFixed(2)}M
+                      {formatCurrency(commitment.commitment_amount - (commitment.called_amount || 0))}
                     </TableCell>
                     <TableCell>
                       <Badge variant={commitment.status === 'Active' ? 'default' : 'secondary'}>
