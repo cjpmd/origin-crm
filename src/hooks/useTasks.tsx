@@ -6,6 +6,7 @@ export interface Task {
   id: string;
   user_id: string;
   company_id?: string;
+  assigned_to?: string;
   title: string;
   description?: string;
   status: string;
@@ -17,6 +18,10 @@ export interface Task {
   portfolio_companies?: {
     id: string;
     name: string;
+  };
+  assigned_profile?: {
+    id: string;
+    full_name: string;
   };
 }
 
@@ -33,12 +38,16 @@ export function useTasks() {
           portfolio_companies (
             id,
             name
+          ),
+          assigned_profile:profiles!tasks_assigned_to_fkey (
+            id,
+            full_name
           )
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Task[];
+      return data as any;
     },
   });
 

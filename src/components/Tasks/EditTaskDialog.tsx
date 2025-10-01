@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Task } from '@/hooks/useTasks';
-import { useAuth } from '@/hooks/useAuth';
+import { Profile } from '@/hooks/useProfiles';
 
 interface EditTaskDialogProps {
   task: Task;
@@ -14,11 +14,12 @@ interface EditTaskDialogProps {
   onOpenChange: (open: boolean) => void;
   onUpdate: (updates: Partial<Task> & { id: string }) => void;
   companies: Array<{ id: string; name: string }>;
+  profiles: Profile[];
+  currentUserId?: string;
   deals: Array<{ id: string; name: string }>;
 }
 
-export function EditTaskDialog({ task, open, onOpenChange, onUpdate, companies, deals }: EditTaskDialogProps) {
-  const { user } = useAuth();
+export function EditTaskDialog({ task, open, onOpenChange, onUpdate, companies, profiles, currentUserId, deals }: EditTaskDialogProps) {
   const [formData, setFormData] = useState({
     title: task.title,
     description: task.description || '',
@@ -26,6 +27,7 @@ export function EditTaskDialog({ task, open, onOpenChange, onUpdate, companies, 
     priority: task.priority,
     due_date: task.due_date || '',
     company_id: task.company_id || '',
+    assigned_to: task.assigned_to || '',
   });
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export function EditTaskDialog({ task, open, onOpenChange, onUpdate, companies, 
       priority: task.priority,
       due_date: task.due_date || '',
       company_id: task.company_id || '',
+      assigned_to: task.assigned_to || '',
     });
   }, [task]);
 
@@ -50,6 +53,7 @@ export function EditTaskDialog({ task, open, onOpenChange, onUpdate, companies, 
       priority: formData.priority,
       due_date: formData.due_date || null,
       company_id: formData.company_id || null,
+      assigned_to: formData.assigned_to || null,
     });
     
     onOpenChange(false);
@@ -127,21 +131,39 @@ export function EditTaskDialog({ task, open, onOpenChange, onUpdate, companies, 
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="edit-company">Related Company</Label>
-              <Select value={formData.company_id || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, company_id: value === "none" ? "" : value }))}>
+              <Label htmlFor="edit-assignee">Assign To</Label>
+              <Select value={formData.assigned_to || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value === "none" ? "" : value }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select company" />
+                  <SelectValue placeholder="Select assignee" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {companies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>
-                      {company.name}
+                  <SelectItem value="none">Unassigned</SelectItem>
+                  {profiles.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.full_name || 'Unnamed User'}
+                      {profile.id === currentUserId && ' (Me)'}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="edit-company">Related Company</Label>
+            <Select value={formData.company_id || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, company_id: value === "none" ? "" : value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select company" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         

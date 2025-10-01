@@ -11,6 +11,7 @@ import { CheckSquare, Clock, AlertCircle, Plus, Calendar, User, TrendingUp, Brie
 import { useTasks, Task } from '@/hooks/useTasks';
 import { useAuth } from '@/hooks/useAuth';
 import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
+import { useProfiles } from '@/hooks/useProfiles';
 import { EditTaskDialog } from './EditTaskDialog';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,6 +31,7 @@ export function TaskManager() {
   const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
   const { user } = useAuth();
   const { companies } = usePortfolioCompanies();
+  const { profiles } = useProfiles();
   const navigate = useNavigate();
   
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
@@ -41,7 +43,8 @@ export function TaskManager() {
     priority: 'medium' as 'low' | 'medium' | 'high',
     status: 'pending' as 'pending' | 'in_progress' | 'completed',
     due_date: '',
-    company_id: ''
+    company_id: '',
+    assigned_to: ''
   });
 
   const filteredTasks = selectedStatus === 'all' 
@@ -75,6 +78,7 @@ export function TaskManager() {
       priority: formData.priority,
       due_date: formData.due_date || null,
       company_id: formData.company_id || null,
+      assigned_to: formData.assigned_to || null,
     });
     
     setFormData({ 
@@ -83,7 +87,8 @@ export function TaskManager() {
       priority: 'medium',
       status: 'pending',
       due_date: '', 
-      company_id: '' 
+      company_id: '',
+      assigned_to: ''
     });
     setIsCreateDialogOpen(false);
   };
@@ -186,27 +191,45 @@ export function TaskManager() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="company">Related Company</Label>
-                  <Select value={formData.company_id || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, company_id: value === "none" ? "" : value }))}>
+                  <Label htmlFor="assignee">Assign To</Label>
+                  <Select value={formData.assigned_to || user?.id || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value === "none" ? "" : value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select company" />
+                      <SelectValue placeholder="Select assignee" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
+                      <SelectItem value="none">Unassigned</SelectItem>
+                      {profiles.map((profile) => (
+                        <SelectItem key={profile.id} value={profile.id}>
+                          {profile.full_name || 'Unnamed User'}
+                          {profile.id === user?.id && ' (Me)'}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="company">Related Company</Label>
+                <Select value={formData.company_id || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, company_id: value === "none" ? "" : value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select company" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => {
                 setIsCreateDialogOpen(false);
-                setFormData({ title: '', description: '', priority: 'medium', status: 'pending', due_date: '', company_id: '' });
+                setFormData({ title: '', description: '', priority: 'medium', status: 'pending', due_date: '', company_id: '', assigned_to: '' });
               }}>
                 Cancel
               </Button>
@@ -288,10 +311,11 @@ export function TaskManager() {
                         </div>
                       )}
                       
-                      {user && (
+                      {task.assigned_to && (
                         <div className="flex items-center gap-1">
                           <User className="h-3 w-3" />
-                          Assigned to me
+                          {task.assigned_profile?.full_name || 'Unnamed User'}
+                          {task.assigned_to === user?.id && ' (Me)'}
                         </div>
                       )}
                       
@@ -354,6 +378,8 @@ export function TaskManager() {
           onOpenChange={(open) => !open && setEditingTask(null)}
           onUpdate={handleUpdateTask}
           companies={companies}
+          profiles={profiles}
+          currentUserId={user?.id}
           deals={[]}
         />
       )}
