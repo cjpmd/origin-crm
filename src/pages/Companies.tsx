@@ -27,8 +27,11 @@ import { StockPriceChart } from "@/components/Market/StockPriceChart";
 import { ValuationMetrics } from "@/components/Market/ValuationMetrics";
 import { ResearchTrigger } from "@/components/Research/ResearchTrigger";
 import { KPIManagementDialog } from "@/components/Portfolio/KPIManagementDialog";
+import { AIInsightCard } from "@/components/Intelligence/AIInsightCard";
+import { ActivityTimeline } from "@/components/Activity/ActivityTimeline";
 import { useResearch } from "@/hooks/useResearch";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Companies() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -525,126 +528,142 @@ export default function Companies() {
             </DialogDescription>
           </DialogHeader>
           {selectedCompany && (
-            <div className="space-y-6">
-              {/* Basic Company Info */}
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Company Name</Label>
-                  <p className="text-lg font-semibold">{selectedCompany.name}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Sector</Label>
-                  <div className="mt-1">
-                    <Badge variant="outline">{selectedCompany.sectors?.name || 'N/A'}</Badge>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Location</Label>
-                  <p className="flex items-center gap-1 mt-1">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    {selectedCompany.location || 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Investment Date</Label>
-                  <p className="flex items-center gap-1 mt-1">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {selectedCompany.investment_date ? formatDate(selectedCompany.investment_date) : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                  <Badge variant={selectedCompany.is_public ? "default" : "secondary"}>
-                    {selectedCompany.is_public ? "Public" : "Private"}
-                  </Badge>
-                </div>
-                {selectedCompany.is_public && selectedCompany.stock_ticker && (
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="intelligence">AI Intelligence</TabsTrigger>
+                <TabsTrigger value="activity">Activity</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-6 mt-4">
+                {/* Basic Company Info */}
+                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Stock Ticker</Label>
-                    <Badge variant="outline" className="mt-1">{selectedCompany.stock_ticker}</Badge>
+                    <Label className="text-sm font-medium text-muted-foreground">Company Name</Label>
+                    <p className="text-lg font-semibold">{selectedCompany.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Sector</Label>
+                    <div className="mt-1">
+                      <Badge variant="outline">{selectedCompany.sectors?.name || 'N/A'}</Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Location</Label>
+                    <p className="flex items-center gap-1 mt-1">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      {selectedCompany.location || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Investment Date</Label>
+                    <p className="flex items-center gap-1 mt-1">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      {selectedCompany.investment_date ? formatDate(selectedCompany.investment_date) : 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                    <Badge variant={selectedCompany.is_public ? "default" : "secondary"}>
+                      {selectedCompany.is_public ? "Public" : "Private"}
+                    </Badge>
+                  </div>
+                  {selectedCompany.is_public && selectedCompany.stock_ticker && (
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Stock Ticker</Label>
+                      <Badge variant="outline" className="mt-1">{selectedCompany.stock_ticker}</Badge>
+                    </div>
+                  )}
+                </div>
+
+                {/* Market Data Section */}
+                {selectedCompany.is_public && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <MarketCapCard company={selectedCompany as any} />
+                    <StockPriceChart companyId={selectedCompany.id} companyName={selectedCompany.name} />
                   </div>
                 )}
-              </div>
 
-              {/* Market Data Section */}
-              {selectedCompany.is_public && (
-                <div className="grid grid-cols-2 gap-4">
-                  <MarketCapCard company={selectedCompany as any} />
-                  <StockPriceChart companyId={selectedCompany.id} companyName={selectedCompany.name} />
-                </div>
-              )}
-
-              {/* KPI Section */}
-              {(() => {
-                const kpi = getKPIForCompany(selectedCompany.id);
-                return kpi && (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-sm font-medium text-muted-foreground">Key Performance Indicators</Label>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleManageKPIs(selectedCompany)}
-                        className="gap-2"
-                      >
-                        <BarChart3 className="h-4 w-4" />
-                        Manage KPIs
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 mt-2 p-4 bg-muted/50 rounded-lg">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.revenue || 0)}</p>
-                        <p className="text-sm text-muted-foreground">Revenue</p>
+                {/* KPI Section */}
+                {(() => {
+                  const kpi = getKPIForCompany(selectedCompany.id);
+                  return kpi && (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-sm font-medium text-muted-foreground">Key Performance Indicators</Label>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleManageKPIs(selectedCompany)}
+                          className="gap-2"
+                        >
+                          <BarChart3 className="h-4 w-4" />
+                          Manage KPIs
+                        </Button>
                       </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.ebitda || 0)}</p>
-                        <p className="text-sm text-muted-foreground">EBITDA</p>
+                      <div className="grid grid-cols-3 gap-4 mt-2 p-4 bg-muted/50 rounded-lg">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.revenue || 0)}</p>
+                          <p className="text-sm text-muted-foreground">Revenue</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-primary">{formatCurrency(kpi.ebitda || 0)}</p>
+                          <p className="text-sm text-muted-foreground">EBITDA</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-primary">{kpi.headcount || 0}</p>
+                          <p className="text-sm text-muted-foreground">Headcount</p>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{kpi.headcount || 0}</p>
-                        <p className="text-sm text-muted-foreground">Headcount</p>
-                      </div>
-                    </div>
-                    {selectedCompany.is_public && (
-                      <ValuationMetrics kpi={kpi as any} companyName={selectedCompany.name} />
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* ESG Section */}
-              {(() => {
-                const esgRating = mockESGRatings.find(r => r.company_id === selectedCompany.id);
-                const esgHistory = mockESGHistory.filter(h => h.esg_rating_id === esgRating?.id);
-                const sectorName = selectedCompany.sectors?.name;
-                const sectorBenchmark = mockSectorBenchmarks.find(b => 
-                  b.sector === sectorName && 
-                  b.geography === selectedCompany.location
-                );
-
-                return esgRating ? (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">ESG Analysis</h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                      <ESGRatingCard rating={esgRating} />
-                      {esgHistory.length > 0 && (
-                        <ESGHistoryChart history={esgHistory} />
-                      )}
-                      {sectorBenchmark && (
-                        <SectorBenchmarkChart 
-                          benchmark={sectorBenchmark} 
-                          companyRating={esgRating} 
-                        />
+                      {selectedCompany.is_public && (
+                        <ValuationMetrics kpi={kpi as any} companyName={selectedCompany.name} />
                       )}
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 border border-dashed rounded-lg">
-                    <p className="text-muted-foreground">No ESG data available for this company</p>
-                  </div>
-                );
-              })()}
-            </div>
+                  );
+                })()}
+
+                {/* ESG Section */}
+                {(() => {
+                  const esgRating = mockESGRatings.find(r => r.company_id === selectedCompany.id);
+                  const esgHistory = mockESGHistory.filter(h => h.esg_rating_id === esgRating?.id);
+                  const sectorName = selectedCompany.sectors?.name;
+                  const sectorBenchmark = mockSectorBenchmarks.find(b => 
+                    b.sector === sectorName && 
+                    b.geography === selectedCompany.location
+                  );
+
+                  return esgRating ? (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">ESG Analysis</h3>
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <ESGRatingCard rating={esgRating} />
+                        {esgHistory.length > 0 && (
+                          <ESGHistoryChart history={esgHistory} />
+                        )}
+                        {sectorBenchmark && (
+                          <SectorBenchmarkChart 
+                            benchmark={sectorBenchmark} 
+                            companyRating={esgRating} 
+                          />
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 border border-dashed rounded-lg">
+                      <p className="text-muted-foreground">No ESG data available for this company</p>
+                    </div>
+                  );
+                })()}
+              </TabsContent>
+
+              <TabsContent value="intelligence" className="mt-4">
+                <AIInsightCard entityType="company" entityId={selectedCompany.id} />
+              </TabsContent>
+
+              <TabsContent value="activity" className="mt-4">
+                <ActivityTimeline entityType="company" entityId={selectedCompany.id} />
+              </TabsContent>
+            </Tabs>
           )}
           <div className="flex justify-between gap-2">
             <ResearchTrigger

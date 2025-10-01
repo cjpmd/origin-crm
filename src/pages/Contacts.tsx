@@ -12,6 +12,9 @@ import { Mail, Phone, Building2, Plus, Search, Edit, Trash2, TrendingUp, Trendin
 import { useContacts, Contact } from '@/hooks/useContacts';
 import { useToast } from '@/hooks/use-toast';
 import { EditContactDialog } from '@/components/Contacts/EditContactDialog';
+import { NetworkGraph } from '@/components/Relationship/NetworkGraph';
+import { ActivityTimeline } from '@/components/Activity/ActivityTimeline';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Contacts() {
   const { contacts, createContact, updateContact, deleteContact } = useContacts();
@@ -184,133 +187,151 @@ export default function Contacts() {
         </Dialog>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search contacts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </div>
+      <Tabs defaultValue="contacts" className="w-full">
+        <TabsList>
+          <TabsTrigger value="contacts">All Contacts</TabsTrigger>
+          <TabsTrigger value="network">Network Graph</TabsTrigger>
+          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredContacts.map((contact) => {
-          const initials = contact.name.split(' ').map(n => n[0]).join('').toUpperCase();
-          
-          return (
-            <Card 
-              key={contact.id} 
-              className="hover:shadow-md transition-shadow"
-            >
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="text-sm font-medium">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-lg">
-                        {contact.name}
-                      </CardTitle>
-                      {contact.role && (
-                        <p className="text-sm text-muted-foreground">{contact.role}</p>
-                      )}
-                      {contact.relationship_strength !== undefined && (
-                        <div className="mt-2">
-                          {(() => {
-                            const badge = getRelationshipBadge(contact.relationship_strength);
-                            const Icon = badge.icon;
-                            return (
-                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${badge.color}`}>
-                                <Icon className="h-3 w-3" />
-                                {badge.label} ({contact.relationship_strength}%)
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-3">
-                {contact.portfolio_companies?.name && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span>{contact.portfolio_companies.name}</span>
-                  </div>
-                )}
-                
-                {contact.email && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="truncate">{contact.email}</span>
-                  </div>
-                )}
-                
-                {contact.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{contact.phone}</span>
-                  </div>
-                )}
-
-                {contact.last_contact_date && (
-                  <p className="text-xs text-muted-foreground pt-2 border-t">
-                    Last contacted: {new Date(contact.last_contact_date).toLocaleDateString()}
-                  </p>
-                )}
-
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditContact(contact);
-                    }}
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteContact(contact);
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-
-        {filteredContacts.length === 0 && (
-          <div className="col-span-full">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">
-                  {searchTerm 
-                    ? 'No contacts match your search criteria'
-                    : 'No contacts yet. Add your first contact to get started.'
-                  }
-                </p>
-              </CardContent>
-            </Card>
+        <TabsContent value="contacts" className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search contacts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
           </div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredContacts.map((contact) => {
+              const initials = contact.name.split(' ').map(n => n[0]).join('').toUpperCase();
+              
+              return (
+                <Card 
+                  key={contact.id} 
+                  className="hover:shadow-md transition-shadow"
+                >
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="text-sm font-medium">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <CardTitle className="text-lg">
+                            {contact.name}
+                          </CardTitle>
+                          {contact.role && (
+                            <p className="text-sm text-muted-foreground">{contact.role}</p>
+                          )}
+                          {contact.relationship_strength !== undefined && (
+                            <div className="mt-2">
+                              {(() => {
+                                const badge = getRelationshipBadge(contact.relationship_strength);
+                                const Icon = badge.icon;
+                                return (
+                                  <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${badge.color}`}>
+                                    <Icon className="h-3 w-3" />
+                                    {badge.label} ({contact.relationship_strength}%)
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-3">
+                    {contact.portfolio_companies?.name && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        <span>{contact.portfolio_companies.name}</span>
+                      </div>
+                    )}
+                    
+                    {contact.email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="truncate">{contact.email}</span>
+                      </div>
+                    )}
+                    
+                    {contact.phone && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span>{contact.phone}</span>
+                      </div>
+                    )}
+
+                    {contact.last_contact_date && (
+                      <p className="text-xs text-muted-foreground pt-2 border-t">
+                        Last contacted: {new Date(contact.last_contact_date).toLocaleDateString()}
+                      </p>
+                    )}
+
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditContact(contact);
+                        }}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteContact(contact);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {filteredContacts.length === 0 && (
+              <div className="col-span-full">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <p className="text-muted-foreground">
+                      {searchTerm 
+                        ? 'No contacts match your search criteria'
+                        : 'No contacts yet. Add your first contact to get started.'
+                      }
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="network">
+          <NetworkGraph />
+        </TabsContent>
+
+        <TabsContent value="activity">
+          <ActivityTimeline />
+        </TabsContent>
+      </Tabs>
 
       <EditContactDialog
         contact={selectedContact}

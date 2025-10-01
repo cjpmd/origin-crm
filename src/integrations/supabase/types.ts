@@ -14,6 +14,158 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          body: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          id: string
+          metadata: Json | null
+          subject: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type: string
+          body?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          metadata?: Json | null
+          subject?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          body?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          metadata?: Json | null
+          subject?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      activity_associations: {
+        Row: {
+          activity_id: string
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_associations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_insights: {
+        Row: {
+          confidence_score: number | null
+          content: string | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          expires_at: string | null
+          id: string
+          insight_type: string
+          metadata: Json | null
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          content?: string | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          expires_at?: string | null
+          id?: string
+          insight_type: string
+          metadata?: Json | null
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          content?: string | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string | null
+          id?: string
+          insight_type?: string
+          metadata?: Json | null
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      automation_rules: {
+        Row: {
+          actions: Json
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          trigger_conditions: Json
+          trigger_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actions?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          trigger_conditions?: Json
+          trigger_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          trigger_conditions?: Json
+          trigger_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       capital_calls: {
         Row: {
           call_amount: number
@@ -304,6 +456,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      enrichment_data: {
+        Row: {
+          created_at: string | null
+          data: Json
+          enriched_at: string | null
+          entity_id: string
+          entity_type: string
+          expires_at: string | null
+          id: string
+          source: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json
+          enriched_at?: string | null
+          entity_id: string
+          entity_type: string
+          expires_at?: string | null
+          id?: string
+          source: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          enriched_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string | null
+          id?: string
+          source?: string
+        }
+        Relationships: []
       }
       esg_ratings: {
         Row: {
@@ -678,6 +863,57 @@ export type Database = {
           },
         ]
       }
+      network_connections: {
+        Row: {
+          connection_strength: number | null
+          created_at: string | null
+          from_contact_id: string
+          id: string
+          notes: string | null
+          source: string | null
+          to_contact_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          connection_strength?: number | null
+          created_at?: string | null
+          from_contact_id: string
+          id?: string
+          notes?: string | null
+          source?: string | null
+          to_contact_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          connection_strength?: number | null
+          created_at?: string | null
+          from_contact_id?: string
+          id?: string
+          notes?: string | null
+          source?: string | null
+          to_contact_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "network_connections_from_contact_id_fkey"
+            columns: ["from_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "network_connections_to_contact_id_fkey"
+            columns: ["to_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           action: string
@@ -937,6 +1173,63 @@ export type Database = {
             columns: ["sector_id"]
             isOneToOne: false
             referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relationship_scores: {
+        Row: {
+          company_id: string | null
+          contact_id: string | null
+          created_at: string | null
+          frequency_score: number | null
+          id: string
+          interaction_count: number | null
+          last_interaction: string | null
+          recency_score: number | null
+          score: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          frequency_score?: number | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          recency_score?: number | null
+          score?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          frequency_score?: number | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          recency_score?: number | null
+          score?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationship_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relationship_scores_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
