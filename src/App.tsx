@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import { ResearchNotifications } from "@/components/Research/ResearchNotifications";
 import AppLayout from "./components/Layout/AppLayout";
+import { GlobalSearch } from "@/components/Search/GlobalSearch";
 import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 import Pipeline from "./pages/Pipeline";
@@ -18,6 +19,7 @@ import ESGAnalytics from "./pages/ESGAnalytics";
 import SectoralAnalysis from "./pages/SectoralAnalysis";
 import Research from "./pages/Research";
 import Reports from "./pages/Reports";
+import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Tasks from "./pages/Tasks";
 import NotFound from "./pages/NotFound";
@@ -64,6 +66,7 @@ const App = () => (
             <Route path="sectoral-analysis/:sectorId" element={<SectoralAnalysis />} />
             <Route path="research/company/:companyId" element={<Research />} />
             <Route path="research/sector/:sectorId" element={<Research />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="tasks" element={<Tasks />} />

@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { EditContactDialog } from '@/components/Contacts/EditContactDialog';
 import { NetworkGraph } from '@/components/Relationship/NetworkGraph';
 import { ActivityTimeline } from '@/components/Activity/ActivityTimeline';
+import { WarmPathFinder } from '@/components/Intelligence/WarmPathFinder';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Contacts() {
@@ -191,6 +192,7 @@ export default function Contacts() {
         <TabsList>
           <TabsTrigger value="contacts">All Contacts</TabsTrigger>
           <TabsTrigger value="network">Network Graph</TabsTrigger>
+          <TabsTrigger value="pathfinder">Warm Paths</TabsTrigger>
           <TabsTrigger value="activity">Recent Activity</TabsTrigger>
         </TabsList>
 
@@ -326,6 +328,10 @@ export default function Contacts() {
 
         <TabsContent value="network">
           <NetworkGraph />
+        </TabsContent>
+
+        <TabsContent value="pathfinder">
+          <WarmPathFinder />
         </TabsContent>
 
         <TabsContent value="activity">

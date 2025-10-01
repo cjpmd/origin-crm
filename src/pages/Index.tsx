@@ -5,6 +5,8 @@ import { Plus, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DashboardCards } from '@/components/Dashboard/DashboardCards';
 import { FundMetrics } from '@/components/Analytics/FundMetrics';
+import { SmartSuggestionsCard } from '@/components/Intelligence/SmartSuggestionsCard';
+import { PipelineAnalytics } from '@/components/Analytics/PipelineAnalytics';
 import { useTasks } from '@/hooks/useTasks';
 import { useDeals } from '@/hooks/useDeals';
 import { useContacts } from '@/hooks/useContacts';
@@ -44,6 +46,12 @@ const Index = () => {
 
       {/* Key Metrics */}
       <DashboardCards />
+
+      {/* Smart Suggestions */}
+      <SmartSuggestionsCard />
+
+      {/* Pipeline Analytics */}
+      <PipelineAnalytics />
 
       {/* Fund Performance */}
       <FundMetrics />

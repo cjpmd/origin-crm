@@ -3,6 +3,7 @@ import { CompanyProfileForm } from '@/components/Settings/CompanyProfileForm';
 import { TeamMemberDialog } from '@/components/Settings/TeamMemberDialog';
 import { RoleDialog } from '@/components/Settings/RoleDialog';
 import { PermissionsMatrix } from '@/components/Settings/PermissionsMatrix';
+import { AutomationRulesCard } from '@/components/Automation/AutomationRulesCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -150,11 +151,12 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="company" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="company">Company</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="sectors">Sectors</TabsTrigger>
+          <TabsTrigger value="automation">Automation</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
@@ -218,6 +220,10 @@ export default function Settings() {
 
         <TabsContent value="sectors" className="space-y-6">
           <SectorManagement />
+        </TabsContent>
+
+        <TabsContent value="automation" className="space-y-6">
+          <AutomationRulesCard />
         </TabsContent>
 
         <TabsContent value="team" className="space-y-6">

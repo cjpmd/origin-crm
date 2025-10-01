@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
+import { GlobalSearch } from '@/components/Search/GlobalSearch';
 import {
   SidebarProvider, 
   Sidebar, 
@@ -26,7 +27,8 @@ import {
   Leaf,
   LogOut,
   User,
-  Briefcase
+  Briefcase,
+  LineChart
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -49,6 +51,7 @@ const navigation = [
   { name: 'Companies', href: '/companies', icon: Building2 },
   { name: 'Investors', href: '/investors', icon: TrendingUp },
   { name: 'Portfolio', href: '/portfolio', icon: BarChart3 },
+  { name: 'Analytics', href: '/analytics', icon: LineChart },
   { name: 'ESG Analytics', href: '/esg-analytics', icon: Leaf },
   { name: 'Sectoral Analysis', href: '/sectoral-analysis', icon: TreePine },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
@@ -57,6 +60,7 @@ const navigation = [
 
 export default function AppLayout() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { profile } = useCompanyProfile();
 
@@ -67,6 +71,7 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider>
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
       <div className="min-h-screen flex w-full">
         <Sidebar>
           <SidebarHeader className="border-b border-sidebar-border p-4">
@@ -118,10 +123,11 @@ export default function AppLayout() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search deals, contacts, companies..."
-                  className="pl-8"
+                  placeholder="Search deals, contacts, companies... (⌘K)"
+                  className="pl-8 cursor-pointer"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onClick={() => setSearchOpen(true)}
+                  readOnly
                 />
               </div>
             </div>
