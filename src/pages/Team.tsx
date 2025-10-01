@@ -11,6 +11,7 @@ import { useProfiles } from "@/hooks/useProfiles";
 import { useContacts } from "@/hooks/useContacts";
 import { useActivities } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
+import { useAuth } from "@/hooks/useAuth";
 import { TeamMemberDialog } from "@/components/Settings/TeamMemberDialog";
 import { 
   Search, UserPlus, Mail, Calendar, Edit, Trash2, 
@@ -24,17 +25,38 @@ export default function Team() {
   const { contacts } = useContacts();
   const { activities } = useActivities();
   const { tasks } = useTasks();
+  const { user } = useAuth();
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
 
-  const filteredMembers = members?.filter((member) =>
+  // Combine current user profile with team members
+  const currentUserProfile = profiles.find(p => p.id === user?.id);
+  const allMembers = [
+    // Current user
+    ...(currentUserProfile ? [{
+      id: currentUserProfile.id,
+      user_id: currentUserProfile.id,
+      email: user?.email || '',
+      full_name: currentUserProfile.full_name,
+      status: 'Active',
+      invited_by: null,
+      invited_at: user?.created_at || new Date().toISOString(),
+      joined_at: user?.created_at || new Date().toISOString(),
+      created_at: user?.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }] : []),
+    // Other team members
+    ...(members || [])
+  ];
+
+  const filteredMembers = allMembers?.filter((member) =>
     member.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     member.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const selectedMemberData = members?.find(m => m.id === selectedMember);
+  const selectedMemberData = allMembers?.find(m => m.id === selectedMember);
   const selectedProfile = profiles.find(p => p.id === selectedMemberData?.user_id);
 
   const getInitials = (name?: string, email?: string) => {
@@ -94,7 +116,7 @@ export default function Team() {
           <CardHeader>
             <CardTitle>Team Members</CardTitle>
             <CardDescription>
-              {members?.length || 0} member{members?.length !== 1 ? 's' : ''}
+              {allMembers?.length || 0} member{allMembers?.length !== 1 ? 's' : ''}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -116,6 +138,7 @@ export default function Team() {
               ) : (
                 filteredMembers?.map((member) => {
                   const profile = profiles.find(p => p.id === member.user_id);
+                  const isCurrentUser = member.user_id === user?.id;
                   return (
                     <Card
                       key={member.id}
@@ -134,6 +157,7 @@ export default function Team() {
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold truncate">
                             {member.full_name || member.email}
+                            {isCurrentUser && ' (You)'}
                           </p>
                           <p className="text-sm text-muted-foreground truncate">
                             {member.email}
@@ -176,14 +200,23 @@ export default function Team() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(selectedMemberData)}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(selectedMemberData.id)}>
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Remove
-                    </Button>
+                    {selectedMemberData.user_id === user?.id ? (
+                      <Button variant="outline" size="sm" onClick={() => window.location.href = '/settings'}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit Profile
+                      </Button>
+                    ) : (
+                      <>
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(selectedMemberData)}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(selectedMemberData.id)}>
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardHeader>
