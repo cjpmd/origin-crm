@@ -21,6 +21,9 @@ export interface PortfolioCompany {
   current_stock_price?: number;
   market_cap?: number;
   enterprise_value?: number;
+  fund_id?: string;
+  deal_id?: string;
+  exit_date?: string;
   created_at: string;
   updated_at: string;
   sectors?: {

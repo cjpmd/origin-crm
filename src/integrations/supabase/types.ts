@@ -643,8 +643,11 @@ export type Database = {
         Row: {
           created_at: string
           current_stock_price: number | null
+          deal_id: string | null
           description: string | null
           enterprise_value: number | null
+          exit_date: string | null
+          fund_id: string | null
           id: string
           investment_amount: number | null
           investment_date: string | null
@@ -665,8 +668,11 @@ export type Database = {
         Insert: {
           created_at?: string
           current_stock_price?: number | null
+          deal_id?: string | null
           description?: string | null
           enterprise_value?: number | null
+          exit_date?: string | null
+          fund_id?: string | null
           id?: string
           investment_amount?: number | null
           investment_date?: string | null
@@ -687,8 +693,11 @@ export type Database = {
         Update: {
           created_at?: string
           current_stock_price?: number | null
+          deal_id?: string | null
           description?: string | null
           enterprise_value?: number | null
+          exit_date?: string | null
+          fund_id?: string | null
           id?: string
           investment_amount?: number | null
           investment_date?: string | null
@@ -708,10 +717,86 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "portfolio_companies_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_companies_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "portfolio_companies_sector_id_fkey"
             columns: ["sector_id"]
             isOneToOne: false
             referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_kpis: {
+        Row: {
+          arr: number | null
+          company_id: string
+          created_at: string
+          customer_count: number | null
+          ebitda: number | null
+          ebitda_margin: number | null
+          headcount: number | null
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          revenue: number | null
+          revenue_growth: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arr?: number | null
+          company_id: string
+          created_at?: string
+          customer_count?: number | null
+          ebitda?: number | null
+          ebitda_margin?: number | null
+          headcount?: number | null
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          revenue?: number | null
+          revenue_growth?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arr?: number | null
+          company_id?: string
+          created_at?: string
+          customer_count?: number | null
+          ebitda?: number | null
+          ebitda_margin?: number | null
+          headcount?: number | null
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          revenue?: number | null
+          revenue_growth?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_kpis_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_companies"
             referencedColumns: ["id"]
           },
         ]
