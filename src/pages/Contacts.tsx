@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Mail, Phone, Building2, Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { Mail, Phone, Building2, Plus, Search, Edit, Trash2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useContacts, Contact } from '@/hooks/useContacts';
 import { useToast } from '@/hooks/use-toast';
 import { EditContactDialog } from '@/components/Contacts/EditContactDialog';
@@ -27,6 +27,7 @@ export default function Contacts() {
     role: '',
     linkedin: '',
     notes: '',
+    relationship_strength: 50,
   });
   const { toast } = useToast();
 
@@ -39,8 +40,20 @@ export default function Contacts() {
   const handleCreateContact = () => {
     if (!formData.name.trim()) return;
     createContact(formData);
-    setFormData({ name: '', email: '', phone: '', role: '', linkedin: '', notes: '' });
+    setFormData({ name: '', email: '', phone: '', role: '', linkedin: '', notes: '', relationship_strength: 50 });
     setIsDialogOpen(false);
+  };
+
+  const getRelationshipBadge = (strength?: number) => {
+    if (!strength) return { color: "bg-muted text-muted-foreground", label: "Unknown", icon: Minus };
+    
+    if (strength >= 70) {
+      return { color: "bg-green-500/10 text-green-700 dark:text-green-400", label: "Strong", icon: TrendingUp };
+    } else if (strength >= 40) {
+      return { color: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400", label: "Medium", icon: Minus };
+    } else {
+      return { color: "bg-red-500/10 text-red-700 dark:text-red-400", label: "Weak", icon: TrendingDown };
+    }
   };
 
   const handleEditContact = (contact: Contact) => {
@@ -144,6 +157,20 @@ export default function Contacts() {
                   onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Relationship Strength: {formData.relationship_strength}%</Label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={formData.relationship_strength}
+                  onChange={(e) => setFormData(prev => ({ ...prev, relationship_strength: parseInt(e.target.value) }))}
+                  className="w-full accent-primary"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Adjust to reflect relationship quality (0-100)
+                </p>
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -192,6 +219,20 @@ export default function Contacts() {
                       </CardTitle>
                       {contact.role && (
                         <p className="text-sm text-muted-foreground">{contact.role}</p>
+                      )}
+                      {contact.relationship_strength !== undefined && (
+                        <div className="mt-2">
+                          {(() => {
+                            const badge = getRelationshipBadge(contact.relationship_strength);
+                            const Icon = badge.icon;
+                            return (
+                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${badge.color}`}>
+                                <Icon className="h-3 w-3" />
+                                {badge.label} ({contact.relationship_strength}%)
+                              </div>
+                            );
+                          })()}
+                        </div>
                       )}
                     </div>
                   </div>

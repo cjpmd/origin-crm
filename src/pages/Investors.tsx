@@ -6,21 +6,26 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { TrendingUp, Users, Search, Plus, Building, User, CreditCard } from 'lucide-react';
-import { mockFunds } from '@/lib/mockData';
+import { TrendingUp, Users, Search, Plus, Building, User, CreditCard, Edit, Trash2, DollarSign } from 'lucide-react';
 import { FundMetrics } from '@/components/Analytics/FundMetrics';
 import { useToast } from '@/hooks/use-toast';
 import { useInvestors, Investor } from '@/hooks/useInvestors';
+import { useFunds } from '@/hooks/useFunds';
+import { useFundCommitments } from '@/hooks/useFundCommitments';
 import { ViewInvestorDialog } from '@/components/Investors/ViewInvestorDialog';
+import { EditInvestorDialog } from '@/components/Investors/EditInvestorDialog';
 
 export default function Investors() {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedInvestor, setSelectedInvestor] = useState<Investor | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -31,10 +36,12 @@ export default function Investors() {
     notes: '',
   });
   const { toast } = useToast();
-  const { investors, createInvestor } = useInvestors();
-  
+  const { investors, createInvestor, updateInvestor, deleteInvestor } = useInvestors();
+  const { funds } = useFunds();
+  const { commitments } = useFundCommitments();
+
   const formatCurrency = (amount: number) => {
-    return `£${(amount / 1000000).toFixed(1)}M`;
+    return `$${(amount / 1000000).toFixed(1)}M`;
   };
 
   const getInvestorTypeIcon = (type?: string) => {
@@ -44,9 +51,9 @@ export default function Investors() {
   };
 
   const getInvestorTypeColor = (type?: string) => {
-    if (type?.toLowerCase().includes('institution')) return 'bg-green-100 text-green-800';
-    if (type?.toLowerCase().includes('family')) return 'bg-purple-100 text-purple-800';
-    return 'bg-blue-100 text-blue-800';
+    if (type?.toLowerCase().includes('institution')) return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+    if (type?.toLowerCase().includes('family')) return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+    return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
   };
 
   const filteredInvestors = investors.filter(investor => {
@@ -67,6 +74,28 @@ export default function Investors() {
     setIsViewDialogOpen(true);
   };
 
+  const handleEditInvestor = (investor: Investor) => {
+    setSelectedInvestor(investor);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveInvestor = (data: Partial<Investor> & { id: string }) => {
+    updateInvestor(data);
+  };
+
+  const handleDeleteInvestor = (investor: Investor) => {
+    setSelectedInvestor(investor);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedInvestor) {
+      deleteInvestor(selectedInvestor.id);
+      setIsDeleteDialogOpen(false);
+      setSelectedInvestor(null);
+    }
+  };
+
   const handleContactInvestor = (investor: Investor) => {
     if (investor.website) {
       window.open(investor.website.startsWith('http') ? investor.website : `https://${investor.website}`, '_blank');
@@ -76,6 +105,21 @@ export default function Investors() {
       description: `Initiating contact with ${investor.name}` 
     });
   };
+
+  const calculateFundMetrics = () => {
+    const totalCommitments = commitments.reduce((sum, c) => sum + (c.commitment_amount || 0), 0);
+    const totalCalled = commitments.reduce((sum, c) => sum + (c.called_amount || 0), 0);
+    const totalDistributed = commitments.reduce((sum, c) => sum + (c.distributed_amount || 0), 0);
+    
+    return {
+      totalCommitments,
+      totalCalled,
+      totalDistributed,
+      callRate: totalCommitments > 0 ? (totalCalled / totalCommitments) * 100 : 0,
+    };
+  };
+
+  const fundMetrics = calculateFundMetrics();
 
   return (
     <div className="space-y-6">
@@ -129,7 +173,7 @@ export default function Investors() {
                   <Label htmlFor="check-size">Check Size</Label>
                   <Input 
                     id="check-size" 
-                    placeholder="£1M-£5M"
+                    placeholder="$1M-$5M"
                     value={formData.check_size}
                     onChange={(e) => setFormData(prev => ({ ...prev, check_size: e.target.value }))}
                   />
@@ -140,7 +184,7 @@ export default function Investors() {
                   <Label htmlFor="location">Location</Label>
                   <Input 
                     id="location" 
-                    placeholder="London, UK"
+                    placeholder="New York, NY"
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                   />
@@ -194,10 +238,10 @@ export default function Investors() {
                   <Input
                     placeholder="Search investors..."
                     className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button variant="outline">Filter by Type</Button>
-                <Button variant="outline">Filter by Status</Button>
               </div>
             </CardContent>
           </Card>
@@ -306,9 +350,23 @@ export default function Investors() {
                             <Button 
                               variant="outline" 
                               size="sm"
+                              onClick={() => handleEditInvestor(investor)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
                               onClick={() => handleContactInvestor(investor)}
                             >
                               Contact
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => handleDeleteInvestor(investor)}
+                            >
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -322,6 +380,45 @@ export default function Investors() {
         </TabsContent>
 
         <TabsContent value="funds" className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Commitments</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${(fundMetrics.totalCommitments / 1000000).toFixed(1)}M</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Capital Called</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${(fundMetrics.totalCalled / 1000000).toFixed(1)}M</div>
+                <p className="text-xs text-muted-foreground">{fundMetrics.callRate.toFixed(1)}% of commitments</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Distributions</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${(fundMetrics.totalDistributed / 1000000).toFixed(1)}M</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Funds</CardTitle>
+                <Building className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{funds.length}</div>
+              </CardContent>
+            </Card>
+          </div>
           <FundMetrics />
         </TabsContent>
 
@@ -335,50 +432,60 @@ export default function Investors() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockFunds.map((fund) => (
-                  <div key={fund.id} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="font-medium">{fund.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Vintage {fund.vintage_year}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">
-                          {formatCurrency(fund.total_commitment || 0)} / {formatCurrency(fund.target_commitment || 0)}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {((((fund.total_commitment || 0) / (fund.target_commitment || 1)) * 100).toFixed(0))}% committed
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-4 md:grid-cols-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                {commitments.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    No commitments found. Add funds and commitments to track capital calls and distributions.
+                  </p>
+                ) : (
+                  commitments.map((commitment) => (
+                    <div key={commitment.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
                         <div>
-                          <div className="font-medium">Capital Called</div>
-                          <div className="text-muted-foreground">£0.0M (0%)</div>
+                          <h3 className="font-medium">{commitment.investors?.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Fund: {commitment.funds?.name || 'Unknown'}
+                          </p>
                         </div>
+                        <Badge variant={commitment.status === 'Active' ? 'default' : 'secondary'}>
+                          {commitment.status}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium">Distributions</div>
-                          <div className="text-muted-foreground">£0.0M</div>
+                      
+                      <div className="grid gap-4 md:grid-cols-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">Commitment</div>
+                            <div className="text-muted-foreground">${(commitment.commitment_amount / 1000000).toFixed(1)}M</div>
+                          </div>
                         </div>
-                      </div>
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">Called</div>
+                            <div className="text-muted-foreground">${(commitment.called_amount / 1000000).toFixed(1)}M</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">Distributed</div>
+                            <div className="text-muted-foreground">${(commitment.distributed_amount / 1000000).toFixed(1)}M</div>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-muted-foreground" />
                           <div>
-                            <div className="font-medium">LPs</div>
-                            <div className="text-muted-foreground">{investors.length} investors</div>
+                            <div className="font-medium">Remaining</div>
+                            <div className="text-muted-foreground">
+                              ${((commitment.commitment_amount - commitment.called_amount) / 1000000).toFixed(1)}M
+                            </div>
                           </div>
                         </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -391,6 +498,30 @@ export default function Investors() {
         onOpenChange={setIsViewDialogOpen}
         onContact={handleContactInvestor}
       />
+
+      <EditInvestorDialog
+        investor={selectedInvestor}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSave={handleSaveInvestor}
+      />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Investor</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedInvestor?.name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

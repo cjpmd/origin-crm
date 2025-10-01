@@ -18,6 +18,7 @@ import SectoralAnalysis from "./pages/SectoralAnalysis";
 import Research from "./pages/Research";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Tasks from "./pages/Tasks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="research/sector/:sectorId" element={<Research />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="tasks" element={<Tasks />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Contact } from '@/hooks/useContacts';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface EditContactDialogProps {
   contact: Contact | null;
@@ -21,6 +22,7 @@ export function EditContactDialog({ contact, open, onOpenChange, onSave }: EditC
     phone: '',
     linkedin: '',
     notes: '',
+    relationship_strength: 50,
   });
 
   useEffect(() => {
@@ -32,9 +34,16 @@ export function EditContactDialog({ contact, open, onOpenChange, onSave }: EditC
         phone: contact.phone || '',
         linkedin: contact.linkedin || '',
         notes: contact.notes || '',
+        relationship_strength: contact.relationship_strength || 50,
       });
     }
   }, [contact]);
+
+  const getRelationshipLabel = (strength: number) => {
+    if (strength >= 70) return { label: "Strong", icon: TrendingUp, color: "text-green-600" };
+    if (strength >= 40) return { label: "Medium", icon: Minus, color: "text-yellow-600" };
+    return { label: "Weak", icon: TrendingDown, color: "text-red-600" };
+  };
 
   const handleSave = () => {
     if (contact) {
@@ -105,6 +114,32 @@ export function EditContactDialog({ contact, open, onOpenChange, onSave }: EditC
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>
+              Relationship Strength: {formData.relationship_strength}%
+              {(() => {
+                const badge = getRelationshipLabel(formData.relationship_strength);
+                const Icon = badge.icon;
+                return (
+                  <span className={`ml-2 inline-flex items-center gap-1 ${badge.color}`}>
+                    <Icon className="h-3 w-3" />
+                    {badge.label}
+                  </span>
+                );
+              })()}
+            </Label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={formData.relationship_strength}
+              onChange={(e) => setFormData(prev => ({ ...prev, relationship_strength: parseInt(e.target.value) }))}
+              className="w-full accent-primary"
+            />
+            <p className="text-xs text-muted-foreground">
+              Adjust to reflect relationship quality (0-100)
+            </p>
           </div>
         </div>
         <div className="flex justify-end gap-2">

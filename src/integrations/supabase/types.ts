@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      capital_calls: {
+        Row: {
+          call_amount: number
+          call_date: string
+          call_number: number
+          commitment_id: string
+          created_at: string | null
+          due_date: string
+          fund_id: string
+          id: string
+          notes: string | null
+          paid_amount: number | null
+          paid_date: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          call_amount: number
+          call_date: string
+          call_number: number
+          commitment_id: string
+          created_at?: string | null
+          due_date: string
+          fund_id: string
+          id?: string
+          notes?: string | null
+          paid_amount?: number | null
+          paid_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          call_amount?: number
+          call_date?: string
+          call_number?: number
+          commitment_id?: string
+          created_at?: string | null
+          due_date?: string
+          fund_id?: string
+          id?: string
+          notes?: string | null
+          paid_amount?: number | null
+          paid_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capital_calls_commitment_id_fkey"
+            columns: ["commitment_id"]
+            isOneToOne: false
+            referencedRelation: "fund_commitments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "capital_calls_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           company_id: string | null
@@ -25,6 +88,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          relationship_strength: number | null
           role: string | null
           updated_at: string
           user_id: string
@@ -39,6 +103,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          relationship_strength?: number | null
           role?: string | null
           updated_at?: string
           user_id: string
@@ -53,6 +118,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          relationship_strength?: number | null
           role?: string | null
           updated_at?: string
           user_id?: string
@@ -142,6 +208,60 @@ export type Database = {
             columns: ["sector_id"]
             isOneToOne: false
             referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      distributions: {
+        Row: {
+          commitment_id: string
+          created_at: string | null
+          distribution_amount: number
+          distribution_date: string
+          distribution_number: number
+          distribution_type: string | null
+          fund_id: string
+          id: string
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          commitment_id: string
+          created_at?: string | null
+          distribution_amount: number
+          distribution_date: string
+          distribution_number: number
+          distribution_type?: string | null
+          fund_id: string
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          commitment_id?: string
+          created_at?: string | null
+          distribution_amount?: number
+          distribution_date?: string
+          distribution_number?: number
+          distribution_type?: string | null
+          fund_id?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distributions_commitment_id_fkey"
+            columns: ["commitment_id"]
+            isOneToOne: false
+            referencedRelation: "fund_commitments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "distributions_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
             referencedColumns: ["id"]
           },
         ]
@@ -267,6 +387,165 @@ export type Database = {
             columns: ["research_job_id"]
             isOneToOne: false
             referencedRelation: "research_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fund_commitments: {
+        Row: {
+          called_amount: number | null
+          commitment_amount: number
+          committed_date: string | null
+          created_at: string | null
+          distributed_amount: number | null
+          fund_id: string
+          id: string
+          investor_id: string
+          notes: string | null
+          remaining_commitment: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          called_amount?: number | null
+          commitment_amount: number
+          committed_date?: string | null
+          created_at?: string | null
+          distributed_amount?: number | null
+          fund_id: string
+          id?: string
+          investor_id: string
+          notes?: string | null
+          remaining_commitment?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          called_amount?: number | null
+          commitment_amount?: number
+          committed_date?: string | null
+          created_at?: string | null
+          distributed_amount?: number | null
+          fund_id?: string
+          id?: string
+          investor_id?: string
+          notes?: string | null
+          remaining_commitment?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_commitments_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_commitments_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funds: {
+        Row: {
+          carried_interest_rate: number | null
+          close_date: string | null
+          created_at: string | null
+          final_close_date: string | null
+          fund_size: number | null
+          id: string
+          management_fee_rate: number | null
+          name: string
+          notes: string | null
+          status: string | null
+          strategy: string | null
+          target_irr: number | null
+          target_moic: number | null
+          updated_at: string | null
+          user_id: string
+          vintage_year: number | null
+        }
+        Insert: {
+          carried_interest_rate?: number | null
+          close_date?: string | null
+          created_at?: string | null
+          final_close_date?: string | null
+          fund_size?: number | null
+          id?: string
+          management_fee_rate?: number | null
+          name: string
+          notes?: string | null
+          status?: string | null
+          strategy?: string | null
+          target_irr?: number | null
+          target_moic?: number | null
+          updated_at?: string | null
+          user_id: string
+          vintage_year?: number | null
+        }
+        Update: {
+          carried_interest_rate?: number | null
+          close_date?: string | null
+          created_at?: string | null
+          final_close_date?: string | null
+          fund_size?: number | null
+          id?: string
+          management_fee_rate?: number | null
+          name?: string
+          notes?: string | null
+          status?: string | null
+          strategy?: string | null
+          target_irr?: number | null
+          target_moic?: number | null
+          updated_at?: string | null
+          user_id?: string
+          vintage_year?: number | null
+        }
+        Relationships: []
+      }
+      investor_contacts: {
+        Row: {
+          contact_id: string
+          created_at: string | null
+          id: string
+          investor_id: string
+          is_primary: boolean | null
+          role: string | null
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string | null
+          id?: string
+          investor_id: string
+          is_primary?: boolean | null
+          role?: string | null
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string | null
+          id?: string
+          investor_id?: string
+          is_primary?: boolean | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_contacts_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
             referencedColumns: ["id"]
           },
         ]

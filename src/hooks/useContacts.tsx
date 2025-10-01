@@ -13,6 +13,7 @@ export interface Contact {
   linkedin?: string;
   notes?: string;
   last_contact_date?: string;
+  relationship_strength?: number;
   created_at: string;
   updated_at: string;
   portfolio_companies?: {

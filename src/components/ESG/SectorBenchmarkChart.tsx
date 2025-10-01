@@ -57,18 +57,28 @@ export function SectorBenchmarkChart({
         </p>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[250px]">
+        <ChartContainer config={chartConfig} className="h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} layout="horizontal">
-              <XAxis type="number" domain={[0, 100]} />
-              <YAxis dataKey="category" type="category" width={100} />
+              <XAxis 
+                type="number" 
+                domain={[0, 100]}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={11}
+              />
+              <YAxis 
+                dataKey="category" 
+                type="category" 
+                width={100}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={11}
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar 
                 dataKey="score" 
                 fill="hsl(var(--primary))"
                 radius={[0, 4, 4, 0]}
               />
-              <ReferenceLine x={benchmark.median_overall} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>

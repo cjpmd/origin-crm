@@ -45,15 +45,23 @@ export function ESGHistoryChart({ history, title = "ESG Score Trends" }: ESGHist
         <ChartContainer config={chartConfig} className="h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <XAxis dataKey="date" />
-              <YAxis domain={[0, 100]} />
+              <XAxis 
+                dataKey="date" 
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={11}
+              />
+              <YAxis 
+                domain={[0, 100]} 
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={11}
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line 
                 type="monotone" 
                 dataKey="overall_score" 
                 stroke="var(--color-overall_score)" 
-                strokeWidth={3}
-                dot={{ r: 4 }}
+                strokeWidth={2}
+                dot={{ r: 3 }}
               />
               <Line 
                 type="monotone" 

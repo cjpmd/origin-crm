@@ -101,7 +101,7 @@ const Index = () => {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Pending Tasks</CardTitle>
             <Button asChild variant="ghost" size="sm">
-              <Link to="/reports">
+              <Link to="/tasks">
                 View All <ArrowRight className="h-4 w-4 ml-1" />
               </Link>
             </Button>
