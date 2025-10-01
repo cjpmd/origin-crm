@@ -31,6 +31,7 @@ export default function Team() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Combine current user profile with team members
   const currentUserProfile = profiles.find(p => p.id === user?.id);
@@ -225,7 +226,7 @@ export default function Team() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="overview" className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="connections">Connections</TabsTrigger>
@@ -238,7 +239,10 @@ export default function Team() {
                   <TabsContent value="overview" className="space-y-6 mt-6">
                     {/* Stats Grid */}
                     <div className="grid grid-cols-5 gap-4">
-                      <Card>
+                      <Card 
+                        className="cursor-pointer hover:bg-accent transition-colors"
+                        onClick={() => setActiveTab("introductions")}
+                      >
                         <CardContent className="pt-6">
                           <div className="flex flex-col items-center text-center">
                             <GitBranch className="h-8 w-8 text-purple-600 mb-2" />
@@ -247,7 +251,10 @@ export default function Team() {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card 
+                        className="cursor-pointer hover:bg-accent transition-colors"
+                        onClick={() => setActiveTab("connections")}
+                      >
                         <CardContent className="pt-6">
                           <div className="flex flex-col items-center text-center">
                             <Users className="h-8 w-8 text-primary mb-2" />
@@ -256,7 +263,10 @@ export default function Team() {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card 
+                        className="cursor-pointer hover:bg-accent transition-colors"
+                        onClick={() => setActiveTab("overview")}
+                      >
                         <CardContent className="pt-6">
                           <div className="flex flex-col items-center text-center">
                             <TrendingUp className="h-8 w-8 text-green-600 mb-2" />
@@ -265,7 +275,10 @@ export default function Team() {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card 
+                        className="cursor-pointer hover:bg-accent transition-colors"
+                        onClick={() => setActiveTab("reminders")}
+                      >
                         <CardContent className="pt-6">
                           <div className="flex flex-col items-center text-center">
                             <CheckCircle className="h-8 w-8 text-blue-600 mb-2" />
@@ -274,7 +287,10 @@ export default function Team() {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card 
+                        className="cursor-pointer hover:bg-accent transition-colors"
+                        onClick={() => setActiveTab("reminders")}
+                      >
                         <CardContent className="pt-6">
                           <div className="flex flex-col items-center text-center">
                             <Clock className="h-8 w-8 text-orange-600 mb-2" />
