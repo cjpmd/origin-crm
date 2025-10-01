@@ -187,12 +187,12 @@ export function TaskManager() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="company">Related Company</Label>
-                  <Select value={formData.company_id} onValueChange={(value) => setFormData(prev => ({ ...prev, company_id: value }))}>
+                  <Select value={formData.company_id || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, company_id: value === "none" ? "" : value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select company" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {companies.map((company) => (
                         <SelectItem key={company.id} value={company.id}>
                           {company.name}
