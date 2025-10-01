@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFunds, Fund } from '@/hooks/useFunds';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface AddEditFundDialogProps {
   open: boolean;
@@ -14,6 +15,7 @@ interface AddEditFundDialogProps {
 }
 
 export function AddEditFundDialog({ open, onOpenChange, fund }: AddEditFundDialogProps) {
+  const { currencySymbol } = useCurrency();
   const { createFund, updateFund } = useFunds();
   const [formData, setFormData] = useState({
     name: '',
@@ -111,7 +113,7 @@ export function AddEditFundDialog({ open, onOpenChange, fund }: AddEditFundDialo
             </div>
 
             <div>
-              <Label htmlFor="fund_size">Fund Size (£)</Label>
+              <Label htmlFor="fund_size">Fund Size ({currencySymbol})</Label>
               <Input
                 id="fund_size"
                 type="number"

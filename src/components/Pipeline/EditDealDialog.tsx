@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Deal } from "@/hooks/useDeals";
 import { useSectors } from "@/hooks/useSectors";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface EditDealDialogProps {
   deal: Deal;
@@ -17,6 +18,7 @@ interface EditDealDialogProps {
 }
 
 export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: EditDealDialogProps) {
+  const { currencySymbol } = useCurrency();
   const { activeSectors } = useSectors();
   const [formData, setFormData] = useState({
     name: deal.name,
@@ -71,7 +73,7 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="valuation">Valuation ($)</Label>
+              <Label htmlFor="valuation">Valuation ({currencySymbol})</Label>
               <Input
                 id="valuation"
                 type="number"

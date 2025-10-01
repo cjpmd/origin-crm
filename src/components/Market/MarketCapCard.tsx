@@ -2,12 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { PortfolioCompany } from "@/types";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface MarketCapCardProps {
   company: PortfolioCompany;
 }
 
 export function MarketCapCard({ company }: MarketCapCardProps) {
+  const { formatCurrency } = useCurrency();
+  
   if (!company.is_public) {
     return (
       <Card>
@@ -30,13 +33,6 @@ export function MarketCapCard({ company }: MarketCapCardProps) {
   const priceChange = 2.45; // Mock daily change percentage
   const isPositive = priceChange > 0;
 
-  const formatMarketCap = (value: number) => {
-    if (value >= 1000000000) {
-      return `$${(value / 1000000000).toFixed(2)}B`;
-    }
-    return `$${(value / 1000000).toFixed(2)}M`;
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -52,7 +48,7 @@ export function MarketCapCard({ company }: MarketCapCardProps) {
         <div>
           <p className="text-sm text-muted-foreground">Current Stock Price</p>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold">${company.current_stock_price?.toFixed(2)}</p>
+            <p className="text-3xl font-bold">{formatCurrency(company.current_stock_price || 0)}</p>
             <div className={`flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
               <span className="text-sm font-medium">{isPositive ? '+' : ''}{priceChange.toFixed(2)}%</span>
@@ -63,11 +59,11 @@ export function MarketCapCard({ company }: MarketCapCardProps) {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Market Cap</p>
-            <p className="text-lg font-semibold">{company.market_cap ? formatMarketCap(company.market_cap) : 'N/A'}</p>
+            <p className="text-lg font-semibold">{company.market_cap ? formatCurrency(company.market_cap) : 'N/A'}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Enterprise Value</p>
-            <p className="text-lg font-semibold">{company.enterprise_value ? formatMarketCap(company.enterprise_value) : 'N/A'}</p>
+            <p className="text-lg font-semibold">{company.enterprise_value ? formatCurrency(company.enterprise_value) : 'N/A'}</p>
           </div>
         </div>
 

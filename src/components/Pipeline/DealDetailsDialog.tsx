@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DealSourceAttribution } from "@/components/Intelligence/DealSourceAttribution";
 import { Deal } from "@/hooks/useDeals";
 import { useSectors } from "@/hooks/useSectors";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { format } from "date-fns";
 
 interface DealDetailsDialogProps {
@@ -12,6 +13,7 @@ interface DealDetailsDialogProps {
 }
 
 export function DealDetailsDialog({ deal, open, onOpenChange }: DealDetailsDialogProps) {
+  const { formatCurrency } = useCurrency();
   const { getSectorById } = useSectors();
   const sector = deal.sector_id ? getSectorById(deal.sector_id) : null;
 
@@ -41,7 +43,7 @@ export function DealDetailsDialog({ deal, open, onOpenChange }: DealDetailsDialo
               {deal.valuation && (
                 <div>
                   <h3 className="font-semibold mb-2">Valuation</h3>
-                  <p>${deal.valuation.toLocaleString()}</p>
+                  <p>{formatCurrency(deal.valuation)}</p>
                 </div>
               )}
               {deal.probability && (

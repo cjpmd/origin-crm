@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePortfolioKPIs, PortfolioKPI } from "@/hooks/usePortfolioKPIs";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -16,6 +17,7 @@ interface KPIManagementDialogProps {
 }
 
 export function KPIManagementDialog({ open, onOpenChange, companyId, companyName }: KPIManagementDialogProps) {
+  const { formatCurrency, currencySymbol } = useCurrency();
   const { kpis, isLoading, createKPI, updateKPI, deleteKPI } = usePortfolioKPIs(companyId);
   const [editingKPI, setEditingKPI] = useState<PortfolioKPI | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -92,16 +94,6 @@ export function KPIManagementDialog({ open, onOpenChange, companyId, companyName
     });
   };
 
-  const formatCurrency = (value?: number) => {
-    if (!value) return "N/A";
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      notation: "compact",
-      maximumFractionDigits: 1,
-    }).format(value);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -146,7 +138,7 @@ export function KPIManagementDialog({ open, onOpenChange, companyId, companyName
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="revenue">Revenue ($)</Label>
+                  <Label htmlFor="revenue">Revenue ({currencySymbol})</Label>
                   <Input
                     id="revenue"
                     type="number"
@@ -157,7 +149,7 @@ export function KPIManagementDialog({ open, onOpenChange, companyId, companyName
                   />
                 </div>
                 <div>
-                  <Label htmlFor="ebitda">EBITDA ($)</Label>
+                  <Label htmlFor="ebitda">EBITDA ({currencySymbol})</Label>
                   <Input
                     id="ebitda"
                     type="number"
@@ -182,7 +174,7 @@ export function KPIManagementDialog({ open, onOpenChange, companyId, companyName
                   />
                 </div>
                 <div>
-                  <Label htmlFor="arr">ARR ($)</Label>
+                  <Label htmlFor="arr">ARR ({currencySymbol})</Label>
                   <Input
                     id="arr"
                     type="number"

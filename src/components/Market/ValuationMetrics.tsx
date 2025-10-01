@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calculator } from "lucide-react";
 import { PortfolioKPI } from "@/types";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface ValuationMetricsProps {
   kpi: PortfolioKPI;
@@ -9,6 +10,8 @@ interface ValuationMetricsProps {
 }
 
 export function ValuationMetrics({ kpi, companyName }: ValuationMetricsProps) {
+  const { formatCurrency } = useCurrency();
+  
   return (
     <Card>
       <CardHeader>
@@ -51,11 +54,11 @@ export function ValuationMetrics({ kpi, companyName }: ValuationMetricsProps) {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Revenue:</span>
-                <span className="font-medium">${(kpi.revenue! / 1000000).toFixed(1)}M</span>
+                <span className="font-medium">{formatCurrency(kpi.revenue)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">EBITDA:</span>
-                <span className="font-medium">${(kpi.ebitda! / 1000000).toFixed(1)}M</span>
+                <span className="font-medium">{formatCurrency(kpi.ebitda)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">EBITDA Margin:</span>
