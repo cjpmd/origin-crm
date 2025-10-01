@@ -5,14 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { useProfiles } from "@/hooks/useProfiles";
+import { useContacts } from "@/hooks/useContacts";
+import { useActivities } from "@/hooks/useActivities";
+import { useTasks } from "@/hooks/useTasks";
 import { TeamMemberDialog } from "@/components/Settings/TeamMemberDialog";
-import { Search, UserPlus, Mail, Calendar, Edit, Trash2 } from "lucide-react";
+import { 
+  Search, UserPlus, Mail, Calendar, Edit, Trash2, 
+  Phone, Building2, MapPin, Linkedin, FileText,
+  Users, TrendingUp, CheckCircle, Clock
+} from "lucide-react";
 
 export default function Team() {
   const { members, isLoading, inviteMember, updateMember, deleteMember } = useTeamMembers();
   const { profiles } = useProfiles();
+  const { contacts } = useContacts();
+  const { activities } = useActivities();
+  const { tasks } = useTasks();
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -24,6 +35,7 @@ export default function Team() {
   );
 
   const selectedMemberData = members?.find(m => m.id === selectedMember);
+  const selectedProfile = profiles.find(p => p.id === selectedMemberData?.user_id);
 
   const getInitials = (name?: string, email?: string) => {
     if (name) {
@@ -56,13 +68,18 @@ export default function Team() {
     }
   };
 
+  const memberContacts = contacts?.filter(c => c.user_id === selectedMemberData?.user_id) || [];
+  const memberActivities = activities?.filter(a => a.user_id === selectedMemberData?.user_id).slice(0, 10) || [];
+  const memberTasks = tasks?.filter(t => t.user_id === selectedMemberData?.user_id) || [];
+  const completedTasks = memberTasks.filter(t => t.status === 'Completed').length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Team</h1>
           <p className="text-muted-foreground">
-            Manage your team members and their access
+            Manage your team members and track their activity
           </p>
         </div>
         <Button onClick={() => setIsDialogOpen(true)}>
@@ -102,29 +119,29 @@ export default function Team() {
                   return (
                     <Card
                       key={member.id}
-                      className={`p-3 cursor-pointer transition-colors hover:bg-accent ${
+                      className={`p-4 cursor-pointer transition-colors hover:bg-accent ${
                         selectedMember === member.id ? 'border-primary bg-accent' : ''
                       }`}
                       onClick={() => setSelectedMember(member.id)}
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar>
+                        <Avatar className="h-12 w-12">
                           <AvatarImage src={profile?.avatar_url || undefined} />
-                          <AvatarFallback>
+                          <AvatarFallback className="text-sm">
                             {getInitials(member.full_name, member.email)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
+                          <p className="font-semibold truncate">
                             {member.full_name || member.email}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate">
+                          <p className="text-sm text-muted-foreground truncate">
                             {member.email}
                           </p>
+                          <Badge variant={member.status === 'Active' ? 'default' : 'secondary'} className="mt-1">
+                            {member.status}
+                          </Badge>
                         </div>
-                        <Badge variant={member.status === 'Active' ? 'default' : 'secondary'}>
-                          {member.status}
-                        </Badge>
                       </div>
                     </Card>
                   );
@@ -141,18 +158,21 @@ export default function Team() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={profiles.find(p => p.id === selectedMemberData.user_id)?.avatar_url || undefined} />
-                      <AvatarFallback className="text-lg">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={selectedProfile?.avatar_url || undefined} />
+                      <AvatarFallback className="text-xl">
                         {getInitials(selectedMemberData.full_name, selectedMemberData.email)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle>{selectedMemberData.full_name || selectedMemberData.email}</CardTitle>
-                      <CardDescription className="flex items-center gap-2 mt-1">
-                        <Mail className="h-3 w-3" />
+                      <CardTitle className="text-2xl">{selectedMemberData.full_name || selectedMemberData.email}</CardTitle>
+                      <CardDescription className="flex items-center gap-2 mt-1 text-base">
+                        <Mail className="h-4 w-4" />
                         {selectedMemberData.email}
                       </CardDescription>
+                      <Badge variant={selectedMemberData.status === 'Active' ? 'default' : 'secondary'} className="mt-2">
+                        {selectedMemberData.status}
+                      </Badge>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -169,55 +189,200 @@ export default function Team() {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="overview" className="w-full">
-                  <TabsList>
+                  <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="activity">Activity</TabsTrigger>
+                    <TabsTrigger value="connections">Connections</TabsTrigger>
+                    <TabsTrigger value="introductions">Introductions</TabsTrigger>
+                    <TabsTrigger value="notes">Notes</TabsTrigger>
+                    <TabsTrigger value="reminders">Reminders</TabsTrigger>
+                    <TabsTrigger value="files">Files</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="overview" className="space-y-4 mt-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Status</p>
-                        <Badge variant={selectedMemberData.status === 'Active' ? 'default' : 'secondary'}>
-                          {selectedMemberData.status}
-                        </Badge>
-                      </div>
+                  <TabsContent value="overview" className="space-y-6 mt-6">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col items-center text-center">
+                            <Users className="h-8 w-8 text-primary mb-2" />
+                            <p className="text-2xl font-bold">{memberContacts.length}</p>
+                            <p className="text-xs text-muted-foreground">Contacts</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col items-center text-center">
+                            <TrendingUp className="h-8 w-8 text-green-600 mb-2" />
+                            <p className="text-2xl font-bold">{memberActivities.length}</p>
+                            <p className="text-xs text-muted-foreground">Activities</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col items-center text-center">
+                            <CheckCircle className="h-8 w-8 text-blue-600 mb-2" />
+                            <p className="text-2xl font-bold">{completedTasks}</p>
+                            <p className="text-xs text-muted-foreground">Completed Tasks</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex flex-col items-center text-center">
+                            <Clock className="h-8 w-8 text-orange-600 mb-2" />
+                            <p className="text-2xl font-bold">{memberTasks.length - completedTasks}</p>
+                            <p className="text-xs text-muted-foreground">Pending Tasks</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <Separator />
+
+                    {/* Member Info */}
+                    <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-muted-foreground">Member Since</p>
-                        <p className="text-sm flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(selectedMemberData.created_at).toLocaleDateString()}
+                        <p className="text-sm flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          {new Date(selectedMemberData.created_at).toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })}
                         </p>
                       </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-muted-foreground">Invited At</p>
-                      <p className="text-sm">
-                        {new Date(selectedMemberData.invited_at).toLocaleString()}
-                      </p>
-                    </div>
-
-                    {selectedMemberData.joined_at && (
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Joined At</p>
+                        <p className="text-sm font-medium text-muted-foreground">Invited At</p>
                         <p className="text-sm">
-                          {new Date(selectedMemberData.joined_at).toLocaleString()}
+                          {new Date(selectedMemberData.invited_at).toLocaleString()}
                         </p>
                       </div>
-                    )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Recent Activity */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+                      <div className="space-y-3">
+                        {memberActivities.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No recent activity</p>
+                        ) : (
+                          memberActivities.map((activity) => (
+                            <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border">
+                              <div className="p-2 rounded-full bg-primary/10">
+                                {activity.activity_type === 'call' && <Phone className="h-4 w-4 text-primary" />}
+                                {activity.activity_type === 'email' && <Mail className="h-4 w-4 text-primary" />}
+                                {activity.activity_type === 'meeting' && <Users className="h-4 w-4 text-primary" />}
+                                {activity.activity_type === 'note' && <FileText className="h-4 w-4 text-primary" />}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">{activity.subject}</p>
+                                <p className="text-xs text-muted-foreground mt-1">{activity.body}</p>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {new Date(activity.activity_date).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
                   </TabsContent>
 
-                  <TabsContent value="activity" className="mt-4">
-                    <p className="text-sm text-muted-foreground">Activity tracking coming soon...</p>
+                  <TabsContent value="connections" className="mt-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Connections ({memberContacts.length})</h3>
+                      {memberContacts.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No connections yet</p>
+                      ) : (
+                        <div className="grid gap-3">
+                          {memberContacts.map((contact) => (
+                            <Card key={contact.id} className="p-4">
+                              <div className="flex items-center gap-3">
+                                <Avatar>
+                                  <AvatarFallback>{getInitials(contact.name)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <p className="font-medium">{contact.name}</p>
+                                  <p className="text-sm text-muted-foreground">{contact.role}</p>
+                                  {contact.email && (
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                      <Mail className="h-3 w-3" />
+                                      {contact.email}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="introductions" className="mt-6">
+                    <p className="text-sm text-muted-foreground">Introduction tracking coming soon...</p>
+                  </TabsContent>
+
+                  <TabsContent value="notes" className="mt-6">
+                    <p className="text-sm text-muted-foreground">Notes feature coming soon...</p>
+                  </TabsContent>
+
+                  <TabsContent value="reminders" className="mt-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Tasks ({memberTasks.length})</h3>
+                      {memberTasks.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No tasks assigned</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {memberTasks.map((task) => (
+                            <Card key={task.id} className="p-3">
+                              <div className="flex items-start gap-3">
+                                <div className={`p-2 rounded-full ${
+                                  task.status === 'Completed' ? 'bg-green-100' : 'bg-orange-100'
+                                }`}>
+                                  {task.status === 'Completed' ? (
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                  ) : (
+                                    <Clock className="h-4 w-4 text-orange-600" />
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-medium text-sm">{task.title}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{task.description}</p>
+                                  {task.due_date && (
+                                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      Due: {new Date(task.due_date).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                </div>
+                                <Badge variant={task.priority === 'High' ? 'destructive' : 'secondary'}>
+                                  {task.priority}
+                                </Badge>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="files" className="mt-6">
+                    <p className="text-sm text-muted-foreground">File management coming soon...</p>
                   </TabsContent>
                 </Tabs>
               </CardContent>
             </>
           ) : (
-            <CardContent className="flex items-center justify-center py-12">
+            <CardContent className="flex items-center justify-center py-16">
               <div className="text-center text-muted-foreground">
-                <p>Select a team member to view details</p>
+                <Users className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">Select a team member to view details</p>
               </div>
             </CardContent>
           )}

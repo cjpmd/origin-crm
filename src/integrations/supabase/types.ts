@@ -85,6 +85,30 @@ export type Database = {
           },
         ]
       }
+      activity_types: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon_name: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon_name: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon_name?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       ai_insights: {
         Row: {
           confidence_score: number | null
@@ -277,6 +301,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          image_url: string | null
           last_contact_date: string | null
           linkedin: string | null
           name: string
@@ -292,6 +317,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          image_url?: string | null
           last_contact_date?: string | null
           linkedin?: string | null
           name: string
@@ -307,6 +333,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          image_url?: string | null
           last_contact_date?: string | null
           linkedin?: string | null
           name?: string
@@ -989,6 +1016,8 @@ export type Database = {
       }
       market_data: {
         Row: {
+          change_amount: number | null
+          change_percent: number | null
           close_price: number | null
           company_id: string
           created_at: string
@@ -1000,6 +1029,8 @@ export type Database = {
           volume: number | null
         }
         Insert: {
+          change_amount?: number | null
+          change_percent?: number | null
           close_price?: number | null
           company_id: string
           created_at?: string
@@ -1011,6 +1042,8 @@ export type Database = {
           volume?: number | null
         }
         Update: {
+          change_amount?: number | null
+          change_percent?: number | null
           close_price?: number | null
           company_id?: string
           created_at?: string
@@ -1119,7 +1152,9 @@ export type Database = {
           investment_amount: number | null
           investment_date: string | null
           is_public: boolean | null
+          last_price_update: string | null
           location: string | null
+          logo_url: string | null
           market_cap: number | null
           name: string
           ownership_percentage: number | null
@@ -1144,7 +1179,9 @@ export type Database = {
           investment_amount?: number | null
           investment_date?: string | null
           is_public?: boolean | null
+          last_price_update?: string | null
           location?: string | null
+          logo_url?: string | null
           market_cap?: number | null
           name: string
           ownership_percentage?: number | null
@@ -1169,7 +1206,9 @@ export type Database = {
           investment_amount?: number | null
           investment_date?: string | null
           is_public?: boolean | null
+          last_price_update?: string | null
           location?: string | null
+          logo_url?: string | null
           market_cap?: number | null
           name?: string
           ownership_percentage?: number | null
