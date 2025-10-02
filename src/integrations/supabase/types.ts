@@ -116,10 +116,13 @@ export type Database = {
           created_at: string | null
           entity_id: string
           entity_type: string
+          event_type: string | null
           expires_at: string | null
           id: string
           insight_type: string
+          investor_id: string | null
           metadata: Json | null
+          source_urls: Json | null
           title: string | null
           user_id: string
         }
@@ -129,10 +132,13 @@ export type Database = {
           created_at?: string | null
           entity_id: string
           entity_type: string
+          event_type?: string | null
           expires_at?: string | null
           id?: string
           insight_type: string
+          investor_id?: string | null
           metadata?: Json | null
+          source_urls?: Json | null
           title?: string | null
           user_id: string
         }
@@ -142,14 +148,25 @@ export type Database = {
           created_at?: string | null
           entity_id?: string
           entity_type?: string
+          event_type?: string | null
           expires_at?: string | null
           id?: string
           insight_type?: string
+          investor_id?: string | null
           metadata?: Json | null
+          source_urls?: Json | null
           title?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ai_insights_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       automation_rules: {
         Row: {
@@ -1114,6 +1131,197 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      news_alerts: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          last_triggered_at: string | null
+          min_impact_level: string | null
+          name: string
+          notification_channels: string[] | null
+          trigger_event_types: string[] | null
+          trigger_keywords: string[] | null
+          updated_at: string
+          user_id: string
+          watch_entity_id: string | null
+          watch_entity_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_triggered_at?: string | null
+          min_impact_level?: string | null
+          name: string
+          notification_channels?: string[] | null
+          trigger_event_types?: string[] | null
+          trigger_keywords?: string[] | null
+          updated_at?: string
+          user_id: string
+          watch_entity_id?: string | null
+          watch_entity_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_triggered_at?: string | null
+          min_impact_level?: string | null
+          name?: string
+          notification_channels?: string[] | null
+          trigger_event_types?: string[] | null
+          trigger_keywords?: string[] | null
+          updated_at?: string
+          user_id?: string
+          watch_entity_id?: string | null
+          watch_entity_type?: string | null
+        }
+        Relationships: []
+      }
+      news_entity_matches: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          match_confidence: number | null
+          match_reason: string | null
+          news_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          match_confidence?: number | null
+          match_reason?: string | null
+          news_item_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          match_confidence?: number | null
+          match_reason?: string | null
+          news_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_entity_matches_news_item_id_fkey"
+            columns: ["news_item_id"]
+            isOneToOne: false
+            referencedRelation: "news_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_items: {
+        Row: {
+          author: string | null
+          category: string | null
+          content: string | null
+          created_at: string
+          fetched_at: string
+          id: string
+          impact_level: string | null
+          metadata: Json | null
+          published_at: string
+          relevance_score: number | null
+          sentiment: string | null
+          sentiment_confidence: number | null
+          source_name: string
+          source_url: string
+          summary: string | null
+          tags: Json | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          author?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          impact_level?: string | null
+          metadata?: Json | null
+          published_at: string
+          relevance_score?: number | null
+          sentiment?: string | null
+          sentiment_confidence?: number | null
+          source_name: string
+          source_url: string
+          summary?: string | null
+          tags?: Json | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          author?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          impact_level?: string | null
+          metadata?: Json | null
+          published_at?: string
+          relevance_score?: number | null
+          sentiment?: string | null
+          sentiment_confidence?: number | null
+          source_name?: string
+          source_url?: string
+          summary?: string | null
+          tags?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      news_sources: {
+        Row: {
+          api_config: Json | null
+          created_at: string
+          credibility_rating: number | null
+          enabled: boolean
+          fetch_frequency_hours: number
+          id: string
+          last_fetch_at: string | null
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          api_config?: Json | null
+          created_at?: string
+          credibility_rating?: number | null
+          enabled?: boolean
+          fetch_frequency_hours?: number
+          id?: string
+          last_fetch_at?: string | null
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          api_config?: Json | null
+          created_at?: string
+          credibility_rating?: number | null
+          enabled?: boolean
+          fetch_frequency_hours?: number
+          id?: string
+          last_fetch_at?: string | null
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       permissions: {
         Row: {
