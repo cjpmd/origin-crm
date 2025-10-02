@@ -11,6 +11,7 @@ import { useTasks } from '@/hooks/useTasks';
 import { useDeals } from '@/hooks/useDeals';
 import { useContacts } from '@/hooks/useContacts';
 import { Checkbox } from '@/components/ui/checkbox';
+import { NewsIntelligenceBanner } from '@/components/Dashboard/NewsIntelligenceBanner';
 
 const Index = () => {
   const { tasks, updateTask } = useTasks();
@@ -43,6 +44,9 @@ const Index = () => {
           </Button>
         </div>
       </div>
+
+      {/* News Intelligence Banner */}
+      <NewsIntelligenceBanner />
 
       {/* Key Metrics */}
       <DashboardCards />
