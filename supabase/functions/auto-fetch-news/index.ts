@@ -94,17 +94,34 @@ async function processUserNews(userId: string, supabase: any, apiKey: string) {
   console.log(`Processing news for user: ${userId}`);
 
   // Fetch user's entities
-  const [portfolioRes, dealsRes, investorsRes, sectorsRes] = await Promise.all([
+  const [portfolioRes, dealsRes, investorsRes] = await Promise.all([
     supabase.from('portfolio_companies').select('id, name, sector_id').eq('user_id', userId),
     supabase.from('deals').select('id, name, sector_id').eq('user_id', userId).neq('stage', 'Lost'),
-    supabase.from('investors').select('id, name').eq('user_id', userId),
-    supabase.from('sectors').select('id, name').eq('user_id', userId)
+    supabase.from('investors').select('id, name').eq('user_id', userId)
   ]);
 
   const portfolioCompanies = portfolioRes.data || [];
   const deals = dealsRes.data || [];
   const investors = investorsRes.data || [];
-  const sectors = sectorsRes.data || [];
+
+  // Get unique sector IDs from companies and deals
+  const sectorIds = new Set<string>();
+  portfolioCompanies.forEach((c: any) => {
+    if (c.sector_id) sectorIds.add(c.sector_id);
+  });
+  deals.forEach((d: any) => {
+    if (d.sector_id) sectorIds.add(d.sector_id);
+  });
+
+  // Fetch sector details
+  let sectors = [];
+  if (sectorIds.size > 0) {
+    const { data: sectorsData } = await supabase
+      .from('sectors')
+      .select('id, name')
+      .in('id', Array.from(sectorIds));
+    sectors = sectorsData || [];
+  }
 
   console.log(`User ${userId}: ${portfolioCompanies.length} companies, ${deals.length} deals, ${investors.length} investors, ${sectors.length} sectors`);
 

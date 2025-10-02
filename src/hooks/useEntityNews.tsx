@@ -45,14 +45,23 @@ export const useEntityNews = () => {
 
       // Get user's entity IDs
       const [portfolioRes, dealsRes, investorsRes] = await Promise.all([
-        supabase.from('portfolio_companies').select('id').eq('user_id', userId),
-        supabase.from('deals').select('id').eq('user_id', userId),
+        supabase.from('portfolio_companies').select('id, sector_id').eq('user_id', userId),
+        supabase.from('deals').select('id, sector_id').eq('user_id', userId),
         supabase.from('investors').select('id').eq('user_id', userId)
       ]);
 
       const portfolioIds = new Set(portfolioRes.data?.map(c => c.id) || []);
       const dealIds = new Set(dealsRes.data?.map(d => d.id) || []);
       const investorIds = new Set(investorsRes.data?.map(i => i.id) || []);
+      
+      // Get unique sector IDs from companies and deals
+      const sectorIds = new Set<string>();
+      (portfolioRes.data || []).forEach((c: any) => {
+        if (c.sector_id) sectorIds.add(c.sector_id);
+      });
+      (dealsRes.data || []).forEach((d: any) => {
+        if (d.sector_id) sectorIds.add(d.sector_id);
+      });
 
       // Fetch matches for user's entities
       const { data: newsMatches } = await supabase
@@ -61,7 +70,8 @@ export const useEntityNews = () => {
         .in('entity_id', [
           ...Array.from(portfolioIds),
           ...Array.from(dealIds),
-          ...Array.from(investorIds)
+          ...Array.from(investorIds),
+          ...Array.from(sectorIds)
         ]);
 
       // Create a map of news items with their relevant entity types
