@@ -42,7 +42,7 @@ export const useEntityNews = () => {
           entity_id,
           match_confidence,
           news_item_id,
-          news_items (
+          news_items!inner (
             id,
             title,
             summary,
@@ -63,8 +63,7 @@ export const useEntityNews = () => {
             updated_at
           )
         `)
-        .gte('news_items.published_at', sevenDaysAgo)
-        .order('news_items.published_at', { ascending: false });
+        .gte('news_items.published_at', sevenDaysAgo);
 
       if (matchError) throw matchError;
 
@@ -109,7 +108,9 @@ export const useEntityNews = () => {
         }
       }
 
-      const allNews = Array.from(newsMap.values()).map(n => n.item);
+      const allNews = Array.from(newsMap.values())
+        .map(n => n.item)
+        .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 
       // Categorize
       const highImpactNews = allNews.filter(n => n.impact_level === 'high');
