@@ -13,16 +13,17 @@ import { PromoteDealDialog } from "@/components/Pipeline/PromoteDealDialog";
 import { Plus, Search, Building2, User, Calendar, TrendingUp, LayoutGrid, LayoutList } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 
-const stages = ["Lead", "Qualified", "Meeting", "Proposal", "Negotiation", "Closed Won", "Closed Lost"];
+const stages = ["Lead", "Qualified", "Meeting", "Proposal", "Negotiation", "Closing", "Closed Won", "Closed Lost"];
 
 const stageColors: Record<string, string> = {
-  "Lead": "bg-slate-100 border-slate-300 text-slate-700",
-  "Qualified": "bg-blue-100 border-blue-300 text-blue-700",
-  "Meeting": "bg-purple-100 border-purple-300 text-purple-700",
-  "Proposal": "bg-amber-100 border-amber-300 text-amber-700",
-  "Negotiation": "bg-orange-100 border-orange-300 text-orange-700",
-  "Closed Won": "bg-green-100 border-green-300 text-green-700",
-  "Closed Lost": "bg-red-100 border-red-300 text-red-700"
+  "Lead": "bg-slate-50 border-slate-200 text-slate-700",
+  "Qualified": "bg-blue-50 border-blue-200 text-blue-700",
+  "Meeting": "bg-purple-50 border-purple-200 text-purple-700",
+  "Proposal": "bg-amber-50 border-amber-200 text-amber-700",
+  "Negotiation": "bg-orange-50 border-orange-200 text-orange-700",
+  "Closing": "bg-indigo-50 border-indigo-200 text-indigo-700",
+  "Closed Won": "bg-green-50 border-green-200 text-green-700",
+  "Closed Lost": "bg-red-50 border-red-200 text-red-700"
 };
 
 export default function Pipeline() {
@@ -150,45 +151,50 @@ export default function Pipeline() {
 
       {/* Pipeline Board */}
       {viewMode === "board" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="flex gap-4 overflow-x-auto pb-4">
           {stages.map((stage) => {
             const stageDeals = dealsByStage[stage] || [];
             const stageValue = stageDeals.reduce((sum, deal) => sum + (Number(deal.valuation) || 0), 0);
             
             return (
-              <Card 
+              <div 
                 key={stage} 
-                className={`border-2 ${stageColors[stage]} ${dragOverStage === stage ? 'ring-2 ring-primary' : ''}`}
-                onDragOver={(e) => handleDragOver(e, stage)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, stage)}
+                className="flex-shrink-0 w-80"
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-semibold">{stage}</CardTitle>
-                    <Badge variant="secondary" className="text-xs">
-                      {stageDeals.length}
-                    </Badge>
-                  </div>
-                  <p className="text-xs font-medium mt-1">
-                    {formatCurrency(stageValue)}
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-3 max-h-[600px] overflow-y-auto">
-                  {stageDeals.map((deal) => {
-                    const owner = getOwnerInfo(deal.owner);
-                    return (
-                      <Card
-                        key={deal.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, deal)}
-                        className={`p-3 cursor-move hover:shadow-md transition-shadow bg-background ${
-                          draggedDeal?.id === deal.id ? 'opacity-50' : ''
-                        }`}
-                        onClick={(e) => {
-                          if (!draggedDeal) setSelectedDeal(deal);
-                        }}
-                      >
+                <Card 
+                  className={`border-2 h-full flex flex-col ${stageColors[stage]} ${
+                    dragOverStage === stage ? 'ring-2 ring-primary shadow-lg' : ''
+                  } transition-all`}
+                  onDragOver={(e) => handleDragOver(e, stage)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, stage)}
+                >
+                  <CardHeader className="pb-3 border-b">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-bold uppercase tracking-wide">{stage}</CardTitle>
+                      <Badge variant="secondary" className="text-xs font-semibold">
+                        {stageDeals.length}
+                      </Badge>
+                    </div>
+                    <p className="text-xs font-semibold mt-2 text-muted-foreground">
+                      {formatCurrency(stageValue)}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-3 overflow-y-auto flex-1 pt-3" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+                    {stageDeals.map((deal) => {
+                      const owner = getOwnerInfo(deal.owner);
+                      return (
+                        <Card
+                          key={deal.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, deal)}
+                          className={`p-4 cursor-move hover:shadow-lg transition-all bg-card border border-border ${
+                            draggedDeal?.id === deal.id ? 'opacity-50 rotate-2' : 'hover:-translate-y-1'
+                          }`}
+                          onClick={(e) => {
+                            if (!draggedDeal) setSelectedDeal(deal);
+                          }}
+                        >
                         <div className="space-y-3">
                           {/* Company Logo/Icon */}
                           <div className="flex items-start gap-3">
@@ -250,13 +256,19 @@ export default function Pipeline() {
                       </Card>
                     );
                   })}
-                  {stageDeals.length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-8">
-                      No deals in this stage
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                    {stageDeals.length === 0 && (
+                      <div className="text-center py-8 px-4">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 mx-auto mb-3 flex items-center justify-center">
+                          <Building2 className="h-6 w-6 text-muted-foreground/50" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Drop deals here
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             );
           })}
         </div>

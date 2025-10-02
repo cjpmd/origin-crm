@@ -15,6 +15,7 @@ export interface Deal {
   sector_id?: string;
   owner?: string;
   expected_close_date?: string;
+  website?: string;
   notes?: string;
   promoted_to_company_id?: string;
   promoted_at?: string;

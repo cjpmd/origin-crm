@@ -446,6 +446,7 @@ export type Database = {
           updated_at: string
           user_id: string
           valuation: number | null
+          website: string | null
         }
         Insert: {
           company_id?: string | null
@@ -464,6 +465,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           valuation?: number | null
+          website?: string | null
         }
         Update: {
           company_id?: string | null
@@ -482,6 +484,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           valuation?: number | null
+          website?: string | null
         }
         Relationships: [
           {

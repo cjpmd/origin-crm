@@ -140,8 +140,12 @@ async function processUserNews(userId: string, supabase: any, apiKey: string) {
 
   // Pipeline deals
   for (const deal of deals.slice(0, 10)) {
+    const dealQuery = deal.website 
+      ? `${deal.name} ${deal.website} company news acquisition`
+      : `${deal.name} company news acquisition`;
+    
     queries.push({
-      query: `${deal.name} company news acquisition`,
+      query: dealQuery,
       entityType: 'deal',
       entityId: deal.id,
       entityName: deal.name

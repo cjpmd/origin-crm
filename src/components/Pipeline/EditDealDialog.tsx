@@ -27,6 +27,7 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
     sector_id: deal.sector_id || "",
     owner: deal.owner || "",
     expected_close_date: deal.expected_close_date || "",
+    website: deal.website || "",
     notes: deal.notes || "",
   });
 
@@ -38,6 +39,7 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
       sector_id: formData.sector_id || undefined,
       owner: formData.owner || undefined,
       expected_close_date: formData.expected_close_date || undefined,
+      website: formData.website || undefined,
       notes: formData.notes || undefined,
     };
     onSave(updates);
@@ -124,6 +126,17 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
                 onChange={(e) => setFormData({ ...formData, expected_close_date: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="website">Company Website</Label>
+            <Input
+              id="website"
+              type="url"
+              value={formData.website}
+              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+              placeholder="https://example.com"
+            />
           </div>
 
           <div className="space-y-2">
