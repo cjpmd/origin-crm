@@ -9,6 +9,7 @@ export interface Deal {
   name: string;
   company_id?: string;
   stage: string;
+  sub_stage?: string;
   valuation?: number;
   probability?: number;
   sector?: string;

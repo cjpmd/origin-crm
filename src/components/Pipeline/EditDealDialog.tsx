@@ -31,6 +31,7 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
     valuation: deal.valuation?.toString() || "",
     probability: deal.probability?.toString() || "",
     sector_id: deal.sector_id || "",
+    sub_stage: deal.sub_stage || "",
     owner: deal.owner || "",
     expected_close_date: deal.expected_close_date || "",
     website: deal.website || "",
@@ -125,6 +126,7 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
       valuation: formData.valuation ? parseFloat(formData.valuation) : undefined,
       probability: formData.probability ? parseInt(formData.probability) : undefined,
       sector_id: formData.sector_id || undefined,
+      sub_stage: formData.sub_stage || undefined,
       owner: formData.owner || undefined,
       expected_close_date: formData.expected_close_date || undefined,
       website: formData.website || undefined,
@@ -216,14 +218,33 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="expected_close_date">Expected Close Date</Label>
-              <Input
-                id="expected_close_date"
-                type="date"
-                value={formData.expected_close_date}
-                onChange={(e) => setFormData({ ...formData, expected_close_date: e.target.value })}
-              />
+              <Label htmlFor="sub_stage">Sub-Stage</Label>
+              <Select
+                value={formData.sub_stage}
+                onValueChange={(value) => setFormData({ ...formData, sub_stage: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sub-stage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Qualified">Qualified</SelectItem>
+                  <SelectItem value="Meeting">Meeting</SelectItem>
+                  <SelectItem value="Proposal">Proposal</SelectItem>
+                  <SelectItem value="Negotiation">Negotiation</SelectItem>
+                  <SelectItem value="Closing">Closing</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="expected_close_date">Expected Close Date</Label>
+            <Input
+              id="expected_close_date"
+              type="date"
+              value={formData.expected_close_date}
+              onChange={(e) => setFormData({ ...formData, expected_close_date: e.target.value })}
+            />
           </div>
 
           <div className="space-y-2">

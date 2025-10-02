@@ -313,21 +313,21 @@ export function CompanySearchDialog({ open, onOpenChange, onAddToPipeline }: Com
 
                   <TabsContent value="overview" className="flex-1 space-y-4 overflow-auto">
                     <Card className="p-6">
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-start gap-6">
                         {selectedCompany.logo_url && (
-                          <Avatar className="w-16 h-16 rounded-lg">
+                          <Avatar className="w-24 h-24 rounded-lg flex-shrink-0">
                             <AvatarImage src={selectedCompany.logo_url} alt={selectedCompany.company_name} />
                             <AvatarFallback className="rounded-lg">
-                              <Building2 className="w-8 h-8" />
+                              <Building2 className="w-12 h-12" />
                             </AvatarFallback>
                           </Avatar>
                         )}
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="text-xl font-bold">{selectedCompany.company_name}</h3>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-2xl font-bold mb-1">{selectedCompany.company_name}</h3>
                               {selectedCompany.tagline && (
-                                <p className="text-sm text-muted-foreground mt-1">{selectedCompany.tagline}</p>
+                                <p className="text-base text-muted-foreground italic">{selectedCompany.tagline}</p>
                               )}
                             </div>
                             {selectedCompany.website_url && (
@@ -339,23 +339,28 @@ export function CompanySearchDialog({ open, onOpenChange, onAddToPipeline }: Com
                               </Button>
                             )}
                           </div>
-                          {selectedCompany.description && (
-                            <p className="mt-4 text-sm">{selectedCompany.description}</p>
-                          )}
-                          <div className="grid grid-cols-2 gap-4 mt-4">
+                          
+                          <div className="grid grid-cols-2 gap-4 mb-4">
                             {selectedCompany.industry && (
                               <div>
-                                <p className="text-xs text-muted-foreground">Industry</p>
-                                <p className="font-medium text-sm">{selectedCompany.industry}</p>
+                                <p className="text-sm font-semibold text-muted-foreground mb-1">Industry</p>
+                                <p className="text-base">{selectedCompany.industry}</p>
                               </div>
                             )}
                             {selectedCompany.location && (
                               <div>
-                                <p className="text-xs text-muted-foreground">Location</p>
-                                <p className="font-medium text-sm">{selectedCompany.location}</p>
+                                <p className="text-sm font-semibold text-muted-foreground mb-1">Location</p>
+                                <p className="text-base">{selectedCompany.location}</p>
                               </div>
                             )}
                           </div>
+                          
+                          {selectedCompany.description && (
+                            <div className="pt-4 border-t">
+                              <p className="text-sm font-semibold text-muted-foreground mb-2">About</p>
+                              <p className="text-base leading-relaxed">{selectedCompany.description}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </Card>
@@ -369,35 +374,35 @@ export function CompanySearchDialog({ open, onOpenChange, onAddToPipeline }: Com
                   </TabsContent>
 
                   <TabsContent value="insights" className="flex-1 flex flex-col min-h-0">
-                    <Card className="flex-1 flex flex-col min-h-0">
-                      <ScrollArea className="flex-1 p-4" ref={chatScrollRef}>
-                        <div className="space-y-4">
+                    <Card className="flex-1 flex flex-col min-h-0 max-h-[500px]">
+                      <ScrollArea className="flex-1 p-4 min-h-0" ref={chatScrollRef}>
+                        <div className="space-y-4 pb-4">
                           {chatMessages.map((msg, idx) => (
                             <div
                               key={idx}
                               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                               <div
-                                className={`max-w-[80%] rounded-lg p-3 ${
+                                className={`max-w-[85%] rounded-lg p-4 ${
                                   msg.role === 'user'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-muted'
                                 }`}
                               >
-                                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                               </div>
                             </div>
                           ))}
                           {isChatLoading && (
                             <div className="flex justify-start">
-                              <div className="bg-muted rounded-lg p-3">
+                              <div className="bg-muted rounded-lg p-4">
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               </div>
                             </div>
                           )}
                         </div>
                       </ScrollArea>
-                      <div className="p-4 border-t">
+                      <div className="p-4 border-t flex-shrink-0">
                         <div className="flex gap-2">
                           <Input
                             placeholder="Ask about this company..."

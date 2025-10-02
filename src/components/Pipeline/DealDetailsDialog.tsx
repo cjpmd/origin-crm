@@ -54,6 +54,12 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onEdit }: DealDeta
                 <h3 className="font-semibold mb-2">Stage</h3>
                 <p>{deal.stage}</p>
               </div>
+              {deal.sub_stage && (
+                <div>
+                  <h3 className="font-semibold mb-2">Sub-Stage</h3>
+                  <p>{deal.sub_stage}</p>
+                </div>
+              )}
               {deal.valuation && (
                 <div>
                   <h3 className="font-semibold mb-2">Valuation</h3>

@@ -444,6 +444,7 @@ export type Database = {
           sector: string | null
           sector_id: string | null
           stage: string
+          sub_stage: string | null
           updated_at: string
           user_id: string
           valuation: number | null
@@ -464,6 +465,7 @@ export type Database = {
           sector?: string | null
           sector_id?: string | null
           stage?: string
+          sub_stage?: string | null
           updated_at?: string
           user_id: string
           valuation?: number | null
@@ -484,6 +486,7 @@ export type Database = {
           sector?: string | null
           sector_id?: string | null
           stage?: string
+          sub_stage?: string | null
           updated_at?: string
           user_id?: string
           valuation?: number | null

@@ -16,17 +16,16 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const stages = ["Lead", "Qualified", "Meeting", "Proposal", "Negotiation", "Closing", "Closed Won", "Closed Lost"];
+const stages = ["Lead", "Working", "On Hold", "Won", "Lost"];
+
+const subStages = ["Qualified", "Meeting", "Proposal", "Negotiation", "Closing"];
 
 const stageColors: Record<string, string> = {
   "Lead": "bg-slate-50 border-slate-200 text-slate-700",
-  "Qualified": "bg-blue-50 border-blue-200 text-blue-700",
-  "Meeting": "bg-purple-50 border-purple-200 text-purple-700",
-  "Proposal": "bg-amber-50 border-amber-200 text-amber-700",
-  "Negotiation": "bg-orange-50 border-orange-200 text-orange-700",
-  "Closing": "bg-indigo-50 border-indigo-200 text-indigo-700",
-  "Closed Won": "bg-green-50 border-green-200 text-green-700",
-  "Closed Lost": "bg-red-50 border-red-200 text-red-700"
+  "Working": "bg-blue-50 border-blue-200 text-blue-700",
+  "On Hold": "bg-yellow-50 border-yellow-200 text-yellow-700",
+  "Won": "bg-green-50 border-green-200 text-green-700",
+  "Lost": "bg-red-50 border-red-200 text-red-700"
 };
 
 export default function Pipeline() {
@@ -271,6 +270,11 @@ export default function Pipeline() {
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-semibold text-sm leading-tight truncate">{deal.name}</h4>
+                                {deal.sub_stage && (
+                                  <Badge variant="secondary" className="text-xs mt-1">
+                                    {deal.sub_stage}
+                                  </Badge>
+                                )}
                                 {deal.website && (
                                   <p className="text-xs text-muted-foreground truncate">{deal.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</p>
                                 )}
@@ -324,6 +328,14 @@ export default function Pipeline() {
                                     <span className="font-medium truncate ml-2">{deal.sector}</span>
                                   </div>
                                 )}
+                                {deal.sub_stage && (
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">Sub-Stage</span>
+                                    <Badge variant="outline" className="text-xs h-5">
+                                      {deal.sub_stage}
+                                    </Badge>
+                                  </div>
+                                )}
                                 {deal.notes && (
                                   <div className="text-xs">
                                     <span className="text-muted-foreground">Notes:</span>
@@ -357,6 +369,21 @@ export default function Pipeline() {
                                     Edit
                                   </Button>
                                 </div>
+                                {stage === "Won" && !deal.promoted_to_company_id && (
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    className="w-full h-7 text-xs mt-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedCardId(null);
+                                      setPromotingDeal(deal);
+                                    }}
+                                  >
+                                    <TrendingUp className="h-3 w-3 mr-1" />
+                                    Promote to Portfolio
+                                  </Button>
+                                )}
                               </div>
                             )}
                           </div>
