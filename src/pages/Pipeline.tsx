@@ -484,12 +484,18 @@ export default function Pipeline() {
       <CompanySearchDialog
         open={isCompanySearchOpen}
         onOpenChange={setIsCompanySearchOpen}
-        onAddToPipeline={async (company) => {
-          await createDeal({
-            name: company.name,
-            stage: 'Lead',
-            website: company.website,
+        onAddToPipeline={(company) => {
+          createDeal({
+            name: company.company_name,
+            stage: "Lead",
+            website: company.website_url,
             logo_url: company.logo_url,
+            sector: company.industry,
+            notes: [
+              company.description,
+              company.tagline ? `Tagline: ${company.tagline}` : '',
+              company.location ? `Location: ${company.location}` : ''
+            ].filter(Boolean).join('\n\n'),
           });
         }}
       />

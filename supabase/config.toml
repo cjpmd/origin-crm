@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.search-company]
 verify_jwt = true
+
+[functions.company-insights]
+verify_jwt = true

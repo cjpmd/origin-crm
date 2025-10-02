@@ -46,18 +46,43 @@ serve(async (req) => {
     }
     console.log('[search-company] User authenticated');
 
-    // Call Lovable AI to search for company information
-    console.log('[search-company] Preparing AI search prompt...');
-    const searchPrompt = `Search for information about the company "${query}". Provide:
-1. Company name
-2. Website URL
-3. Brief description (2-3 sentences)
-4. Industry
-5. Location/Headquarters
-6. Logo URL if available
-7. Tagline if available
+    // Helper function to extract JSON from markdown-wrapped responses
+    const extractJSON = (text: string) => {
+      try {
+        // Remove markdown code blocks
+        const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        return JSON.parse(cleaned);
+      } catch (e) {
+        console.error('[search-company] JSON parse error:', e);
+        return null;
+      }
+    };
 
-Format as JSON.`;
+    // Call Lovable AI to search for multiple companies
+    console.log('[search-company] Preparing AI search prompt...');
+    const searchPrompt = `Search for companies matching "${query}". Return the top 3-5 most relevant matches.
+
+For each company, provide:
+1. company_name (exact legal name)
+2. website_url (full URL)
+3. description (2-3 sentences about what they do)
+4. industry (specific industry/sector)
+5. location (city, country)
+6. logo_url (if publicly available)
+7. tagline (if available)
+
+Return as a JSON array of company objects. Example format:
+[
+  {
+    "company_name": "Example Corp",
+    "website_url": "https://example.com",
+    "description": "...",
+    "industry": "Technology",
+    "location": "San Francisco, USA",
+    "logo_url": "https://...",
+    "tagline": "Innovation in action"
+  }
+]`;
 
     console.log('[search-company] Calling Lovable AI for company info...');
     const searchResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -69,7 +94,7 @@ Format as JSON.`;
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are a helpful assistant that searches for company information. Always respond with valid JSON only.' },
+          { role: 'system', content: 'You are a company research assistant. Always return valid JSON arrays of company data.' },
           { role: 'user', content: searchPrompt }
         ],
       }),
@@ -83,86 +108,31 @@ Format as JSON.`;
 
     console.log('[search-company] AI search successful');
     const searchData = await searchResponse.json();
-    const companyInfoText = searchData.choices?.[0]?.message?.content || '{}';
+    const companyInfoText = searchData.choices?.[0]?.message?.content || '[]';
     console.log('[search-company] Raw AI response:', companyInfoText);
     
-    let companyInfo;
+    let companies;
     try {
-      companyInfo = JSON.parse(companyInfoText);
-      console.log('[search-company] Parsed company info:', companyInfo);
+      companies = extractJSON(companyInfoText);
+      if (!Array.isArray(companies)) {
+        // If single object returned, wrap in array
+        companies = [companies];
+      }
+      console.log('[search-company] Parsed companies:', companies);
     } catch (e) {
       console.error('[search-company] Failed to parse company info:', companyInfoText);
-      companyInfo = { name: query };
+      companies = [{ company_name: query }];
     }
 
-    // Generate AI investment insights
-    console.log('[search-company] Generating AI insights...');
-    const insightsPrompt = `Analyze this company for investment potential: ${query}
+    // Return the companies list - insights will be generated per-company on demand
+    console.log('[search-company] Companies found:', companies.length);
 
-Company Info:
-${JSON.stringify(companyInfo, null, 2)}
-
-Provide a brief investment analysis covering:
-1. Market opportunity
-2. Competitive advantages
-3. Potential risks
-4. Investment recommendation (Buy/Hold/Pass)
-
-Keep it concise (3-4 paragraphs).`;
-
-    const insightsResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: 'You are an investment analyst providing clear, actionable insights.' },
-          { role: 'user', content: insightsPrompt }
-        ],
-      }),
-    });
-
-    const insightsData = await insightsResponse.json();
-    const aiInsights = insightsData.choices?.[0]?.message?.content || 'No insights available';
-    console.log('[search-company] AI insights generated');
-
-    // Check LinkedIn connections (simplified - would need actual LinkedIn integration)
-    // For now, we'll check if any team members have LinkedIn profiles and the company in their network
-    console.log('[search-company] Checking team connections...');
-    const { data: teamMembers, error: teamError } = await supabase
-      .from('team_members')
-      .select('id, full_name, email');
-
-    if (teamError) {
-      console.error('[search-company] Error fetching team members:', teamError);
-    }
-
-    const { data: contacts, error: contactsError } = await supabase
-      .from('contacts')
-      .select('name, company_id, linkedin')
-      .ilike('name', `%${query}%`);
-
-    if (contactsError) {
-      console.error('[search-company] Error fetching contacts:', contactsError);
-    }
-
-    const linkedInConnections = contacts?.map(contact => ({
-      teamMember: contact.name,
-      contact: contact.name,
-    })) || [];
-
-    console.log('[search-company] Found', linkedInConnections.length, 'connections');
     console.log('[search-company] Search complete, returning results');
 
     return new Response(
       JSON.stringify({
         success: true,
-        companyInfo,
-        aiInsights,
-        linkedInConnections,
+        companies: companies || [],
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
