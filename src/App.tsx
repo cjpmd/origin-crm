@@ -24,6 +24,7 @@ import Settings from "./pages/Settings";
 import Tasks from "./pages/Tasks";
 import Team from "./pages/Team";
 import Intermediaries from "./pages/Intermediaries";
+import News from "./pages/News";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="research/sector/:sectorId" element={<Research />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="intermediaries" element={<Intermediaries />} />
+            <Route path="news" element={<News />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
             <Route path="tasks" element={<Tasks />} />

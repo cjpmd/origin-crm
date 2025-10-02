@@ -31,7 +31,8 @@ import {
   LineChart,
   Network,
   FileText,
-  CheckSquare
+  CheckSquare,
+  Newspaper
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,7 @@ const navigation = [
   { name: 'Portfolio', href: '/portfolio', icon: BarChart3 },
   { name: 'Analytics', href: '/analytics', icon: LineChart },
   { name: 'Intermediaries', href: '/intermediaries', icon: Network },
+  { name: 'News', href: '/news', icon: Newspaper },
   { name: 'ESG Analytics', href: '/esg-analytics', icon: Leaf },
   { name: 'Sectoral Analysis', href: '/sectoral-analysis', icon: TreePine },
   { name: 'Reports', href: '/reports', icon: FileText },

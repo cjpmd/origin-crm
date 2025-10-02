@@ -8,3 +8,9 @@ verify_jwt = true
 
 [functions.ai-research]
 verify_jwt = true
+
+[functions.fetch-news]
+verify_jwt = true
+
+[functions.match-news-entities]
+verify_jwt = true
