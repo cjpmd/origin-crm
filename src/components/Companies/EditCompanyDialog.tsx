@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStockPrice } from '@/hooks/useStockPrice';
 import { useSectors } from '@/hooks/useSectors';
+import { useCompanyLogo } from '@/hooks/useCompanyLogo';
 import { Download, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,6 +21,7 @@ interface EditCompanyDialogProps {
 export function EditCompanyDialog({ company, open, onOpenChange, onSave }: EditCompanyDialogProps) {
   const { fetchStockPrice, fetching } = useStockPrice();
   const { activeSectors, isLoading: sectorsLoading } = useSectors();
+  const { fetchLogo, fetching: fetchingLogo } = useCompanyLogo();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -74,6 +76,12 @@ export function EditCompanyDialog({ company, open, onOpenChange, onSave }: EditC
   const handleFetchStockPrice = async () => {
     if (company && formData.stock_ticker) {
       await fetchStockPrice(formData.stock_ticker, company.id);
+    }
+  };
+
+  const handleFetchLogo = async () => {
+    if (company && formData.website) {
+      await fetchLogo(company.id, formData.website);
     }
   };
 
@@ -191,13 +199,25 @@ export function EditCompanyDialog({ company, open, onOpenChange, onSave }: EditC
 
           <div className="grid gap-2">
             <Label htmlFor="website">Website</Label>
-            <Input
-              id="website"
-              type="url"
-              placeholder="https://example.com"
-              value={formData.website}
-              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="website"
+                type="url"
+                placeholder="https://example.com"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleFetchLogo}
+                disabled={fetchingLogo || !formData.website}
+                title="Refresh company logo"
+              >
+                <RefreshCw className={`h-4 w-4 ${fetchingLogo ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
           </div>
 
           <div className="grid gap-2">

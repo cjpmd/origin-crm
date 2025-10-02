@@ -9,11 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIntermediaries, Intermediary } from "@/hooks/useIntermediaries";
+import { useSectors } from "@/hooks/useSectors";
 import { Plus, Pencil, Trash2, Building2, Mail, Phone, Linkedin } from "lucide-react";
 import { format } from "date-fns";
 
 export function IntermediaryManagement() {
   const { intermediaries, isLoading, createIntermediary, updateIntermediary, deleteIntermediary } = useIntermediaries();
+  const { activeSectors, getSectorById } = useSectors();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingIntermediary, setEditingIntermediary] = useState<Intermediary | null>(null);
   const [formData, setFormData] = useState({
@@ -25,6 +27,7 @@ export function IntermediaryManagement() {
     linkedin: "",
     relationship_strength: 50,
     notes: "",
+    sector_id: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,6 +53,7 @@ export function IntermediaryManagement() {
       linkedin: "",
       relationship_strength: 50,
       notes: "",
+      sector_id: "",
     });
     setEditingIntermediary(null);
   };
@@ -65,6 +69,7 @@ export function IntermediaryManagement() {
       linkedin: intermediary.linkedin || "",
       relationship_strength: intermediary.relationship_strength || 50,
       notes: intermediary.notes || "",
+      sector_id: intermediary.sector_id || "",
     });
     setIsDialogOpen(true);
   };
@@ -159,6 +164,21 @@ export function IntermediaryManagement() {
                   />
                 </div>
                 <div className="space-y-2 col-span-2">
+                  <Label>Primary Sector</Label>
+                  <Select value={formData.sector_id} onValueChange={(value) => setFormData({ ...formData, sector_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select sector (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeSectors.map((sector) => (
+                        <SelectItem key={sector.id} value={sector.id}>
+                          {sector.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 col-span-2">
                   <Label>Relationship Strength: {formData.relationship_strength}</Label>
                   <input
                     type="range"
@@ -202,6 +222,7 @@ export function IntermediaryManagement() {
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Firm</TableHead>
+                <TableHead>Sector</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Strength</TableHead>
                 <TableHead>Performance</TableHead>
@@ -223,6 +244,13 @@ export function IntermediaryManagement() {
                         <Building2 className="h-3 w-3" />
                         <span className="text-sm">{intermediary.firm}</span>
                       </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {intermediary.sector_id && (
+                      <Badge variant="outline">
+                        {getSectorById(intermediary.sector_id)?.name || "Unknown"}
+                      </Badge>
                     )}
                   </TableCell>
                   <TableCell>

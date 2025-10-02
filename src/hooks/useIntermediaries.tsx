@@ -16,6 +16,7 @@ export interface Intermediary {
   total_deals_sourced?: number;
   successful_deals?: number;
   notes?: string;
+  sector_id?: string;
   created_at: string;
   updated_at: string;
 }

@@ -857,6 +857,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           relationship_strength: number | null
+          sector_id: string | null
           successful_deals: number | null
           total_deals_sourced: number | null
           type: string
@@ -874,6 +875,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           relationship_strength?: number | null
+          sector_id?: string | null
           successful_deals?: number | null
           total_deals_sourced?: number | null
           type?: string
@@ -891,13 +893,22 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           relationship_strength?: number | null
+          sector_id?: string | null
           successful_deals?: number | null
           total_deals_sourced?: number | null
           type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "intermediaries_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       intermediary_coverage: {
         Row: {
