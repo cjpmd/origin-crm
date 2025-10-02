@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useEntityNews } from "@/hooks/useEntityNews";
-import { ArrowRight, TrendingUp, Building2, Target, Users, Newspaper } from "lucide-react";
+import { useNewsRefresh } from "@/hooks/useNewsRefresh";
+import { ArrowRight, TrendingUp, Building2, Target, Users, Newspaper, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,6 +18,8 @@ export const NewsIntelligenceBanner = () => {
     totalCount,
     isLoading 
   } = useEntityNews();
+  
+  const { refreshNews, isRefreshing } = useNewsRefresh();
 
   if (isLoading) {
     return (
@@ -88,11 +91,31 @@ export const NewsIntelligenceBanner = () => {
               </Badge>
             )}
           </CardTitle>
-          <Link to="/news">
-            <Button variant="ghost" size="sm">
-              View All <ArrowRight className="ml-2 h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => refreshNews()}
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh News
+                </>
+              )}
             </Button>
-          </Link>
+            <Link to="/news">
+              <Button variant="ghost" size="sm">
+                View All <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

@@ -24,28 +24,55 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get all users' entities to fetch news for
-    const { data: users, error: usersError } = await supabase
-      .from('profiles')
-      .select('id');
+    // Check if this is a user-specific call or a cron job
+    const authHeader = req.headers.get('Authorization');
+    let specificUserId = null;
+    let usersProcessed = 0;
 
-    if (usersError) throw usersError;
-
-    console.log(`Processing news for ${users?.length || 0} users`);
-
-    for (const user of users || []) {
-      try {
-        await processUserNews(user.id, supabase, LOVABLE_API_KEY);
-      } catch (error) {
-        console.error(`Error processing news for user ${user.id}:`, error);
+    if (authHeader?.includes('Bearer')) {
+      // Try to get the user from the token
+      const supabaseClient = createClient(
+        supabaseUrl,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        specificUserId = user.id;
+        console.log(`User-specific refresh for: ${user.id}`);
       }
+    }
+
+    if (specificUserId) {
+      // Manual refresh: just this user
+      await processUserNews(specificUserId, supabase, LOVABLE_API_KEY);
+      usersProcessed = 1;
+    } else {
+      // Cron job: all users
+      const { data: users, error: usersError } = await supabase
+        .from('profiles')
+        .select('id');
+
+      if (usersError) throw usersError;
+
+      console.log(`Processing news for ${users?.length || 0} users`);
+
+      for (const user of users || []) {
+        try {
+          await processUserNews(user.id, supabase, LOVABLE_API_KEY);
+        } catch (error) {
+          console.error(`Error processing news for user ${user.id}:`, error);
+        }
+      }
+      usersProcessed = users?.length || 0;
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Auto-fetch completed',
-        usersProcessed: users?.length || 0
+        message: specificUserId ? 'Manual refresh completed' : 'Auto-fetch completed',
+        usersProcessed
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
