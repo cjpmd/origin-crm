@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStockPrice } from '@/hooks/useStockPrice';
+import { useSectors } from '@/hooks/useSectors';
 import { Download, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,11 +19,12 @@ interface EditCompanyDialogProps {
 
 export function EditCompanyDialog({ company, open, onOpenChange, onSave }: EditCompanyDialogProps) {
   const { fetchStockPrice, fetching } = useStockPrice();
+  const { activeSectors, isLoading: sectorsLoading } = useSectors();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     stage: '',
-    sector: '',
+    sector_id: '',
     location: '',
     website: '',
     description: '',
@@ -35,7 +37,7 @@ export function EditCompanyDialog({ company, open, onOpenChange, onSave }: EditC
       setFormData({
         name: company.name || '',
         stage: company.stage || '',
-        sector: company.sector || '',
+        sector_id: company.sector_id || '',
         location: company.location || '',
         website: company.website || '',
         description: company.description || '',
@@ -158,12 +160,23 @@ export function EditCompanyDialog({ company, open, onOpenChange, onSave }: EditC
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="sector">Sector</Label>
-              <Input
-                id="sector"
-                value={formData.sector}
-                onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-              />
+              <Label htmlFor="sector_id">Sector</Label>
+              <Select
+                value={formData.sector_id}
+                onValueChange={(value) => setFormData({ ...formData, sector_id: value })}
+                disabled={sectorsLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sector" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {activeSectors.map((sector) => (
+                    <SelectItem key={sector.id} value={sector.id}>
+                      {sector.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid gap-2">
