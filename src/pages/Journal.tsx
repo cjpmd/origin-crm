@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useJournalEntries } from "@/hooks/useJournalEntries";
 import { Button } from "@/components/ui/button";
@@ -6,10 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2, Search, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function Journal() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { entries, createEntry, updateEntry, deleteEntry, isCreating, isUpdating, isDeleting } = useJournalEntries(user?.id);
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
@@ -17,6 +20,20 @@ export default function Journal() {
   const [content, setContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewEntry, setIsNewEntry] = useState(false);
+
+  // Authentication check
+  useEffect(() => {
+    console.log('[Journal] User authentication status:', user ? 'authenticated' : 'not authenticated');
+    console.log('[Journal] User ID:', user?.id);
+    if (!user) {
+      toast.error("Please log in to access your journal");
+      navigate("/auth");
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    console.log('[Journal] Entries loaded:', entries?.length || 0);
+  }, [entries]);
 
   const filteredEntries = entries.filter(entry =>
     entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -41,17 +58,42 @@ export default function Journal() {
   };
 
   const handleSave = async () => {
-    if (!content.trim()) return;
+    if (!content.trim()) {
+      toast.error("Content cannot be empty");
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error("You must be logged in to save entries");
+      return;
+    }
+
+    console.log('[Journal] Saving entry...', { isNewEntry, selectedEntry, contentLength: content.length });
 
     try {
       if (isNewEntry) {
-        await createEntry({ title: title || undefined, content });
+        console.log('[Journal] Creating new entry');
+        const result = await createEntry({ title: title || undefined, content });
+        console.log('[Journal] Entry created successfully:', result);
+        toast.success("Entry saved", {
+          description: `Saved at ${format(new Date(), "h:mm a")}`,
+        });
         setIsNewEntry(false);
+        setTitle("");
+        setContent("");
       } else if (selectedEntry) {
-        await updateEntry({ id: selectedEntry, title: title || undefined, content });
+        console.log('[Journal] Updating existing entry:', selectedEntry);
+        const result = await updateEntry({ id: selectedEntry, title: title || undefined, content });
+        console.log('[Journal] Entry updated successfully:', result);
+        toast.success("Entry updated", {
+          description: `Updated at ${format(new Date(), "h:mm a")}`,
+        });
       }
-    } catch (error) {
-      console.error("Error saving entry:", error);
+    } catch (error: any) {
+      console.error("[Journal] Error saving entry:", error);
+      toast.error("Failed to save entry", {
+        description: error?.message || "Please try again",
+      });
     }
   };
 
@@ -111,7 +153,7 @@ export default function Journal() {
                       {entry.content}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {format(new Date(entry.updated_at), "MMM d, yyyy")}
+                      {format(new Date(entry.updated_at), "MMM d, yyyy 'at' h:mm a")}
                     </p>
                   </div>
                   <Button
@@ -163,6 +205,13 @@ export default function Journal() {
               </Button>
             </div>
           </>
+        ) : !user ? (
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+              <p className="text-lg mb-2">Loading...</p>
+            </div>
+          </div>
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             <div className="text-center">

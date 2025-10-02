@@ -24,24 +24,52 @@ export function CompanySearchDialog({ open, onOpenChange, onAddToPipeline }: Com
   const { toast } = useToast();
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      toast({
+        title: "Search query required",
+        description: "Please enter a company name to search",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    console.log('[CompanySearch] Starting search for:', searchQuery);
     setIsSearching(true);
+    setCompanyInfo(null);
+    setAiInsights("");
+    setLinkedInConnections([]);
+
     try {
+      console.log('[CompanySearch] Invoking search-company function...');
       const { data, error } = await supabase.functions.invoke('search-company', {
         body: { query: searchQuery }
       });
 
-      if (error) throw error;
+      console.log('[CompanySearch] Response:', { data, error });
 
+      if (error) {
+        console.error('[CompanySearch] Function error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No data returned from search');
+      }
+
+      console.log('[CompanySearch] Search successful:', data);
       setCompanyInfo(data.companyInfo);
       setAiInsights(data.aiInsights);
       setLinkedInConnections(data.linkedInConnections || []);
+
+      toast({
+        title: "Search completed",
+        description: `Found information for ${data.companyInfo?.name || searchQuery}`,
+      });
     } catch (error: any) {
-      console.error('Error searching company:', error);
+      console.error('[CompanySearch] Error searching company:', error);
       toast({
         title: "Search Error",
-        description: error.message || "Failed to search for company",
+        description: error.message || "Failed to search for company. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -7,36 +7,47 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('[search-company] Function invoked');
+  
   if (req.method === 'OPTIONS') {
+    console.log('[search-company] Handling OPTIONS request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('[search-company] Parsing request body...');
     const { query } = await req.json();
     
     if (!query) {
+      console.error('[search-company] No query provided');
       throw new Error('Company name is required');
     }
 
-    console.log('Searching for company:', query);
+    console.log('[search-company] Searching for company:', query);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
+      console.error('[search-company] LOVABLE_API_KEY not configured');
       throw new Error('LOVABLE_API_KEY not configured');
     }
+    console.log('[search-company] API key found');
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('[search-company] Supabase client initialized');
 
     // Get auth user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('[search-company] No authorization header');
       throw new Error('Not authenticated');
     }
+    console.log('[search-company] User authenticated');
 
     // Call Lovable AI to search for company information
+    console.log('[search-company] Preparing AI search prompt...');
     const searchPrompt = `Search for information about the company "${query}". Provide:
 1. Company name
 2. Website URL
@@ -48,6 +59,7 @@ serve(async (req) => {
 
 Format as JSON.`;
 
+    console.log('[search-company] Calling Lovable AI for company info...');
     const searchResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -64,22 +76,27 @@ Format as JSON.`;
     });
 
     if (!searchResponse.ok) {
-      console.error('AI search error:', await searchResponse.text());
-      throw new Error('Failed to search for company');
+      const errorText = await searchResponse.text();
+      console.error('[search-company] AI search error:', searchResponse.status, errorText);
+      throw new Error(`Failed to search for company: ${errorText}`);
     }
 
+    console.log('[search-company] AI search successful');
     const searchData = await searchResponse.json();
     const companyInfoText = searchData.choices?.[0]?.message?.content || '{}';
+    console.log('[search-company] Raw AI response:', companyInfoText);
     
     let companyInfo;
     try {
       companyInfo = JSON.parse(companyInfoText);
+      console.log('[search-company] Parsed company info:', companyInfo);
     } catch (e) {
-      console.error('Failed to parse company info:', companyInfoText);
+      console.error('[search-company] Failed to parse company info:', companyInfoText);
       companyInfo = { name: query };
     }
 
     // Generate AI investment insights
+    console.log('[search-company] Generating AI insights...');
     const insightsPrompt = `Analyze this company for investment potential: ${query}
 
 Company Info:
@@ -110,22 +127,35 @@ Keep it concise (3-4 paragraphs).`;
 
     const insightsData = await insightsResponse.json();
     const aiInsights = insightsData.choices?.[0]?.message?.content || 'No insights available';
+    console.log('[search-company] AI insights generated');
 
     // Check LinkedIn connections (simplified - would need actual LinkedIn integration)
     // For now, we'll check if any team members have LinkedIn profiles and the company in their network
-    const { data: teamMembers } = await supabase
+    console.log('[search-company] Checking team connections...');
+    const { data: teamMembers, error: teamError } = await supabase
       .from('team_members')
       .select('id, full_name, email');
 
-    const { data: contacts } = await supabase
+    if (teamError) {
+      console.error('[search-company] Error fetching team members:', teamError);
+    }
+
+    const { data: contacts, error: contactsError } = await supabase
       .from('contacts')
       .select('name, company_id, linkedin')
       .ilike('name', `%${query}%`);
+
+    if (contactsError) {
+      console.error('[search-company] Error fetching contacts:', contactsError);
+    }
 
     const linkedInConnections = contacts?.map(contact => ({
       teamMember: contact.name,
       contact: contact.name,
     })) || [];
+
+    console.log('[search-company] Found', linkedInConnections.length, 'connections');
+    console.log('[search-company] Search complete, returning results');
 
     return new Response(
       JSON.stringify({
@@ -137,9 +167,13 @@ Keep it concise (3-4 paragraphs).`;
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in search-company function:', error);
+    console.error('[search-company] Error in search-company function:', error);
+    console.error('[search-company] Error details:', error.message, error.stack);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'Unknown error occurred',
+        details: error.toString()
+      }),
       { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
