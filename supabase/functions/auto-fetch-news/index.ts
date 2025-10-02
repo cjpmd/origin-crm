@@ -24,25 +24,23 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if this is a user-specific call or a cron job
+    // Check if this is a user-specific call or cron job
     const authHeader = req.headers.get('Authorization');
     let specificUserId = null;
-    let usersProcessed = 0;
-
+    
     if (authHeader?.includes('Bearer')) {
-      // Try to get the user from the token
-      const supabaseClient = createClient(
+      // User-specific manual refresh
+      const userClient = createClient(
         supabaseUrl,
         Deno.env.get('SUPABASE_ANON_KEY')!,
         { global: { headers: { Authorization: authHeader } } }
       );
-      
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        specificUserId = user.id;
-        console.log(`User-specific refresh for: ${user.id}`);
-      }
+      const { data: { user } } = await userClient.auth.getUser();
+      specificUserId = user?.id;
+      console.log(`User-specific refresh for: ${specificUserId}`);
     }
+
+    let usersProcessed = 0;
 
     if (specificUserId) {
       // Manual refresh: just this user

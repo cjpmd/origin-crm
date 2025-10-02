@@ -8,18 +8,7 @@ export const useNewsRefresh = () => {
 
   const refreshNews = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('You must be logged in to refresh news');
-      }
-
-      const { data, error } = await supabase.functions.invoke('auto-fetch-news', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
+      const { data, error } = await supabase.functions.invoke('auto-fetch-news');
       if (error) throw error;
       return data;
     },
