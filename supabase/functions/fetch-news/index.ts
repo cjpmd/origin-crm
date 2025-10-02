@@ -28,6 +28,12 @@ serve(async (req) => {
 
     // Build search query
     const searchQuery = query || (category ? `${category} news` : 'private equity news');
+    
+    // Calculate date range for recent news (last 1-3 days)
+    const today = new Date();
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    
+    console.log('Generating news for date range:', threeDaysAgo.toISOString(), 'to', today.toISOString());
 
     // Use Lovable AI to search for and analyze news
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -41,11 +47,27 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: `You are a financial news analyst. Generate ${limit} relevant news items about: "${searchQuery}". For each item provide: title, summary (2-3 sentences), source_name, source_url, published_at (ISO date), sentiment (positive/negative/neutral), sentiment_confidence (0-1), impact_level (high/medium/low), category (financial/sector/regulatory/social/market/product), and relevance_score (0-100). Format as JSON array.` 
+            content: `You are a financial news analyst. Generate ${limit} relevant and RECENT news items about: "${searchQuery}". 
+            
+CRITICAL: All news items MUST have published_at dates between ${threeDaysAgo.toISOString()} and ${today.toISOString()} (within the last 1-3 days).
+
+For each item provide:
+- title: Clear, professional headline
+- summary: 2-3 sentences
+- source_name: Reputable financial news source (e.g., Bloomberg, Reuters, Financial Times, WSJ)
+- source_url: Realistic URL format
+- published_at: ISO date string WITHIN THE LAST 3 DAYS (between ${threeDaysAgo.toISOString()} and ${today.toISOString()})
+- sentiment: positive/negative/neutral
+- sentiment_confidence: 0-1
+- impact_level: high/medium/low
+- category: financial/sector/regulatory/social/market/product
+- relevance_score: 0-100
+
+Format as JSON array. Make the news realistic and timely.` 
           },
           { 
             role: 'user', 
-            content: `Generate ${limit} news items for: ${searchQuery}` 
+            content: `Generate ${limit} recent news items (published within the last 1-3 days) for: ${searchQuery}` 
           }
         ],
       }),

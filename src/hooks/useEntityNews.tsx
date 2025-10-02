@@ -32,13 +32,13 @@ export const useEntityNews = () => {
     queryFn: async () => {
       if (!userId) return null;
 
-      // Fetch recent news items (last 24 hours for dashboard relevance)
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      // Fetch recent news items (last 7 days for dashboard relevance)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
       const { data: allNewsItems, error: newsError } = await supabase
         .from('news_items')
         .select('*')
-        .gte('published_at', twentyFourHoursAgo)
+        .gte('published_at', sevenDaysAgo)
         .order('published_at', { ascending: false });
 
       if (newsError) throw newsError;
