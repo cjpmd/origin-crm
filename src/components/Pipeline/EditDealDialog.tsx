@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Deal } from "@/hooks/useDeals";
 import { useSectors } from "@/hooks/useSectors";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useProfiles } from "@/hooks/useProfiles";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface EditDealDialogProps {
   deal: Deal;
@@ -20,6 +23,9 @@ interface EditDealDialogProps {
 export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: EditDealDialogProps) {
   const { currencySymbol } = useCurrency();
   const { activeSectors } = useSectors();
+  const { profiles } = useProfiles();
+  const [isFetchingLogo, setIsFetchingLogo] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: deal.name,
     valuation: deal.valuation?.toString() || "",
@@ -28,8 +34,37 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
     owner: deal.owner || "",
     expected_close_date: deal.expected_close_date || "",
     website: deal.website || "",
+    logo_url: deal.logo_url || "",
     notes: deal.notes || "",
   });
+
+  // Fetch logo when website changes
+  useEffect(() => {
+    const fetchLogo = async () => {
+      if (formData.website && formData.website !== deal.website) {
+        setIsFetchingLogo(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('fetch-company-logo', {
+            body: { website: formData.website, dealId: deal.id }
+          });
+
+          if (error) throw error;
+          
+          if (data?.logoUrl) {
+            setFormData(prev => ({ ...prev, logo_url: data.logoUrl }));
+            toast.success('Company logo fetched successfully');
+          }
+        } catch (error) {
+          console.error('Error fetching logo:', error);
+        } finally {
+          setIsFetchingLogo(false);
+        }
+      }
+    };
+
+    const timer = setTimeout(fetchLogo, 1000); // Debounce
+    return () => clearTimeout(timer);
+  }, [formData.website]);
 
   const handleSave = () => {
     const updates: Partial<Deal> = {
@@ -40,6 +75,7 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
       owner: formData.owner || undefined,
       expected_close_date: formData.expected_close_date || undefined,
       website: formData.website || undefined,
+      logo_url: formData.logo_url || undefined,
       notes: formData.notes || undefined,
     };
     onSave(updates);
@@ -64,12 +100,21 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
             </div>
             <div className="space-y-2">
               <Label htmlFor="owner">Owner</Label>
-              <Input
-                id="owner"
+              <Select
                 value={formData.owner}
-                onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
-                placeholder="Deal owner"
-              />
+                onValueChange={(value) => setFormData({ ...formData, owner: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select owner" />
+                </SelectTrigger>
+                <SelectContent>
+                  {profiles.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.full_name || 'Unknown User'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -136,7 +181,11 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
               value={formData.website}
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               placeholder="https://example.com"
+              disabled={isFetchingLogo}
             />
+            {isFetchingLogo && (
+              <p className="text-xs text-muted-foreground">Fetching company logo...</p>
+            )}
           </div>
 
           <div className="space-y-2">

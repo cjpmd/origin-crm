@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDeals } from "@/hooks/useDeals";
-import { useContacts } from "@/hooks/useContacts";
+import { useProfiles } from "@/hooks/useProfiles";
 import { EditDealDialog } from "@/components/Pipeline/EditDealDialog";
 import { DealDetailsDialog } from "@/components/Pipeline/DealDetailsDialog";
 import { PromoteDealDialog } from "@/components/Pipeline/PromoteDealDialog";
@@ -28,7 +28,7 @@ const stageColors: Record<string, string> = {
 
 export default function Pipeline() {
   const { deals, isLoading, createDeal, updateDeal, deleteDeal } = useDeals();
-  const { contacts } = useContacts();
+  const { profiles } = useProfiles();
   const { formatCurrency } = useCurrency();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<any>(null);
@@ -85,8 +85,8 @@ export default function Pipeline() {
   };
 
   const getOwnerInfo = (ownerId: string) => {
-    const contact = contacts?.find(c => c.id === ownerId);
-    return contact;
+    const profile = profiles?.find(p => p.id === ownerId);
+    return profile;
   };
 
   return (
@@ -195,11 +195,14 @@ export default function Pipeline() {
                             if (!draggedDeal) setSelectedDeal(deal);
                           }}
                         >
-                        <div className="space-y-3">
+                          <div className="space-y-3">
                           {/* Company Logo/Icon */}
                           <div className="flex items-start gap-3">
                             <div className="flex-shrink-0">
                               <Avatar className="h-10 w-10 rounded-lg">
+                                {deal.logo_url ? (
+                                  <AvatarImage src={deal.logo_url} alt={deal.name} className="object-cover" />
+                                ) : null}
                                 <AvatarFallback className="rounded-lg bg-primary/10">
                                   <Building2 className="h-5 w-5 text-primary" />
                                 </AvatarFallback>
@@ -226,11 +229,14 @@ export default function Pipeline() {
                             {owner ? (
                               <div className="flex items-center gap-1">
                                 <Avatar className="h-4 w-4">
+                                  {owner.avatar_url ? (
+                                    <AvatarImage src={owner.avatar_url} alt={owner.full_name || ''} />
+                                  ) : null}
                                   <AvatarFallback className="text-[8px]">
-                                    {getInitials(owner.name)}
+                                    {getInitials(owner.full_name || 'U')}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span>{owner.name}</span>
+                                <span className="truncate">{owner.full_name}</span>
                               </div>
                             ) : (
                               <span className="flex items-center gap-1">
@@ -287,6 +293,9 @@ export default function Pipeline() {
                   >
                     <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12 rounded-lg">
+                        {deal.logo_url ? (
+                          <AvatarImage src={deal.logo_url} alt={deal.name} className="object-cover" />
+                        ) : null}
                         <AvatarFallback className="rounded-lg bg-primary/10">
                           <Building2 className="h-6 w-6 text-primary" />
                         </AvatarFallback>
@@ -307,11 +316,14 @@ export default function Pipeline() {
                       {owner && (
                         <div className="flex items-center gap-2">
                           <Avatar className="h-6 w-6">
+                            {owner.avatar_url ? (
+                              <AvatarImage src={owner.avatar_url} alt={owner.full_name || ''} />
+                            ) : null}
                             <AvatarFallback className="text-xs">
-                              {getInitials(owner.name)}
+                              {getInitials(owner.full_name || 'U')}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm">{owner.name}</span>
+                          <span className="text-sm">{owner.full_name}</span>
                         </div>
                       )}
                     </div>

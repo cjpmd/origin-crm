@@ -434,6 +434,7 @@ export type Database = {
           created_at: string
           expected_close_date: string | null
           id: string
+          logo_url: string | null
           name: string
           notes: string | null
           owner: string | null
@@ -453,6 +454,7 @@ export type Database = {
           created_at?: string
           expected_close_date?: string | null
           id?: string
+          logo_url?: string | null
           name: string
           notes?: string | null
           owner?: string | null
@@ -472,6 +474,7 @@ export type Database = {
           created_at?: string
           expected_close_date?: string | null
           id?: string
+          logo_url?: string | null
           name?: string
           notes?: string | null
           owner?: string | null

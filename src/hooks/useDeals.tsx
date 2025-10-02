@@ -16,6 +16,7 @@ export interface Deal {
   owner?: string;
   expected_close_date?: string;
   website?: string;
+  logo_url?: string;
   notes?: string;
   promoted_to_company_id?: string;
   promoted_at?: string;
@@ -31,11 +32,19 @@ export function useDeals() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("deals")
-        .select("*")
+        .select(`
+          *,
+          sectors(name)
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Deal[];
+      
+      // Map sector name to the deal object
+      return (data || []).map(deal => ({
+        ...deal,
+        sector: deal.sectors?.name || deal.sector
+      })) as Deal[];
     },
   });
 
