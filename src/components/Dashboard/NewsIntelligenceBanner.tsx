@@ -107,17 +107,8 @@ export const NewsIntelligenceBanner = () => {
               onClick={() => refreshNews()}
               disabled={isRefreshing}
             >
-              {isRefreshing ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Refreshing...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh News
-                </>
-              )}
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Fetching News...' : 'Fetch News Now'}
             </Button>
             <Link to="/news">
               <Button variant="ghost" size="sm">
