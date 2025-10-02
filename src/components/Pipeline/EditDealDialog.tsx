@@ -38,6 +38,33 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
     notes: deal.notes || "",
   });
 
+  // Auto-fetch logo on dialog open if website exists but no logo
+  useEffect(() => {
+    const autoFetchLogo = async () => {
+      if (open && deal.website && !deal.logo_url) {
+        setIsFetchingLogo(true);
+        try {
+          const { data, error } = await supabase.functions.invoke('fetch-company-logo', {
+            body: { website: deal.website, dealId: deal.id }
+          });
+
+          if (error) throw error;
+          
+          if (data?.logoUrl) {
+            setFormData(prev => ({ ...prev, logo_url: data.logoUrl }));
+            toast.success('Company logo fetched successfully');
+          }
+        } catch (error) {
+          console.error('Error fetching logo:', error);
+        } finally {
+          setIsFetchingLogo(false);
+        }
+      }
+    };
+
+    autoFetchLogo();
+  }, [open, deal.id, deal.website, deal.logo_url]);
+
   // Fetch logo when website changes
   useEffect(() => {
     const fetchLogo = async () => {
@@ -64,7 +91,33 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
 
     const timer = setTimeout(fetchLogo, 1000); // Debounce
     return () => clearTimeout(timer);
-  }, [formData.website]);
+  }, [formData.website, deal.website, deal.id]);
+
+  const handleRefreshLogo = async () => {
+    if (!formData.website) {
+      toast.error('Please enter a website URL first');
+      return;
+    }
+
+    setIsFetchingLogo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-company-logo', {
+        body: { website: formData.website, dealId: deal.id }
+      });
+
+      if (error) throw error;
+      
+      if (data?.logoUrl) {
+        setFormData(prev => ({ ...prev, logo_url: data.logoUrl }));
+        toast.success('Company logo refreshed successfully');
+      }
+    } catch (error) {
+      console.error('Error fetching logo:', error);
+      toast.error('Failed to fetch logo');
+    } finally {
+      setIsFetchingLogo(false);
+    }
+  };
 
   const handleSave = () => {
     const updates: Partial<Deal> = {
@@ -175,14 +228,25 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
 
           <div className="space-y-2">
             <Label htmlFor="website">Company Website</Label>
-            <Input
-              id="website"
-              type="url"
-              value={formData.website}
-              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-              placeholder="https://example.com"
-              disabled={isFetchingLogo}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="website"
+                type="url"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                placeholder="https://example.com"
+                disabled={isFetchingLogo}
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleRefreshLogo}
+                disabled={isFetchingLogo || !formData.website}
+              >
+                {isFetchingLogo ? "Fetching..." : "Refresh Logo"}
+              </Button>
+            </div>
             {isFetchingLogo && (
               <p className="text-xs text-muted-foreground">Fetching company logo...</p>
             )}

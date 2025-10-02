@@ -10,8 +10,10 @@ import { useProfiles } from "@/hooks/useProfiles";
 import { EditDealDialog } from "@/components/Pipeline/EditDealDialog";
 import { DealDetailsDialog } from "@/components/Pipeline/DealDetailsDialog";
 import { PromoteDealDialog } from "@/components/Pipeline/PromoteDealDialog";
-import { Plus, Search, Building2, User, Calendar, TrendingUp, LayoutGrid, LayoutList } from "lucide-react";
+import { Plus, Search, Building2, User, Calendar, TrendingUp, LayoutGrid, LayoutList, RefreshCw } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const stages = ["Lead", "Qualified", "Meeting", "Proposal", "Negotiation", "Closing", "Closed Won", "Closed Lost"];
 
@@ -39,6 +41,39 @@ export default function Pipeline() {
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   const [draggedDeal, setDraggedDeal] = useState<any>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+  const [isFetchingAllLogos, setIsFetchingAllLogos] = useState(false);
+
+  const handleFetchAllLogos = async () => {
+    const dealsWithoutLogos = deals?.filter(d => d.website && !d.logo_url) || [];
+    
+    if (dealsWithoutLogos.length === 0) {
+      toast.info('All deals with websites already have logos');
+      return;
+    }
+
+    setIsFetchingAllLogos(true);
+    toast.info(`Fetching logos for ${dealsWithoutLogos.length} deals...`);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const deal of dealsWithoutLogos) {
+      try {
+        const { data, error } = await supabase.functions.invoke('fetch-company-logo', {
+          body: { website: deal.website, dealId: deal.id }
+        });
+
+        if (error) throw error;
+        if (data?.logoUrl) successCount++;
+      } catch (error) {
+        console.error(`Error fetching logo for ${deal.name}:`, error);
+        failCount++;
+      }
+    }
+
+    setIsFetchingAllLogos(false);
+    toast.success(`Fetched ${successCount} logos successfully${failCount > 0 ? `, ${failCount} failed` : ''}`);
+  };
 
   const handleDragStart = (e: React.DragEvent, deal: any) => {
     setDraggedDeal(deal);
@@ -99,10 +134,20 @@ export default function Pipeline() {
             Track and manage your deal pipeline
           </p>
         </div>
-        <Button onClick={() => setIsAddOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Deal
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleFetchAllLogos}
+            disabled={isFetchingAllLogos}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isFetchingAllLogos ? 'animate-spin' : ''}`} />
+            {isFetchingAllLogos ? 'Fetching Logos...' : 'Fetch All Logos'}
+          </Button>
+          <Button onClick={() => setIsAddOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Deal
+          </Button>
+        </div>
       </div>
 
       {/* Filters and Search */}
