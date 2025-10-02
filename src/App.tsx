@@ -25,6 +25,7 @@ import Tasks from "./pages/Tasks";
 import Team from "./pages/Team";
 import Intermediaries from "./pages/Intermediaries";
 import News from "./pages/News";
+import Journal from "./pages/Journal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="settings" element={<Settings />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="team" element={<Team />} />
+            <Route path="journal" element={<Journal />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

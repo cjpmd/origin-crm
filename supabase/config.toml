@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.auto-fetch-news]
 verify_jwt = false
+
+[functions.search-company]
+verify_jwt = true

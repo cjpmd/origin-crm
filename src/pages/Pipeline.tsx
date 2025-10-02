@@ -10,6 +10,7 @@ import { useProfiles } from "@/hooks/useProfiles";
 import { EditDealDialog } from "@/components/Pipeline/EditDealDialog";
 import { DealDetailsDialog } from "@/components/Pipeline/DealDetailsDialog";
 import { PromoteDealDialog } from "@/components/Pipeline/PromoteDealDialog";
+import { CompanySearchDialog } from "@/components/Pipeline/CompanySearchDialog";
 import { Plus, Search, Building2, User, Calendar, TrendingUp, LayoutGrid, LayoutList, RefreshCw } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +44,7 @@ export default function Pipeline() {
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
   const [isFetchingAllLogos, setIsFetchingAllLogos] = useState(false);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [isCompanySearchOpen, setIsCompanySearchOpen] = useState(false);
 
   const handleFetchAllLogos = async () => {
     const dealsWithoutLogos = deals?.filter(d => d.website && !d.logo_url) || [];
@@ -136,6 +138,13 @@ export default function Pipeline() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsCompanySearchOpen(true)}
+          >
+            <Search className="mr-2 h-4 w-4" />
+            Search Companies
+          </Button>
           <Button 
             variant="outline" 
             onClick={handleFetchAllLogos}
@@ -471,6 +480,19 @@ export default function Pipeline() {
           onSuccess={() => setPromotingDeal(null)}
         />
       )}
+
+      <CompanySearchDialog
+        open={isCompanySearchOpen}
+        onOpenChange={setIsCompanySearchOpen}
+        onAddToPipeline={async (company) => {
+          await createDeal({
+            name: company.name,
+            stage: 'Lead',
+            website: company.website,
+            logo_url: company.logo_url,
+          });
+        }}
+      />
     </div>
   );
 }

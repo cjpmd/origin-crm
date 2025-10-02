@@ -34,7 +34,8 @@ import {
   Network,
   FileText,
   CheckSquare,
-  Newspaper
+  Newspaper,
+  BookOpen
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -84,6 +85,7 @@ const navigationGroups = [
       { name: 'Funds', href: '/funds', icon: Briefcase },
       { name: 'Tasks', href: '/tasks', icon: CheckSquare },
       { name: 'Team', href: '/team', icon: Users },
+      { name: 'Journal', href: '/journal', icon: BookOpen },
     ]
   }
 ];

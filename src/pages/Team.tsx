@@ -13,6 +13,7 @@ import { useActivities } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
 import { useDeals } from "@/hooks/useDeals";
 import { useAuth } from "@/hooks/useAuth";
+import { useJournalEntries } from "@/hooks/useJournalEntries";
 import { TeamMemberDialog } from "@/components/Settings/TeamMemberDialog";
 import { 
   Search, UserPlus, Mail, Calendar, Edit, Trash2, 
@@ -59,7 +60,10 @@ export default function Team() {
   );
 
   const selectedMemberData = allMembers?.find(m => m.id === selectedMember);
-  const selectedProfile = profiles.find(p => p.id === selectedMemberData?.user_id);
+  // For team members, use their user_id to get profile. For current user, use id directly
+  const selectedProfile = profiles.find(p => 
+    selectedMemberData?.user_id ? p.id === selectedMemberData.user_id : p.id === selectedMemberData?.id
+  );
 
   const getInitials = (name?: string, email?: string) => {
     if (name) {
@@ -94,9 +98,13 @@ export default function Team() {
 
   const { deals } = useDeals();
   
-  const memberContacts = contacts?.filter(c => c.user_id === selectedMemberData?.user_id) || [];
-  const memberActivities = activities?.filter(a => a.user_id === selectedMemberData?.user_id).slice(0, 10) || [];
-  const memberTasks = tasks?.filter(t => t.user_id === selectedMemberData?.user_id) || [];
+  // Get the actual user_id for filtering - for current user it's the id, for team members it's user_id
+  const actualUserId = selectedMemberData?.user_id || selectedMemberData?.id;
+  const { entries: journalEntries } = useJournalEntries(actualUserId);
+  
+  const memberContacts = contacts?.filter(c => c.user_id === actualUserId) || [];
+  const memberActivities = activities?.filter(a => a.user_id === actualUserId).slice(0, 10) || [];
+  const memberTasks = tasks?.filter(t => t.user_id === actualUserId) || [];
   const completedTasks = memberTasks.filter(t => t.status === 'Completed').length;
   const memberDeals = deals?.filter(d => d.owner === selectedMemberData?.id || d.user_id === selectedMemberData?.user_id) || [];
 
@@ -231,7 +239,7 @@ export default function Team() {
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="connections">Connections</TabsTrigger>
                     <TabsTrigger value="introductions">Introductions</TabsTrigger>
-                    <TabsTrigger value="notes">Notes</TabsTrigger>
+                    <TabsTrigger value="journal">Journal</TabsTrigger>
                     <TabsTrigger value="reminders">Reminders</TabsTrigger>
                     <TabsTrigger value="files">Files</TabsTrigger>
                   </TabsList>
@@ -421,8 +429,27 @@ export default function Team() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="notes" className="mt-6">
-                    <p className="text-sm text-muted-foreground">Notes feature coming soon...</p>
+                  <TabsContent value="journal" className="mt-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Journal Entries ({journalEntries?.length || 0})</h3>
+                      {!journalEntries || journalEntries.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No journal entries yet</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {journalEntries.slice(0, 5).map((entry) => (
+                            <Card key={entry.id}>
+                              <CardContent className="p-4">
+                                <h4 className="font-medium mb-2">{entry.title || "Untitled"}</h4>
+                                <p className="text-sm text-muted-foreground line-clamp-2">{entry.content}</p>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {new Date(entry.created_at).toLocaleDateString()}
+                                </p>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="reminders" className="mt-6">
