@@ -4,7 +4,9 @@ import { PipelineAnalytics } from "@/components/Analytics/PipelineAnalytics";
 import { RelationshipAnalytics } from "@/components/Analytics/RelationshipAnalytics";
 import { FundMetrics } from "@/components/Analytics/FundMetrics";
 import { PortfolioCharts } from "@/components/Portfolio/PortfolioCharts";
-import { BarChart3, Users, Briefcase, TrendingUp } from "lucide-react";
+import { BarChart3, Users, Briefcase, TrendingUp, Leaf, TreePine } from "lucide-react";
+import ESGAnalytics from "./ESGAnalytics";
+import SectoralAnalysis from "./SectoralAnalysis";
 
 export default function Analytics() {
   return (
@@ -17,7 +19,7 @@ export default function Analytics() {
       </div>
 
       <Tabs defaultValue="pipeline" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="pipeline" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Pipeline
@@ -33,6 +35,14 @@ export default function Analytics() {
           <TabsTrigger value="funds" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Funds
+          </TabsTrigger>
+          <TabsTrigger value="esg" className="flex items-center gap-2">
+            <Leaf className="h-4 w-4" />
+            ESG
+          </TabsTrigger>
+          <TabsTrigger value="sectoral" className="flex items-center gap-2">
+            <TreePine className="h-4 w-4" />
+            Sectoral
           </TabsTrigger>
         </TabsList>
 
@@ -50,6 +60,14 @@ export default function Analytics() {
 
         <TabsContent value="funds" className="space-y-4 mt-6">
           <FundMetrics />
+        </TabsContent>
+
+        <TabsContent value="esg" className="space-y-4 mt-6">
+          <ESGAnalytics />
+        </TabsContent>
+
+        <TabsContent value="sectoral" className="space-y-4 mt-6">
+          <SectoralAnalysis />
         </TabsContent>
       </Tabs>
     </div>

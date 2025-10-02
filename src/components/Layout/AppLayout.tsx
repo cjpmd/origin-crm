@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
 import { GlobalSearch } from '@/components/Search/GlobalSearch';
@@ -12,7 +12,11 @@ import {
   SidebarMenuButton,
   SidebarHeader,
   SidebarTrigger,
-  SidebarInset
+  SidebarInset,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarFooter
 } from '@/components/ui/sidebar';
 import { 
   Home,
@@ -21,10 +25,8 @@ import {
   Building2,
   TrendingUp,
   BarChart3,
-  TreePine,
   Settings,
   Search,
-  Leaf,
   LogOut,
   User,
   Briefcase,
@@ -32,7 +34,8 @@ import {
   Network,
   FileText,
   CheckSquare,
-  Newspaper
+  Newspaper,
+  ChevronDown
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -46,23 +49,48 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-const navigation = [
+// Main navigation items (always visible)
+const mainNavigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Pipeline', href: '/pipeline', icon: GitBranch },
-  { name: 'Funds', href: '/funds', icon: Briefcase },
-  { name: 'Contacts', href: '/contacts', icon: Users },
-  { name: 'Companies', href: '/companies', icon: Building2 },
-  { name: 'Investors', href: '/investors', icon: TrendingUp },
   { name: 'Portfolio', href: '/portfolio', icon: BarChart3 },
-  { name: 'Analytics', href: '/analytics', icon: LineChart },
-  { name: 'Intermediaries', href: '/intermediaries', icon: Network },
-  { name: 'News', href: '/news', icon: Newspaper },
-  { name: 'ESG Analytics', href: '/esg-analytics', icon: Leaf },
-  { name: 'Sectoral Analysis', href: '/sectoral-analysis', icon: TreePine },
-  { name: 'Reports', href: '/reports', icon: FileText },
-  { name: 'Tasks', href: '/tasks', icon: CheckSquare },
-  { name: 'Team', href: '/team', icon: Users },
+];
+
+// Grouped navigation
+const navigationGroups = [
+  {
+    label: 'Relationships',
+    defaultOpen: true,
+    items: [
+      { name: 'Companies', href: '/companies', icon: Building2 },
+      { name: 'Contacts', href: '/contacts', icon: Users },
+      { name: 'Investors', href: '/investors', icon: TrendingUp },
+      { name: 'Intermediaries', href: '/intermediaries', icon: Network },
+    ]
+  },
+  {
+    label: 'Intelligence',
+    defaultOpen: false,
+    items: [
+      { name: 'News', href: '/news', icon: Newspaper },
+      { name: 'Analytics', href: '/analytics', icon: LineChart },
+      { name: 'Reports', href: '/reports', icon: FileText },
+    ]
+  },
+  {
+    label: 'Operations',
+    defaultOpen: false,
+    items: [
+      { name: 'Funds', href: '/funds', icon: Briefcase },
+      { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+      { name: 'Team', href: '/team', icon: Users },
+    ]
+  }
+];
+
+const bottomNavigation = [
   { name: 'Settings', href: '/settings', icon: Settings }
 ];
 
@@ -71,6 +99,33 @@ export default function AppLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { profile } = useCompanyProfile();
+  const location = useLocation();
+
+  // State management for collapsible groups - using localStorage for persistence
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const stored = localStorage.getItem('sidebar-groups');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    // Default to what's defined in navigationGroups
+    return navigationGroups.reduce((acc, group) => ({
+      ...acc,
+      [group.label]: group.defaultOpen
+    }), {});
+  });
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups(prev => {
+      const newState = { ...prev, [label]: !prev[label] };
+      localStorage.setItem('sidebar-groups', JSON.stringify(newState));
+      return newState;
+    });
+  };
+
+  // Check if any item in a group is active
+  const isGroupActive = (items: typeof mainNavigation) => {
+    return items.some(item => location.pathname === item.href);
+  };
 
   const getUserInitials = () => {
     if (!user?.email) return 'U';
@@ -98,8 +153,79 @@ export default function AppLayout() {
           </SidebarHeader>
           
           <SidebarContent>
+            {/* Main Navigation - Always visible */}
             <SidebarMenu>
-              {navigation.map((item) => (
+              {mainNavigation.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.href}
+                      end={item.href === '/'}
+                      className={({ isActive }) => 
+                        `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          isActive 
+                            ? 'bg-sidebar-accent text-sidebar-accent-foreground' 
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                        }`
+                      }
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.name}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+
+            {/* Grouped Navigation - Collapsible */}
+            {navigationGroups.map((group) => (
+              <Collapsible
+                key={group.label}
+                open={openGroups[group.label] !== false}
+                onOpenChange={() => toggleGroup(group.label)}
+                className="group/collapsible"
+              >
+                <SidebarGroup>
+                  <CollapsibleTrigger asChild>
+                    <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent/50 rounded-md transition-colors flex items-center justify-between">
+                      <span>{group.label}</span>
+                      <ChevronDown className="h-4 w-4 transition-transform group-data-[state=closed]/collapsible:-rotate-90" />
+                    </SidebarGroupLabel>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {group.items.map((item) => (
+                          <SidebarMenuItem key={item.name}>
+                            <SidebarMenuButton asChild>
+                              <NavLink 
+                                to={item.href}
+                                className={({ isActive }) => 
+                                  `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                    isActive 
+                                      ? 'bg-sidebar-accent text-sidebar-accent-foreground' 
+                                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                                  }`
+                                }
+                              >
+                                <item.icon className="h-4 w-4" />
+                                {item.name}
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
+            ))}
+          </SidebarContent>
+
+          {/* Bottom Navigation - Settings */}
+          <SidebarFooter>
+            <SidebarMenu>
+              {bottomNavigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton asChild>
                     <NavLink 
@@ -119,7 +245,7 @@ export default function AppLayout() {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
-          </SidebarContent>
+          </SidebarFooter>
         </Sidebar>
 
         <SidebarInset>

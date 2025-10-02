@@ -64,8 +64,9 @@ const App = () => (
             <Route path="companies" element={<Companies />} />
             <Route path="investors" element={<Investors />} />
             <Route path="portfolio" element={<Portfolio />} />
-            <Route path="esg-analytics" element={<ESGAnalytics />} />
-            <Route path="sectoral-analysis" element={<SectoralAnalysis />} />
+            {/* Redirect old routes to Analytics page */}
+            <Route path="esg-analytics" element={<Navigate to="/analytics" replace />} />
+            <Route path="sectoral-analysis" element={<Navigate to="/analytics" replace />} />
             <Route path="sectoral-analysis/:sectorId" element={<SectoralAnalysis />} />
             <Route path="research/company/:companyId" element={<Research />} />
             <Route path="research/sector/:sectorId" element={<Research />} />
