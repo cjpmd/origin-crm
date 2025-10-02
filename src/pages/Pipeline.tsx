@@ -42,6 +42,7 @@ export default function Pipeline() {
   const [draggedDeal, setDraggedDeal] = useState<any>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
   const [isFetchingAllLogos, setIsFetchingAllLogos] = useState(false);
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
   const handleFetchAllLogos = async () => {
     const dealsWithoutLogos = deals?.filter(d => d.website && !d.logo_url) || [];
@@ -196,7 +197,7 @@ export default function Pipeline() {
 
       {/* Pipeline Board */}
       {viewMode === "board" ? (
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-3 overflow-x-auto pb-4">
           {stages.map((stage) => {
             const stageDeals = dealsByStage[stage] || [];
             const stageValue = stageDeals.reduce((sum, deal) => sum + (Number(deal.valuation) || 0), 0);
@@ -204,75 +205,72 @@ export default function Pipeline() {
             return (
               <div 
                 key={stage} 
-                className="flex-shrink-0 w-80"
+                className="flex-shrink-0 w-[280px]"
               >
                 <Card 
-                  className={`border-2 h-full flex flex-col ${stageColors[stage]} ${
+                  className={`h-full flex flex-col border ${
                     dragOverStage === stage ? 'ring-2 ring-primary shadow-lg' : ''
                   } transition-all`}
                   onDragOver={(e) => handleDragOver(e, stage)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, stage)}
                 >
-                  <CardHeader className="pb-3 border-b">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-bold uppercase tracking-wide">{stage}</CardTitle>
-                      <Badge variant="secondary" className="text-xs font-semibold">
+                  <CardHeader className="pb-2 pt-3 px-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${stageColors[stage].replace('bg-', 'bg-').split(' ')[0].replace('bg-', 'bg-').replace('-50', '-500')}`} />
+                        <CardTitle className="text-xs font-semibold uppercase tracking-wide truncate">{stage}</CardTitle>
+                      </div>
+                      <Badge variant="secondary" className="text-xs font-medium h-5 px-1.5">
                         {stageDeals.length}
                       </Badge>
                     </div>
-                    <p className="text-xs font-semibold mt-2 text-muted-foreground">
+                    <p className="text-xs font-semibold text-muted-foreground mt-1">
                       {formatCurrency(stageValue)}
                     </p>
                   </CardHeader>
-                  <CardContent className="space-y-3 overflow-y-auto flex-1 pt-3" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+                  <CardContent className="space-y-2 overflow-y-auto flex-1 pt-2 px-3 pb-3" style={{ maxHeight: 'calc(100vh - 280px)' }}>
                     {stageDeals.map((deal) => {
                       const owner = getOwnerInfo(deal.owner);
+                      const isExpanded = expandedCardId === deal.id;
+                      
                       return (
                         <Card
                           key={deal.id}
                           draggable
                           onDragStart={(e) => handleDragStart(e, deal)}
-                          className={`p-4 cursor-move hover:shadow-lg transition-all bg-card border border-border ${
-                            draggedDeal?.id === deal.id ? 'opacity-50 rotate-2' : 'hover:-translate-y-1'
-                          }`}
+                          className={`p-3 cursor-pointer hover:shadow-md transition-all bg-card border ${
+                            draggedDeal?.id === deal.id ? 'opacity-50' : ''
+                          } ${isExpanded ? 'ring-2 ring-primary' : ''}`}
                           onClick={(e) => {
-                            if (!draggedDeal) setSelectedDeal(deal);
+                            e.stopPropagation();
+                            if (!draggedDeal) {
+                              setExpandedCardId(isExpanded ? null : deal.id);
+                            }
                           }}
                         >
-                          <div className="space-y-3">
-                          {/* Company Logo/Icon */}
-                          <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0">
-                              <Avatar className="h-10 w-10 rounded-lg">
+                          <div className="space-y-2">
+                            {/* Company Info */}
+                            <div className="flex items-start gap-2">
+                              <Avatar className="h-8 w-8 rounded-md flex-shrink-0">
                                 {deal.logo_url ? (
                                   <AvatarImage src={deal.logo_url} alt={deal.name} className="object-cover" />
                                 ) : null}
-                                <AvatarFallback className="rounded-lg bg-primary/10">
-                                  <Building2 className="h-5 w-5 text-primary" />
+                                <AvatarFallback className="rounded-md bg-primary/10 text-xs">
+                                  <Building2 className="h-4 w-4 text-primary" />
                                 </AvatarFallback>
                               </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-sm leading-tight truncate">{deal.name}</h4>
+                                {deal.website && (
+                                  <p className="text-xs text-muted-foreground truncate">{deal.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</p>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm truncate">{deal.name}</h4>
-                              {deal.sector && (
-                                <p className="text-xs text-muted-foreground">{deal.sector}</p>
-                              )}
-                            </div>
-                          </div>
 
-                          {/* Deal Value */}
-                          {deal.valuation && (
-                            <div className="flex items-center gap-1 text-sm font-semibold">
-                              <TrendingUp className="h-3 w-3 text-green-600" />
-                              {formatCurrency(deal.valuation)}
-                            </div>
-                          )}
-
-                          {/* Owner and Last Contact */}
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            {owner ? (
-                              <div className="flex items-center gap-1">
+                            {/* Owner */}
+                            {owner && (
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                 <Avatar className="h-4 w-4">
                                   {owner.avatar_url ? (
                                     <AvatarImage src={owner.avatar_url} alt={owner.full_name || ''} />
@@ -283,34 +281,83 @@ export default function Pipeline() {
                                 </Avatar>
                                 <span className="truncate">{owner.full_name}</span>
                               </div>
-                            ) : (
-                              <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                Unassigned
-                              </span>
                             )}
-                            {deal.expected_close_date && (
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(deal.expected_close_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+
+                            {/* Amount - Prominent */}
+                            {deal.valuation && (
+                              <div className="text-base font-bold text-foreground">
+                                {formatCurrency(deal.valuation)}
+                              </div>
+                            )}
+
+                            {/* Expanded Content */}
+                            {isExpanded && (
+                              <div className="space-y-2 pt-2 border-t animate-in fade-in slide-in-from-top-2 duration-200">
+                                {deal.expected_close_date && (
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">Close Date</span>
+                                    <span className="font-medium">
+                                      {new Date(deal.expected_close_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                  </div>
+                                )}
+                                {deal.probability && (
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">Probability</span>
+                                    <Badge variant="outline" className="text-xs h-5">
+                                      {deal.probability}%
+                                    </Badge>
+                                  </div>
+                                )}
+                                {deal.sector && (
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">Sector</span>
+                                    <span className="font-medium truncate ml-2">{deal.sector}</span>
+                                  </div>
+                                )}
+                                {deal.notes && (
+                                  <div className="text-xs">
+                                    <span className="text-muted-foreground">Notes:</span>
+                                    <p className="mt-1 text-foreground line-clamp-2">{deal.notes}</p>
+                                  </div>
+                                )}
+                                
+                                {/* Action Buttons */}
+                                <div className="flex gap-2 pt-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 h-7 text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedCardId(null);
+                                      setSelectedDeal(deal);
+                                    }}
+                                  >
+                                    Open
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="flex-1 h-7 text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedCardId(null);
+                                      setEditingDeal(deal);
+                                    }}
+                                  >
+                                    Edit
+                                  </Button>
+                                </div>
                               </div>
                             )}
                           </div>
-
-                          {/* Probability Badge */}
-                          {deal.probability && (
-                            <Badge variant="outline" className="text-xs">
-                              {deal.probability}% probability
-                            </Badge>
-                          )}
-                        </div>
-                      </Card>
-                    );
-                  })}
+                        </Card>
+                      );
+                    })}
                     {stageDeals.length === 0 && (
-                      <div className="text-center py-8 px-4">
-                        <div className="w-12 h-12 rounded-full bg-muted/50 mx-auto mb-3 flex items-center justify-center">
-                          <Building2 className="h-6 w-6 text-muted-foreground/50" />
+                      <div className="text-center py-8 px-2">
+                        <div className="w-10 h-10 rounded-full bg-muted/50 mx-auto mb-2 flex items-center justify-center">
+                          <Building2 className="h-5 w-5 text-muted-foreground/50" />
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Drop deals here
