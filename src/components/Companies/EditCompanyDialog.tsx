@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStockPrice } from '@/hooks/useStockPrice';
 import { Download, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditCompanyDialogProps {
   company: any;
@@ -17,6 +18,7 @@ interface EditCompanyDialogProps {
 
 export function EditCompanyDialog({ company, open, onOpenChange, onSave }: EditCompanyDialogProps) {
   const { fetchStockPrice, fetching } = useStockPrice();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     stage: '',
@@ -42,6 +44,23 @@ export function EditCompanyDialog({ company, open, onOpenChange, onSave }: EditC
       });
     }
   }, [company]);
+
+  // Auto-fetch stock price when ticker is entered (debounced)
+  useEffect(() => {
+    if (!company?.id || !formData.stock_ticker || !formData.is_public) return;
+    
+    const timeoutId = setTimeout(async () => {
+      if (formData.stock_ticker.length >= 1 && formData.stock_ticker !== company.stock_ticker) {
+        try {
+          await fetchStockPrice(formData.stock_ticker, company.id);
+        } catch (error) {
+          // Silent fail for auto-fetch
+        }
+      }
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.stock_ticker, formData.is_public, company?.id, company?.stock_ticker]);
 
   const handleSave = () => {
     if (company) {

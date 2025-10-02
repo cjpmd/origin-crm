@@ -1,18 +1,21 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DealSourceAttribution } from "@/components/Intelligence/DealSourceAttribution";
 import { Deal } from "@/hooks/useDeals";
 import { useSectors } from "@/hooks/useSectors";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { format } from "date-fns";
+import { Pencil } from "lucide-react";
 
 interface DealDetailsDialogProps {
   deal: Deal;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEdit?: (deal: Deal) => void;
 }
 
-export function DealDetailsDialog({ deal, open, onOpenChange }: DealDetailsDialogProps) {
+export function DealDetailsDialog({ deal, open, onOpenChange, onEdit }: DealDetailsDialogProps) {
   const { formatCurrency } = useCurrency();
   const { getSectorById } = useSectors();
   const sector = deal.sector_id ? getSectorById(deal.sector_id) : null;
@@ -21,7 +24,18 @@ export function DealDetailsDialog({ deal, open, onOpenChange }: DealDetailsDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Deal Details: {deal.name}</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Deal Details: {deal.name}</DialogTitle>
+            {onEdit && (
+              <Button variant="outline" size="sm" onClick={() => {
+                onEdit(deal);
+                onOpenChange(false);
+              }}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            )}
+          </div>
         </DialogHeader>
         
         <Tabs defaultValue="details" className="w-full">

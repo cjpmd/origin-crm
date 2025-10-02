@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Contact } from '@/hooks/useContacts';
 import { useLinkedInData } from '@/hooks/useLinkedInData';
 import { TrendingUp, TrendingDown, Minus, Download } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditContactDialogProps {
   contact: Contact | null;
@@ -17,6 +18,7 @@ interface EditContactDialogProps {
 
 export function EditContactDialog({ contact, open, onOpenChange, onSave }: EditContactDialogProps) {
   const { fetchLinkedInData, fetching } = useLinkedInData();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     role: '',
@@ -40,6 +42,24 @@ export function EditContactDialog({ contact, open, onOpenChange, onSave }: EditC
       });
     }
   }, [contact]);
+
+  // Auto-fetch LinkedIn data when URL is entered (debounced)
+  useEffect(() => {
+    if (!contact?.id || !formData.linkedin) return;
+    
+    const timeoutId = setTimeout(async () => {
+      const isValidLinkedInUrl = formData.linkedin.includes('linkedin.com');
+      if (isValidLinkedInUrl && formData.linkedin !== contact.linkedin) {
+        try {
+          await fetchLinkedInData(formData.linkedin, 'contact', contact.id);
+        } catch (error) {
+          // Silent fail for auto-fetch
+        }
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.linkedin, contact?.id, contact?.linkedin]);
 
   const getRelationshipLabel = (strength: number) => {
     if (strength >= 70) return { label: "Strong", icon: TrendingUp, color: "text-green-600" };
