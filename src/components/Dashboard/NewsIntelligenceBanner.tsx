@@ -15,7 +15,9 @@ export const NewsIntelligenceBanner = () => {
     portfolioNews, 
     pipelineNews, 
     investorNews,
+    allNews,
     totalCount,
+    relevantCount,
     isLoading 
   } = useEntityNews();
   
@@ -86,9 +88,16 @@ export const NewsIntelligenceBanner = () => {
             <Newspaper className="h-5 w-5 text-primary" />
             News Intelligence - Live Feed
             {totalCount > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {totalCount} items
-              </Badge>
+              <>
+                <Badge variant="secondary" className="ml-2">
+                  {totalCount} total
+                </Badge>
+                {relevantCount > 0 && (
+                  <Badge variant="default" className="ml-2">
+                    {relevantCount} relevant
+                  </Badge>
+                )}
+              </>
             )}
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -119,8 +128,12 @@ export const NewsIntelligenceBanner = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="high-impact" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 mb-4">
+            <TabsTrigger value="all" className="flex items-center gap-1">
+              <Newspaper className="h-3 w-3" />
+              All News ({allNews.length})
+            </TabsTrigger>
             <TabsTrigger value="high-impact" className="flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               High Impact ({highImpactNews.length})
@@ -138,6 +151,10 @@ export const NewsIntelligenceBanner = () => {
               Investors ({investorNews.length})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="all">
+            <NewsSection news={allNews} getSentimentColor={getSentimentColor} getImpactColor={getImpactColor} showAll />
+          </TabsContent>
 
           <TabsContent value="high-impact">
             <NewsSection news={highImpactNews} getSentimentColor={getSentimentColor} getImpactColor={getImpactColor} />
@@ -160,23 +177,32 @@ export const NewsIntelligenceBanner = () => {
   );
 };
 
-const NewsSection = ({ news, getSentimentColor, getImpactColor }: any) => {
+const NewsSection = ({ news, getSentimentColor, getImpactColor, showAll = false }: any) => {
   if (news.length === 0) {
     return <p className="text-sm text-muted-foreground">No news items in this category</p>;
   }
 
+  const displayCount = showAll ? 10 : 5;
+
   return (
     <ScrollArea className="h-[280px] pr-4">
       <div className="space-y-3">
-        {news.slice(0, 5).map((item: any) => (
+        {news.slice(0, displayCount).map((item: any) => (
           <div 
             key={item.id} 
-            className="border rounded-lg p-3 hover:bg-accent/50 transition-colors"
+            className={`border rounded-lg p-3 hover:bg-accent/50 transition-colors ${
+              item.isRelevantToUser ? 'border-primary/40 bg-primary/5' : ''
+            }`}
           >
             <div className="flex items-start gap-3">
               <div className={`w-2 h-2 rounded-full mt-2 ${getSentimentColor(item.sentiment)}`} />
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
+                  {item.isRelevantToUser && (
+                    <Badge variant="default" className="text-xs">
+                      Relevant to you
+                    </Badge>
+                  )}
                   {item.impact_level && (
                     <Badge variant={getImpactColor(item.impact_level)} className="text-xs">
                       {item.impact_level?.toUpperCase()}

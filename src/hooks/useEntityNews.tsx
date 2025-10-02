@@ -9,8 +9,9 @@ export interface EntityNews {
   pipelineNews: NewsItem[];
   investorNews: NewsItem[];
   sectorNews: NewsItem[];
-  allNews: NewsItem[];
+  allNews: (NewsItem & { isRelevantToUser?: boolean; entityTypes?: Set<string> })[];
   totalCount: number;
+  relevantCount: number;
   isLoading: boolean;
   error: Error | null;
 }
@@ -31,43 +32,18 @@ export const useEntityNews = () => {
     queryFn: async () => {
       if (!userId) return null;
 
-      // Fetch news items matched to user's entities (last 7 days)
+      // Fetch ALL news items (last 7 days)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      const { data: newsMatches, error: matchError } = await supabase
-        .from('news_entity_matches')
-        .select(`
-          id,
-          entity_type,
-          entity_id,
-          match_confidence,
-          news_item_id,
-          news_items!inner (
-            id,
-            title,
-            summary,
-            content,
-            source_name,
-            source_url,
-            author,
-            published_at,
-            fetched_at,
-            sentiment,
-            sentiment_confidence,
-            impact_level,
-            relevance_score,
-            category,
-            tags,
-            metadata,
-            created_at,
-            updated_at
-          )
-        `)
-        .gte('news_items.published_at', sevenDaysAgo);
+      const { data: allNewsItems, error: newsError } = await supabase
+        .from('news_items')
+        .select('*')
+        .gte('published_at', sevenDaysAgo)
+        .order('published_at', { ascending: false });
 
-      if (matchError) throw matchError;
+      if (newsError) throw newsError;
 
-      // Get user's entity IDs to filter
+      // Get user's entity IDs
       const [portfolioRes, dealsRes, investorsRes] = await Promise.all([
         supabase.from('portfolio_companies').select('id').eq('user_id', userId),
         supabase.from('deals').select('id').eq('user_id', userId),
@@ -78,58 +54,38 @@ export const useEntityNews = () => {
       const dealIds = new Set(dealsRes.data?.map(d => d.id) || []);
       const investorIds = new Set(investorsRes.data?.map(i => i.id) || []);
 
-      // Filter and categorize news
-      const newsMap = new Map<string, { item: NewsItem; entities: Set<string> }>();
+      // Fetch matches for user's entities
+      const { data: newsMatches } = await supabase
+        .from('news_entity_matches')
+        .select('news_item_id, entity_type, entity_id')
+        .in('entity_id', [
+          ...Array.from(portfolioIds),
+          ...Array.from(dealIds),
+          ...Array.from(investorIds)
+        ]);
 
+      // Create a map of news items with their relevant entity types
+      const matchMap = new Map<string, Set<string>>();
       for (const match of newsMatches || []) {
-        const newsItem = match.news_items as unknown as NewsItem;
-        if (!newsItem) continue;
-
-        // Check if entity belongs to user
-        let isRelevant = false;
-        if (match.entity_type === 'company' && portfolioIds.has(match.entity_id)) {
-          isRelevant = true;
-        } else if (match.entity_type === 'deal' && dealIds.has(match.entity_id)) {
-          isRelevant = true;
-        } else if (match.entity_type === 'investor' && investorIds.has(match.entity_id)) {
-          isRelevant = true;
+        if (!matchMap.has(match.news_item_id)) {
+          matchMap.set(match.news_item_id, new Set());
         }
-
-        if (!isRelevant) continue;
-
-        // Deduplicate by news item ID
-        if (!newsMap.has(newsItem.id)) {
-          newsMap.set(newsItem.id, {
-            item: newsItem,
-            entities: new Set([match.entity_type])
-          });
-        } else {
-          newsMap.get(newsItem.id)!.entities.add(match.entity_type);
-        }
+        matchMap.get(match.news_item_id)!.add(match.entity_type);
       }
 
-      const allNews = Array.from(newsMap.values())
-        .map(n => n.item)
-        .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+      // Mark news items as relevant and categorize
+      const allNews = (allNewsItems || []).map(item => ({
+        ...item,
+        isRelevantToUser: matchMap.has(item.id),
+        entityTypes: matchMap.get(item.id) || new Set()
+      }));
 
-      // Categorize
-      const highImpactNews = allNews.filter(n => n.impact_level === 'high');
-      
-      const portfolioNews = Array.from(newsMap.entries())
-        .filter(([_, v]) => v.entities.has('company'))
-        .map(([_, v]) => v.item);
-      
-      const pipelineNews = Array.from(newsMap.entries())
-        .filter(([_, v]) => v.entities.has('deal'))
-        .map(([_, v]) => v.item);
-      
-      const investorNews = Array.from(newsMap.entries())
-        .filter(([_, v]) => v.entities.has('investor'))
-        .map(([_, v]) => v.item);
-
-      const sectorNews = Array.from(newsMap.entries())
-        .filter(([_, v]) => v.entities.has('sector'))
-        .map(([_, v]) => v.item);
+      const relevantNews = allNews.filter(n => n.isRelevantToUser);
+      const highImpactNews = relevantNews.filter(n => n.impact_level === 'high');
+      const portfolioNews = relevantNews.filter(n => n.entityTypes.has('company'));
+      const pipelineNews = relevantNews.filter(n => n.entityTypes.has('deal'));
+      const investorNews = relevantNews.filter(n => n.entityTypes.has('investor'));
+      const sectorNews = relevantNews.filter(n => n.entityTypes.has('sector'));
 
       return {
         highImpactNews,
@@ -138,7 +94,8 @@ export const useEntityNews = () => {
         investorNews,
         sectorNews,
         allNews,
-        totalCount: allNews.length
+        totalCount: allNews.length,
+        relevantCount: relevantNews.length
       };
     },
     enabled: !!userId,
@@ -178,6 +135,7 @@ export const useEntityNews = () => {
     sectorNews: data?.sectorNews || [],
     allNews: data?.allNews || [],
     totalCount: data?.totalCount || 0,
+    relevantCount: data?.relevantCount || 0,
     isLoading,
     error: error as Error | null,
   } as EntityNews;
