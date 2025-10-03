@@ -1,3 +1,4 @@
+import { TeamRoleManagement } from '@/components/Settings/TeamRoleManagement';
 import { SectorManagement } from '@/components/Settings/SectorManagement';
 import { CompanyProfileForm } from '@/components/Settings/CompanyProfileForm';
 import { CurrencySettings } from '@/components/Settings/CurrencySettings';
@@ -197,6 +198,8 @@ export default function Settings() {
         </TabsContent>
 
         <TabsContent value="team" className="space-y-6">
+          <TeamRoleManagement />
+
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
