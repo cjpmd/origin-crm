@@ -37,7 +37,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const setCurrency = async (newCurrency: string) => {
     setCurrencyState(newCurrency);
     await upsertProfile({ currency_preference: newCurrency });
-    // Invalidate all queries to trigger re-fetching with new currency
+    // Invalidate all queries to force re-render with new currency
     queryClient.invalidateQueries();
   };
 
