@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useCompanyProfile } from '@/hooks/useCompanyProfile';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface CurrencyContextType {
   currency: string;
@@ -24,6 +25,7 @@ const currencySymbols: Record<string, string> = {
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const { profile, upsertProfile } = useCompanyProfile();
+  const queryClient = useQueryClient();
   const [currency, setCurrencyState] = useState(profile?.currency_preference || 'USD');
 
   useEffect(() => {
@@ -35,9 +37,11 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const setCurrency = async (newCurrency: string) => {
     setCurrencyState(newCurrency);
     await upsertProfile({ currency_preference: newCurrency });
+    // Invalidate all queries to trigger re-fetching with new currency
+    queryClient.invalidateQueries();
   };
 
-  const formatCurrency = (amount: number | null | undefined): string => {
+  const formatCurrency = useCallback((amount: number | null | undefined): string => {
     if (amount === null || amount === undefined) return 'N/A';
     
     const symbol = currencySymbols[currency] || currency;
@@ -57,7 +61,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2 
     })}`;
-  };
+  }, [currency]);
 
   const currencySymbol = currencySymbols[currency] || currency;
 

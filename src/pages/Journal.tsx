@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useJournalEntries } from "@/hooks/useJournalEntries";
 import { Button } from "@/components/ui/button";
@@ -7,12 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2, Search, Loader2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
 export default function Journal() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { entries, createEntry, updateEntry, deleteEntry, isCreating, isUpdating, isDeleting } = useJournalEntries(user?.id);
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
@@ -20,20 +18,6 @@ export default function Journal() {
   const [content, setContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewEntry, setIsNewEntry] = useState(false);
-
-  // Authentication check
-  useEffect(() => {
-    console.log('[Journal] User authentication status:', user ? 'authenticated' : 'not authenticated');
-    console.log('[Journal] User ID:', user?.id);
-    if (!user) {
-      toast.error("Please log in to access your journal");
-      navigate("/auth");
-    }
-  }, [user, navigate]);
-
-  useEffect(() => {
-    console.log('[Journal] Entries loaded:', entries?.length || 0);
-  }, [entries]);
 
   const filteredEntries = entries.filter(entry =>
     entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -205,13 +189,6 @@ export default function Journal() {
               </Button>
             </div>
           </>
-        ) : !user ? (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-              <p className="text-lg mb-2">Loading...</p>
-            </div>
-          </div>
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             <div className="text-center">
