@@ -33,7 +33,8 @@ export function PromoteDealDialog({ deal, open, onOpenChange, onSuccess }: Promo
     status: "Active",
     description: deal.notes || "",
     location: "",
-    website: "",
+    website: deal.website || "",
+    owner: deal.owner || "",
   });
 
   const handlePromote = () => {
@@ -54,6 +55,7 @@ export function PromoteDealDialog({ deal, open, onOpenChange, onSuccess }: Promo
       location: formData.location || undefined,
       website: formData.website || undefined,
       is_public: false,
+      deal_id: deal.id,
     };
 
     createCompany(companyData, {
@@ -180,15 +182,26 @@ export function PromoteDealDialog({ deal, open, onOpenChange, onSuccess }: Promo
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="website">Website</Label>
-            <Input
-              id="website"
-              type="url"
-              value={formData.website}
-              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-              placeholder="https://..."
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                type="url"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="owner">Deal Owner</Label>
+              <Input
+                id="owner"
+                value={formData.owner}
+                onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
+                placeholder="Owner name"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

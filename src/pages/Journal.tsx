@@ -1,23 +1,30 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useJournalEntries } from "@/hooks/useJournalEntries";
+import { useCompanyMentions } from "@/hooks/useCompanyMentions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2, Search } from "lucide-react";
+import { CompanyAvatar } from "@/components/ui/company-avatar";
+import { Plus, Trash2, Search, AtSign } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
 export default function Journal() {
   const { user } = useAuth();
   const { entries, createEntry, updateEntry, deleteEntry, isCreating, isUpdating, isDeleting } = useJournalEntries(user?.id);
+  const { parseMentions, getSuggestions, createActivitiesFromMentions, isProcessing } = useCompanyMentions();
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewEntry, setIsNewEntry] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const filteredEntries = entries.filter(entry =>
     entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -41,6 +48,53 @@ export default function Journal() {
     setIsNewEntry(true);
   };
 
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    const position = e.target.selectionStart;
+    
+    setContent(newContent);
+    setCursorPosition(position);
+
+    // Check for @ mention
+    const textBeforeCursor = newContent.substring(0, position);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+    
+    if (lastAtIndex !== -1 && lastAtIndex === position - 1) {
+      setShowSuggestions(true);
+      setMentionQuery("");
+    } else if (lastAtIndex !== -1) {
+      const queryAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+      if (!queryAfterAt.includes(' ') && !queryAfterAt.includes('\n')) {
+        setShowSuggestions(true);
+        setMentionQuery(queryAfterAt);
+      } else {
+        setShowSuggestions(false);
+      }
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const insertMention = (companyName: string) => {
+    const textBeforeCursor = content.substring(0, cursorPosition);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+    const textAfterCursor = content.substring(cursorPosition);
+    
+    const newContent = content.substring(0, lastAtIndex) + `@${companyName} ` + textAfterCursor;
+    setContent(newContent);
+    setShowSuggestions(false);
+    setMentionQuery("");
+    
+    // Focus back on textarea
+    setTimeout(() => {
+      textareaRef.current?.focus();
+      const newPosition = lastAtIndex + companyName.length + 2;
+      textareaRef.current?.setSelectionRange(newPosition, newPosition);
+    }, 0);
+  };
+
+  const suggestions = showSuggestions ? getSuggestions(mentionQuery) : [];
+
   const handleSave = async () => {
     if (!content.trim()) {
       toast.error("Content cannot be empty");
@@ -59,9 +113,20 @@ export default function Journal() {
         console.log('[Journal] Creating new entry');
         const result = await createEntry({ title: title || undefined, content });
         console.log('[Journal] Entry created successfully:', result);
-        toast.success("Entry saved", {
-          description: `Saved at ${format(new Date(), "h:mm a")}`,
-        });
+        
+        // Parse and create activities for mentions
+        const mentions = parseMentions(content);
+        if (mentions.length > 0) {
+          await createActivitiesFromMentions(content, mentions, title);
+          toast.success("Entry saved with company mentions", {
+            description: `Linked to ${mentions.length} ${mentions.length === 1 ? 'company' : 'companies'}`,
+          });
+        } else {
+          toast.success("Entry saved", {
+            description: `Saved at ${format(new Date(), "h:mm a")}`,
+          });
+        }
+        
         setIsNewEntry(false);
         setTitle("");
         setContent("");
@@ -69,6 +134,13 @@ export default function Journal() {
         console.log('[Journal] Updating existing entry:', selectedEntry);
         const result = await updateEntry({ id: selectedEntry, title: title || undefined, content });
         console.log('[Journal] Entry updated successfully:', result);
+        
+        // Parse and create activities for new mentions
+        const mentions = parseMentions(content);
+        if (mentions.length > 0) {
+          await createActivitiesFromMentions(content, mentions, title);
+        }
+        
         toast.success("Entry updated", {
           description: `Updated at ${format(new Date(), "h:mm a")}`,
         });
@@ -171,21 +243,47 @@ export default function Journal() {
               />
             </div>
             <ScrollArea className="flex-1">
-              <div className="p-4">
+              <div className="p-4 relative">
                 <Textarea
-                  placeholder="Start writing..."
+                  ref={textareaRef}
+                  placeholder="Start writing... Use @ to mention companies"
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={handleContentChange}
                   className="min-h-[500px] border-none shadow-none resize-none focus-visible:ring-0"
                 />
+                {showSuggestions && suggestions.length > 0 && (
+                  <Card className="absolute z-10 mt-1 p-2 min-w-[250px] max-w-md shadow-lg">
+                    <div className="space-y-1">
+                      {suggestions.map((suggestion) => (
+                        <Button
+                          key={suggestion.id}
+                          variant="ghost"
+                          className="w-full justify-start gap-2 h-auto py-2"
+                          onClick={() => insertMention(suggestion.name)}
+                        >
+                          <CompanyAvatar 
+                            name={suggestion.name} 
+                            logoUrl={suggestion.logoUrl}
+                            size="sm"
+                          />
+                          <span className="text-sm">{suggestion.name}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </Card>
+                )}
               </div>
             </ScrollArea>
-            <div className="p-4 border-t">
+            <div className="p-4 border-t flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <AtSign className="h-4 w-4" />
+                <span>Use @ to mention companies</span>
+              </div>
               <Button 
                 onClick={handleSave} 
-                disabled={!content.trim() || isCreating || isUpdating}
+                disabled={!content.trim() || isCreating || isUpdating || isProcessing}
               >
-                {isCreating || isUpdating ? "Saving..." : "Save"}
+                {isCreating || isUpdating || isProcessing ? "Saving..." : "Save"}
               </Button>
             </div>
           </>

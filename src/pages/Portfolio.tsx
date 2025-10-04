@@ -7,6 +7,7 @@ import { TrendingUp, TrendingDown, Users, DollarSign, Plus, Building2, Edit } fr
 import { usePortfolioCompanies } from '@/hooks/usePortfolioCompanies';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useNavigate } from 'react-router-dom';
+import { CompanyAvatar } from '@/components/ui/company-avatar';
 
 export default function Portfolio() {
   const { formatCurrency } = useCurrency();
@@ -122,18 +123,25 @@ export default function Portfolio() {
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-xl">{company.name}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      {company.sectors?.name && (
-                        <Badge variant="outline">{company.sectors.name}</Badge>
-                      )}
-                      {company.location && (
-                        <Badge variant="secondary">{company.location}</Badge>
-                      )}
-                      {company.is_public && company.stock_ticker && (
-                        <Badge variant="default">{company.stock_ticker}</Badge>
-                      )}
+                  <div className="flex items-center gap-3">
+                    <CompanyAvatar 
+                      name={company.name}
+                      logoUrl={(company as any).logo_url}
+                      size="md"
+                    />
+                    <div>
+                      <CardTitle className="text-xl">{company.name}</CardTitle>
+                      <div className="flex items-center gap-2 mt-1">
+                        {company.sectors?.name && (
+                          <Badge variant="outline">{company.sectors.name}</Badge>
+                        )}
+                        {company.location && (
+                          <Badge variant="secondary">{company.location}</Badge>
+                        )}
+                        {company.is_public && company.stock_ticker && (
+                          <Badge variant="default">{company.stock_ticker}</Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <Button 

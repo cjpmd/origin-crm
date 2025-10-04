@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DealSourceAttribution } from "@/components/Intelligence/DealSourceAttribution";
+import { CompanyAvatar } from "@/components/ui/company-avatar";
 import { Deal } from "@/hooks/useDeals";
 import { useSectors } from "@/hooks/useSectors";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -25,7 +26,14 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onEdit }: DealDeta
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>Deal Details: {deal.name}</DialogTitle>
+            <div className="flex items-center gap-3">
+              <CompanyAvatar 
+                name={deal.name}
+                logoUrl={deal.logo_url}
+                size="md"
+              />
+              <DialogTitle>Deal Details: {deal.name}</DialogTitle>
+            </div>
             {onEdit && (
               <Button variant="outline" size="sm" onClick={() => {
                 onEdit(deal);

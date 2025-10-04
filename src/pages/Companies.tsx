@@ -30,6 +30,7 @@ import { KPIManagementDialog } from "@/components/Portfolio/KPIManagementDialog"
 import { EditCompanyDialog } from "@/components/Companies/EditCompanyDialog";
 import { AIInsightCard } from "@/components/Intelligence/AIInsightCard";
 import { ActivityTimeline } from "@/components/Activity/ActivityTimeline";
+import { CompanyAvatar } from "@/components/ui/company-avatar";
 import { useResearch } from "@/hooks/useResearch";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -784,7 +785,11 @@ export default function Companies() {
                     <TableRow key={company.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                          <CompanyAvatar 
+                            name={company.name}
+                            logoUrl={(company as any).logo_url}
+                            size="sm"
+                          />
                           {company.name}
                         </div>
                       </TableCell>

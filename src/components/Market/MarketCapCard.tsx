@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, DollarSign, RefreshCw } from "lucide-react";
 import { PortfolioCompany } from "@/types";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useStockPrice } from "@/hooks/useStockPrice";
 
 interface MarketCapCardProps {
   company: PortfolioCompany;
@@ -10,6 +12,13 @@ interface MarketCapCardProps {
 
 export function MarketCapCard({ company }: MarketCapCardProps) {
   const { formatCurrency } = useCurrency();
+  const { fetchStockPrice, fetching } = useStockPrice();
+
+  const handleRefresh = () => {
+    if (company.stock_ticker) {
+      fetchStockPrice(company.stock_ticker, company.id);
+    }
+  };
   
   if (!company.is_public) {
     return (
@@ -41,7 +50,17 @@ export function MarketCapCard({ company }: MarketCapCardProps) {
             <DollarSign className="h-5 w-5" />
             Market Data
           </span>
-          <Badge variant="outline">{company.stock_ticker}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">{company.stock_ticker}</Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={fetching}
+            >
+              <RefreshCw className={`h-4 w-4 ${fetching ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

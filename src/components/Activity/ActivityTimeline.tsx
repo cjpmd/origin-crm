@@ -115,11 +115,11 @@ export function ActivityTimeline({ entityType, entityId }: ActivityTimelineProps
                           </p>
                         </div>
                         <Badge variant="outline" className="capitalize">
-                          {activity.activity_type}
+                          {activity.activity_type === 'note' && activity.subject?.includes('Journal entry') ? 'Journal' : activity.activity_type}
                         </Badge>
                       </div>
                       {activity.body && (
-                        <p className="text-sm text-muted-foreground mt-2">{activity.body}</p>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{activity.body}</p>
                       )}
                       {activity.duration_minutes && (
                         <p className="text-xs text-muted-foreground mt-1">
