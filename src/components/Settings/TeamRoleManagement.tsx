@@ -80,7 +80,7 @@ export function TeamRoleManagement() {
                 <div className="relative">
                   <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-medium">
                     {user.full_name?.substring(0, 2).toUpperCase() || 
-                     user.email.substring(0, 2).toUpperCase()}
+                     user.email?.substring(0, 2).toUpperCase() || '??'}
                   </div>
                   {user.is_current_user && (
                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-background">

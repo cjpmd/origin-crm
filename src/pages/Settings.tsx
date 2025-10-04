@@ -224,11 +224,11 @@ export default function Settings() {
                   <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-medium">
-                        {member.full_name?.substring(0, 2).toUpperCase() || member.email.substring(0, 2).toUpperCase()}
+                        {member.full_name?.substring(0, 2).toUpperCase() || member.email?.substring(0, 2).toUpperCase() || '??'}
                       </div>
                       <div>
-                        <div className="font-medium">{member.full_name || member.email}</div>
-                        <div className="text-sm text-muted-foreground">{member.email}</div>
+                        <div className="font-medium">{member.full_name || member.email || 'Unknown'}</div>
+                        <div className="text-sm text-muted-foreground">{member.email || 'No email'}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
