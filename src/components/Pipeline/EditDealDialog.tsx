@@ -288,7 +288,7 @@ export function EditDealDialog({ deal, open, onOpenChange, onSave, isLoading }: 
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isLoading || !formData.name.trim()}>
+          <Button onClick={handleSave} disabled={isLoading || !formData.name?.trim()}>
             {isLoading ? "Saving..." : "Save Changes"}
           </Button>
         </DialogFooter>
