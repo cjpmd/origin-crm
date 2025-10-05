@@ -124,6 +124,33 @@ Format as JSON array. Make the news realistic and timely.`
       throw insertError;
     }
 
+    // Automatically match news to entities in the background
+    if (insertedNews && insertedNews.length > 0) {
+      console.log(`Starting background matching for ${insertedNews.length} news items`);
+      
+      // Start matching in background without blocking response
+      const matchPromises = insertedNews.map(async (newsItem) => {
+        try {
+          const { data, error } = await supabase.functions.invoke('match-news-entities', {
+            body: { newsItemId: newsItem.id }
+          });
+          
+          if (error) {
+            console.error(`Failed to match news item ${newsItem.id}:`, error);
+          } else {
+            console.log(`Matched news item ${newsItem.id}:`, data);
+          }
+        } catch (e) {
+          console.error(`Error matching news item ${newsItem.id}:`, e);
+        }
+      });
+
+      // Don't await - let it run in background
+      Promise.all(matchPromises).catch(err => 
+        console.error('Background matching error:', err)
+      );
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 

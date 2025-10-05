@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useNews } from "@/hooks/useNews";
 import { NewsCard } from "./NewsCard";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2 } from "lucide-react";
+import { RefreshCw, Loader2, Link } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 export const NewsFeed = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,6 +30,18 @@ export const NewsFeed = () => {
 
   const handleMatchNews = async (newsId: string) => {
     await matchNewsEntities(newsId);
+  };
+
+  const handleBatchMatch = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('batch-match-news');
+      
+      if (error) throw error;
+      
+      console.log('Batch matching complete:', data);
+    } catch (error) {
+      console.error('Error batch matching news:', error);
+    }
   };
 
   if (isLoading) {
@@ -56,6 +69,10 @@ export const NewsFeed = () => {
               <RefreshCw className="h-4 w-4 mr-2" />
             )}
             Fetch News
+          </Button>
+          <Button onClick={handleBatchMatch} variant="outline">
+            <Link className="h-4 w-4 mr-2" />
+            Match All News
           </Button>
         </div>
 

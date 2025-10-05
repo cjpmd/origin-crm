@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useActivities } from "@/hooks/useActivities";
+import { useProfiles } from "@/hooks/useProfiles";
 import { Mail, Phone, Calendar, FileText, Linkedin, Brain, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +48,7 @@ const activityColors = {
 
 export function ActivityTimeline({ entityType, entityId }: ActivityTimelineProps) {
   const { activities, logActivity } = useActivities(entityType, entityId);
+  const { profiles } = useProfiles();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [formData, setFormData] = useState<{
     activity_type: 'email' | 'meeting' | 'call' | 'note' | 'linkedin' | 'research';
@@ -58,6 +61,26 @@ export function ActivityTimeline({ entityType, entityId }: ActivityTimelineProps
     body: '',
     duration_minutes: undefined,
   });
+
+  // Create a map of user_id to profile for quick lookup
+  const profileMap = useMemo(() => {
+    const map = new Map();
+    profiles.forEach(profile => {
+      map.set(profile.id, profile);
+    });
+    return map;
+  }, [profiles]);
+
+  // Helper to get user initials
+  const getUserInitials = (userId: string) => {
+    const profile = profileMap.get(userId);
+    if (!profile?.full_name) return '?';
+    const names = profile.full_name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return profile.full_name[0]?.toUpperCase() || '?';
+  };
 
   const handleSubmit = async () => {
     await logActivity({
@@ -95,6 +118,7 @@ export function ActivityTimeline({ entityType, entityId }: ActivityTimelineProps
               {activities.map((activity, index) => {
                 const Icon = activityIcons[activity.activity_type];
                 const colorClass = activityColors[activity.activity_type];
+                const profile = profileMap.get(activity.user_id);
                 
                 return (
                   <div key={activity.id} className="flex gap-4">
@@ -108,11 +132,21 @@ export function ActivityTimeline({ entityType, entityId }: ActivityTimelineProps
                     </div>
                     <div className="flex-1 pb-4">
                       <div className="flex items-start justify-between mb-1">
-                        <div>
-                          <p className="font-medium text-sm">{activity.subject || 'Activity'}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(activity.activity_date).toLocaleString()}
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <p className="font-medium text-sm">{activity.subject || 'Activity'}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={profile?.avatar_url || undefined} />
+                                <AvatarFallback className="text-xs">
+                                  {getUserInitials(activity.user_id)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{profile?.full_name || 'Unknown User'}</span>
+                              <span>•</span>
+                              <span>{new Date(activity.activity_date).toLocaleString()}</span>
+                            </div>
+                          </div>
                         </div>
                         <Badge variant="outline" className="capitalize">
                           {activity.activity_type === 'note' && activity.subject?.includes('Journal entry') ? 'Journal' : activity.activity_type}

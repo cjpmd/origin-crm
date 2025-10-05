@@ -255,19 +255,24 @@ export default function Journal() {
                   <Card className="absolute z-10 mt-1 p-2 min-w-[250px] max-w-md shadow-lg">
                     <div className="space-y-1">
                       {suggestions.map((suggestion) => (
-                        <Button
-                          key={suggestion.id}
-                          variant="ghost"
-                          className="w-full justify-start gap-2 h-auto py-2"
-                          onClick={() => insertMention(suggestion.name)}
-                        >
-                          <CompanyAvatar 
-                            name={suggestion.name} 
-                            logoUrl={suggestion.logoUrl}
-                            size="sm"
-                          />
+                      <Button
+                        key={suggestion.id}
+                        variant="ghost"
+                        className="w-full justify-start gap-2 h-auto py-2"
+                        onClick={() => insertMention(suggestion.name)}
+                      >
+                        <CompanyAvatar 
+                          name={suggestion.name} 
+                          logoUrl={suggestion.logoUrl}
+                          size="sm"
+                        />
+                        <div className="flex flex-col items-start">
                           <span className="text-sm">{suggestion.name}</span>
-                        </Button>
+                          <span className="text-xs text-muted-foreground">
+                            {suggestion.entityType === 'company' ? 'Portfolio' : 'Pipeline'}
+                          </span>
+                        </div>
+                      </Button>
                       ))}
                     </div>
                   </Card>
