@@ -18,6 +18,12 @@ verify_jwt = true
 [functions.auto-fetch-news]
 verify_jwt = false
 
+[functions.batch-match-news]
+verify_jwt = false
+
+[functions.invite-team-member]
+verify_jwt = true
+
 [functions.search-company]
 verify_jwt = true
 

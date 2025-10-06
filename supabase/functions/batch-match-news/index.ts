@@ -13,70 +13,195 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Batch match news request');
+    const body = await req.json().catch(() => ({}));
+    const { newsItemIds, limit = 50 } = body;
+    
+    console.log('Batch match news request:', { newsItemIds, limit });
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.log('LOVABLE_API_KEY not configured, skipping AI matching');
+      return new Response(
+        JSON.stringify({ success: false, message: 'AI matching not configured' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get auth header to find user
-    const authHeader = req.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    const { data: { user } } = await supabase.auth.getUser(token || '');
+    // Get all users
+    const { data: allUsers } = await supabase.auth.admin.listUsers();
+    const users = allUsers?.users || [];
+    
+    console.log(`Matching for ${users.length} users`);
 
-    if (!user) throw new Error('User not authenticated');
-
-    // Get all news items without matches
-    const { data: newsItems, error: newsError } = await supabase
+    // Get news items to match
+    let newsQuery = supabase
       .from('news_items')
-      .select('id')
-      .order('published_at', { ascending: false })
-      .limit(100); // Process last 100 news items
+      .select('id, title, summary, content, category')
+      .order('published_at', { ascending: false });
+
+    if (newsItemIds && newsItemIds.length > 0) {
+      newsQuery = newsQuery.in('id', newsItemIds);
+    } else {
+      // Get news without matches
+      const { data: allNews } = await supabase
+        .from('news_items')
+        .select('id')
+        .order('published_at', { ascending: false })
+        .limit(limit);
+      
+      if (!allNews || allNews.length === 0) {
+        return new Response(
+          JSON.stringify({ success: true, message: 'No news to match' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const newsIds = allNews.map(n => n.id);
+      const { data: existingMatches } = await supabase
+        .from('news_entity_matches')
+        .select('news_item_id')
+        .in('news_item_id', newsIds);
+
+      const matchedIds = new Set(existingMatches?.map(m => m.news_item_id) || []);
+      const unmatchedIds = newsIds.filter(id => !matchedIds.has(id));
+      
+      if (unmatchedIds.length === 0) {
+        return new Response(
+          JSON.stringify({ success: true, message: 'All news already matched' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      newsQuery = newsQuery.in('id', unmatchedIds);
+    }
+
+    const { data: newsItems, error: newsError } = await newsQuery;
 
     if (newsError) throw newsError;
 
-    console.log(`Found ${newsItems?.length || 0} news items to process`);
+    console.log(`Found ${newsItems?.length || 0} news items to match`);
 
-    // Filter out news items that already have matches
-    const newsIds = newsItems?.map(n => n.id) || [];
-    const { data: existingMatches } = await supabase
-      .from('news_entity_matches')
-      .select('news_item_id')
-      .in('news_item_id', newsIds);
+    if (!newsItems || newsItems.length === 0) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'No unmatched news found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    const matchedIds = new Set(existingMatches?.map(m => m.news_item_id) || []);
-    const unmatchedNews = newsItems?.filter(n => !matchedIds.has(n.id)) || [];
+    const allMatches: any[] = [];
 
-    console.log(`${unmatchedNews.length} news items without matches`);
-
-    // Match each news item
-    let successCount = 0;
-    let errorCount = 0;
-
-    for (const newsItem of unmatchedNews) {
+    // Process each user
+    for (const user of users) {
       try {
-        const { error } = await supabase.functions.invoke('match-news-entities', {
-          body: { newsItemId: newsItem.id }
-        });
+        // Get user's entities
+        const [companies, investors, deals] = await Promise.all([
+          supabase.from('portfolio_companies').select('id, name, sector, website').eq('user_id', user.id),
+          supabase.from('investors').select('id, name, type').eq('user_id', user.id),
+          supabase.from('deals').select('id, name, sector, website').eq('user_id', user.id),
+        ]);
 
-        if (error) {
-          console.error(`Failed to match news item ${newsItem.id}:`, error);
-          errorCount++;
-        } else {
-          successCount++;
+        const entities = {
+          companies: companies.data || [],
+          investors: investors.data || [],
+          deals: deals.data || [],
+        };
+
+        // Skip if user has no entities
+        if (!entities.companies.length && !entities.investors.length && !entities.deals.length) {
+          continue;
+        }
+
+        console.log(`User ${user.id}: ${entities.companies.length} companies, ${entities.investors.length} investors, ${entities.deals.length} deals`);
+
+        // Match news items for this user
+        for (const newsItem of newsItems) {
+          try {
+            const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'google/gemini-2.5-flash-lite',
+                messages: [
+                  { 
+                    role: 'system', 
+                    content: `You are an entity matching analyst. Given a news article and entities, identify relevant matches. Return a JSON array with: entity_type, entity_id, match_confidence (0-1), and match_reason. Only include confidence > 0.6. Focus on: direct mentions, sector relevance, business relationships, geographic overlap, market impact.` 
+                  },
+                  { 
+                    role: 'user', 
+                    content: `News: ${JSON.stringify({ title: newsItem.title, summary: newsItem.summary, category: newsItem.category })}\n\nEntities: ${JSON.stringify(entities)}\n\nFind matches.` 
+                  }
+                ],
+              }),
+            });
+
+            if (!aiResponse.ok) {
+              console.error(`AI failed for news ${newsItem.id}:`, aiResponse.status);
+              continue;
+            }
+
+            const aiData = await aiResponse.json();
+            const content = aiData.choices[0].message.content;
+
+            let matches = [];
+            try {
+              const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/\[[\s\S]*\]/);
+              const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content;
+              matches = JSON.parse(jsonStr);
+            } catch (e) {
+              console.error(`Parse failed for news ${newsItem.id}`);
+              continue;
+            }
+
+            if (matches.length > 0) {
+              matches.forEach((match: any) => {
+                allMatches.push({
+                  news_item_id: newsItem.id,
+                  entity_type: match.entity_type,
+                  entity_id: match.entity_id,
+                  match_confidence: match.match_confidence,
+                  match_reason: match.match_reason,
+                });
+              });
+            }
+          } catch (e) {
+            console.error(`Error matching news ${newsItem.id}:`, e);
+          }
         }
       } catch (e) {
-        console.error(`Error matching news item ${newsItem.id}:`, e);
-        errorCount++;
+        console.error(`Error processing user ${user.id}:`, e);
+      }
+    }
+
+    console.log(`Generated ${allMatches.length} total matches`);
+
+    // Insert all matches
+    if (allMatches.length > 0) {
+      const { error: insertError } = await supabase
+        .from('news_entity_matches')
+        .upsert(allMatches, { 
+          onConflict: 'news_item_id,entity_type,entity_id',
+          ignoreDuplicates: true 
+        });
+
+      if (insertError) {
+        console.error('Error inserting matches:', insertError);
+        throw insertError;
       }
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        processed: unmatchedNews.length,
-        successCount,
-        errorCount
+        newsCount: newsItems.length,
+        matchCount: allMatches.length,
+        usersProcessed: users.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

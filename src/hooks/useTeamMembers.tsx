@@ -34,22 +34,13 @@ export const useTeamMembers = () => {
 
   const inviteMember = useMutation({
     mutationFn: async (member: { email: string; full_name?: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { data, error } = await supabase
-        .from("team_members")
-        .insert({ 
-          ...member, 
-          invited_by: user.id, 
-          user_id: null, // null until they join
-          status: 'invited'
-        })
-        .select()
-        .single();
+      const { data, error } = await supabase.functions.invoke('invite-team-member', {
+        body: member,
+      });
 
       if (error) throw error;
-      return data;
+      if (!data.success) throw new Error(data.error || 'Failed to invite member');
+      return data.member;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
