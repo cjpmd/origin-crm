@@ -43,15 +43,15 @@ export const useNews = (filters?: NewsFilters) => {
         .order("published_at", { ascending: false })
         .limit(50);
 
-      if (filters?.sentiment) {
+      if (filters?.sentiment && filters.sentiment !== "all") {
         query = query.eq("sentiment", filters.sentiment);
       }
 
-      if (filters?.impact_level) {
+      if (filters?.impact_level && filters.impact_level !== "all") {
         query = query.eq("impact_level", filters.impact_level);
       }
 
-      if (filters?.category) {
+      if (filters?.category && filters.category !== "all") {
         query = query.eq("category", filters.category);
       }
 
