@@ -2178,12 +2178,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_company_owner: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       get_user_role_name: {
         Args: { _user_id: string }
         Returns: string
       }
       has_role_by_name: {
         Args: { _role_name: string; _user_id: string }
+        Returns: boolean
+      }
+      same_company: {
+        Args: { _user_id: string }
         Returns: boolean
       }
     }
