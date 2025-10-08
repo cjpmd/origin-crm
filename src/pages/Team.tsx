@@ -43,10 +43,7 @@ export default function Team() {
   );
 
   const selectedMemberData = allMembers?.find(m => m.id === selectedMember);
-  // For team members, use their user_id to get profile. For current user, use id directly
-  const selectedProfile = profiles.find(p => 
-    selectedMemberData?.user_id ? p.id === selectedMemberData.user_id : p.id === selectedMemberData?.id
-  );
+  const selectedAvatarUrl = selectedMemberData?.profiles?.avatar_url;
 
   const getInitials = (name?: string, email?: string) => {
     if (name) {
@@ -133,8 +130,8 @@ export default function Team() {
                 <p className="text-sm text-muted-foreground">No members found</p>
               ) : (
                 filteredMembers?.map((member) => {
-                  const profile = profiles.find(p => p.id === member.user_id);
                   const isCurrentUser = member.user_id === user?.id;
+                  const avatarUrl = member.profiles?.avatar_url;
                   return (
                     <Card
                       key={member.id}
@@ -145,7 +142,7 @@ export default function Team() {
                     >
                       <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={profile?.avatar_url || undefined} />
+                          <AvatarImage src={avatarUrl || undefined} />
                           <AvatarFallback className="text-sm">
                             {getInitials(member.full_name, member.email)}
                           </AvatarFallback>
@@ -179,7 +176,7 @@ export default function Team() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src={selectedProfile?.avatar_url || undefined} />
+                      <AvatarImage src={selectedAvatarUrl || undefined} />
                       <AvatarFallback className="text-xl">
                         {getInitials(selectedMemberData.full_name, selectedMemberData.email)}
                       </AvatarFallback>

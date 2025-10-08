@@ -13,6 +13,11 @@ export interface TeamMember {
   joined_at?: string;
   created_at: string;
   updated_at: string;
+  profiles?: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export const useTeamMembers = () => {
@@ -22,13 +27,32 @@ export const useTeamMembers = () => {
   const { data: members, isLoading } = useQuery({
     queryKey: ["team-members"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: teamData, error } = await supabase
         .from("team_members")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as TeamMember[];
+      
+      // Remove duplicates based on user_id
+      const uniqueTeamMembers = teamData?.filter((member, index, self) =>
+        index === self.findIndex((m) => m.user_id === member.user_id)
+      ) || [];
+      
+      // Fetch profiles separately for all user_ids
+      const userIds = uniqueTeamMembers.map(m => m.user_id).filter(Boolean) as string[];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", userIds);
+      
+      // Merge profiles with team members
+      const membersWithProfiles = uniqueTeamMembers.map(member => ({
+        ...member,
+        profiles: profilesData?.find(p => p.id === member.user_id) || null
+      }));
+      
+      return membersWithProfiles as TeamMember[];
     },
   });
 
