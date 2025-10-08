@@ -2182,6 +2182,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      get_team_owner_for_user: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       get_user_company_owner: {
         Args: { _user_id: string }
         Returns: string

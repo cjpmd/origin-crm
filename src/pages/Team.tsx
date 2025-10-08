@@ -34,25 +34,8 @@ export default function Team() {
   const [editingMember, setEditingMember] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Combine current user profile with team members
-  const currentUserProfile = profiles.find(p => p.id === user?.id);
-  const allMembers = [
-    // Current user
-    ...(currentUserProfile ? [{
-      id: currentUserProfile.id,
-      user_id: currentUserProfile.id,
-      email: user?.email || '',
-      full_name: currentUserProfile.full_name,
-      status: 'Active',
-      invited_by: null,
-      invited_at: user?.created_at || new Date().toISOString(),
-      joined_at: user?.created_at || new Date().toISOString(),
-      created_at: user?.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }] : []),
-    // Other team members
-    ...(members || [])
-  ];
+  // Use team members directly from the database
+  const allMembers = members || [];
 
   const filteredMembers = allMembers?.filter((member) =>
     member.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
