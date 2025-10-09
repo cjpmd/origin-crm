@@ -32,13 +32,13 @@ export const useEntityNews = () => {
     queryFn: async () => {
       if (!userId) return null;
 
-      // Fetch recent news items (last 7 days for dashboard relevance)
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      // Fetch recent news items (last 30 days for dashboard relevance)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
       const { data: allNewsItems, error: newsError } = await supabase
         .from('news_items')
         .select('*')
-        .gte('published_at', sevenDaysAgo)
+        .gte('published_at', thirtyDaysAgo)
         .order('published_at', { ascending: false });
 
       if (newsError) throw newsError;
@@ -64,15 +64,19 @@ export const useEntityNews = () => {
       });
 
       // Fetch matches for user's entities
-      const { data: newsMatches } = await supabase
-        .from('news_entity_matches')
-        .select('news_item_id, entity_type, entity_id')
-        .in('entity_id', [
-          ...Array.from(portfolioIds),
-          ...Array.from(dealIds),
-          ...Array.from(investorIds),
-          ...Array.from(sectorIds)
-        ]);
+      const allEntityIds = [
+        ...Array.from(portfolioIds),
+        ...Array.from(dealIds),
+        ...Array.from(investorIds),
+        ...Array.from(sectorIds)
+      ].filter(Boolean);
+
+      const { data: newsMatches } = allEntityIds.length > 0 
+        ? await supabase
+            .from('news_entity_matches')
+            .select('news_item_id, entity_type, entity_id')
+            .in('entity_id', allEntityIds)
+        : { data: [] };
 
       // Create a map of news items with their relevant entity types
       const matchMap = new Map<string, Set<string>>();
@@ -109,6 +113,7 @@ export const useEntityNews = () => {
       };
     },
     enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // Consider data stale after 2 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 
