@@ -95,7 +95,8 @@ export const useEntityNews = () => {
       }));
 
       const relevantNews = allNews.filter(n => n.isRelevantToUser);
-      const highImpactNews = relevantNews.filter(n => n.impact_level === 'high');
+      // Show ALL high impact news, not just relevant ones
+      const highImpactNews = allNews.filter(n => n.impact_level === 'high');
       const portfolioNews = relevantNews.filter(n => n.entityTypes.has('company'));
       const pipelineNews = relevantNews.filter(n => n.entityTypes.has('deal'));
       const investorNews = relevantNews.filter(n => n.entityTypes.has('investor'));
