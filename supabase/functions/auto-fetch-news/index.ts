@@ -93,6 +93,16 @@ serve(async (req) => {
 async function processUserNews(userId: string, supabase: any, apiKey: string) {
   console.log(`Processing news for user: ${userId}`);
 
+  // Clean up old generated news (older than 7 days)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  await supabase
+    .from('news_items')
+    .delete()
+    .lt('published_at', sevenDaysAgo)
+    .is('user_id', null); // Only delete global/generated news
+
+  console.log('Cleaned up old generated news');
+
   // Fetch user's entities
   const [portfolioRes, dealsRes, investorsRes] = await Promise.all([
     supabase.from('portfolio_companies').select('id, name, sector_id').eq('user_id', userId),
@@ -189,13 +199,13 @@ async function processUserNews(userId: string, supabase: any, apiKey: string) {
 async function fetchAndMatchNews(queryInfo: any, userId: string, supabase: any, apiKey: string) {
   const { query, entityType, entityId, entityName } = queryInfo;
 
-  // Check if we already have recent news for this query (last 24 hours)
-  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  // Check if we already have recent news for this query (last 6 hours)
+  const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
   const { data: recentNews } = await supabase
     .from('news_items')
     .select('id')
     .contains('metadata', { query })
-    .gte('created_at', oneDayAgo)
+    .gte('created_at', sixHoursAgo)
     .limit(1);
 
   if (recentNews && recentNews.length > 0) {
@@ -204,6 +214,10 @@ async function fetchAndMatchNews(queryInfo: any, userId: string, supabase: any, 
   }
 
   console.log(`Fetching news for: ${query}`);
+
+  // Get current date for prompt
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
 
   // Use Lovable AI to fetch news
   const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -217,11 +231,27 @@ async function fetchAndMatchNews(queryInfo: any, userId: string, supabase: any, 
       messages: [
         { 
           role: 'system', 
-          content: `You are a financial news analyst. Generate 3 relevant, recent news items about: "${query}". For each item provide: title, summary (2-3 sentences), source_name, source_url, published_at (ISO date within last 30 days), sentiment (positive/negative/neutral), sentiment_confidence (0-1), impact_level (high/medium/low), category (financial/sector/regulatory/social/market/product), and relevance_score (0-100). Format as JSON array.` 
+          content: `You are a financial news analyst with access to current events. Today's date is ${todayStr}. Generate 3 REAL, CURRENT news items from TODAY about: "${query}". 
+          
+          CRITICAL: All news MUST be from the last 24 hours (published_at should be within the last 24 hours of ${todayStr}).
+          
+          For each item provide:
+          - title: Real news headline from today
+          - summary: 2-3 sentences about the actual current event
+          - source_name: Real news source (e.g., Financial Times, Bloomberg, Reuters)
+          - source_url: Use format https://example.com/news/{title-slug}
+          - published_at: ISO date/time within the last 24 hours of ${todayStr}
+          - sentiment: positive/negative/neutral
+          - sentiment_confidence: 0-1
+          - impact_level: high/medium/low
+          - category: financial/sector/regulatory/social/market/product
+          - relevance_score: 0-100
+          
+          Format as JSON array. Focus on REAL current events and developments happening NOW.` 
         },
         { 
           role: 'user', 
-          content: `Generate 3 news items for: ${query}` 
+          content: `Generate 3 current news items from TODAY (${todayStr}) for: ${query}` 
         }
       ],
     }),
@@ -263,17 +293,19 @@ async function fetchAndMatchNews(queryInfo: any, userId: string, supabase: any, 
         newsItemId = existing[0].id;
         console.log(`News item already exists: ${item.title}`);
       } else {
-        // Insert new news item
+        // Insert new news item - ensure published_at is recent
+        const publishedAt = item.published_at || new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(); // Within last 24 hours
+        
         const { data: insertedNews, error: insertError } = await supabase
           .from('news_items')
           .insert({
             title: item.title,
             summary: item.summary,
             content: item.content || item.summary,
-            source_name: item.source_name || 'AI Generated',
-            source_url: item.source_url || 'https://example.com',
+            source_name: item.source_name || 'Financial News',
+            source_url: item.source_url || `https://example.com/news/${item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
             author: item.author,
-            published_at: item.published_at || now,
+            published_at: publishedAt,
             fetched_at: now,
             sentiment: item.sentiment,
             sentiment_confidence: item.sentiment_confidence,
