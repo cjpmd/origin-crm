@@ -788,6 +788,62 @@ export type Database = {
           },
         ]
       }
+      fundraising_targets: {
+        Row: {
+          committed_amount: number | null
+          created_at: string | null
+          final_close_target_date: string | null
+          first_close_target_date: string | null
+          fund_id: string | null
+          id: string
+          minimum_amount: number | null
+          name: string
+          soft_circled_amount: number | null
+          status: string | null
+          target_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          committed_amount?: number | null
+          created_at?: string | null
+          final_close_target_date?: string | null
+          first_close_target_date?: string | null
+          fund_id?: string | null
+          id?: string
+          minimum_amount?: number | null
+          name: string
+          soft_circled_amount?: number | null
+          status?: string | null
+          target_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          committed_amount?: number | null
+          created_at?: string | null
+          final_close_target_date?: string | null
+          first_close_target_date?: string | null
+          fund_id?: string | null
+          id?: string
+          minimum_amount?: number | null
+          name?: string
+          soft_circled_amount?: number | null
+          status?: string | null
+          target_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fundraising_targets_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funds: {
         Row: {
           carried_interest_rate: number | null
@@ -1006,44 +1062,260 @@ export type Database = {
           },
         ]
       }
+      investor_documents: {
+        Row: {
+          created_at: string | null
+          document_name: string
+          document_type: string
+          document_url: string | null
+          id: string
+          investor_id: string
+          last_viewed_at: string | null
+          metadata: Json | null
+          sent_date: string | null
+          updated_at: string | null
+          user_id: string
+          version: number | null
+          view_count: number | null
+          viewed: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_name: string
+          document_type: string
+          document_url?: string | null
+          id?: string
+          investor_id: string
+          last_viewed_at?: string | null
+          metadata?: Json | null
+          sent_date?: string | null
+          updated_at?: string | null
+          user_id: string
+          version?: number | null
+          view_count?: number | null
+          viewed?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          document_name?: string
+          document_type?: string
+          document_url?: string | null
+          id?: string
+          investor_id?: string
+          last_viewed_at?: string | null
+          metadata?: Json | null
+          sent_date?: string | null
+          updated_at?: string | null
+          user_id?: string
+          version?: number | null
+          view_count?: number | null
+          viewed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_documents_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investor_pipeline_activities: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          body: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          id: string
+          investor_id: string
+          metadata: Json | null
+          next_action: string | null
+          next_action_date: string | null
+          outcome: string | null
+          subject: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type: string
+          body?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          investor_id: string
+          metadata?: Json | null
+          next_action?: string | null
+          next_action_date?: string | null
+          outcome?: string | null
+          subject?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          body?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          investor_id?: string
+          metadata?: Json | null
+          next_action?: string | null
+          next_action_date?: string | null
+          outcome?: string | null
+          subject?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_pipeline_activities_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investor_preferences: {
+        Row: {
+          co_investment_interest: boolean | null
+          created_at: string | null
+          decision_makers: Json | null
+          decision_timeline: string | null
+          esg_focus: boolean | null
+          id: string
+          investor_id: string
+          max_investment: number | null
+          min_investment: number | null
+          preferred_deal_structure: string | null
+          preferred_fund_types: string[] | null
+          preferred_geographies: string[] | null
+          preferred_sectors: string[] | null
+          reporting_frequency: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          co_investment_interest?: boolean | null
+          created_at?: string | null
+          decision_makers?: Json | null
+          decision_timeline?: string | null
+          esg_focus?: boolean | null
+          id?: string
+          investor_id: string
+          max_investment?: number | null
+          min_investment?: number | null
+          preferred_deal_structure?: string | null
+          preferred_fund_types?: string[] | null
+          preferred_geographies?: string[] | null
+          preferred_sectors?: string[] | null
+          reporting_frequency?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          co_investment_interest?: boolean | null
+          created_at?: string | null
+          decision_makers?: Json | null
+          decision_timeline?: string | null
+          esg_focus?: boolean | null
+          id?: string
+          investor_id?: string
+          max_investment?: number | null
+          min_investment?: number | null
+          preferred_deal_structure?: string | null
+          preferred_fund_types?: string[] | null
+          preferred_geographies?: string[] | null
+          preferred_sectors?: string[] | null
+          reporting_frequency?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_preferences_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: true
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investors: {
         Row: {
+          aum: number | null
           check_size: string | null
           created_at: string
+          engagement_level: string | null
+          expected_commitment: number | null
           focus_sectors: string[] | null
+          fund_vintage: string | null
           id: string
+          last_contact_date: string | null
           location: string | null
           name: string
           notes: string | null
+          pipeline_stage: string | null
+          priority_score: number | null
+          probability: number | null
+          relationship_strength: number | null
+          source: string | null
           status: string | null
+          sub_stage: string | null
+          target_close_date: string | null
           type: string | null
           updated_at: string
           user_id: string
           website: string | null
         }
         Insert: {
+          aum?: number | null
           check_size?: string | null
           created_at?: string
+          engagement_level?: string | null
+          expected_commitment?: number | null
           focus_sectors?: string[] | null
+          fund_vintage?: string | null
           id?: string
+          last_contact_date?: string | null
           location?: string | null
           name: string
           notes?: string | null
+          pipeline_stage?: string | null
+          priority_score?: number | null
+          probability?: number | null
+          relationship_strength?: number | null
+          source?: string | null
           status?: string | null
+          sub_stage?: string | null
+          target_close_date?: string | null
           type?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
         }
         Update: {
+          aum?: number | null
           check_size?: string | null
           created_at?: string
+          engagement_level?: string | null
+          expected_commitment?: number | null
           focus_sectors?: string[] | null
+          fund_vintage?: string | null
           id?: string
+          last_contact_date?: string | null
           location?: string | null
           name?: string
           notes?: string | null
+          pipeline_stage?: string | null
+          priority_score?: number | null
+          probability?: number | null
+          relationship_strength?: number | null
+          source?: string | null
           status?: string | null
+          sub_stage?: string | null
+          target_close_date?: string | null
           type?: string | null
           updated_at?: string
           user_id?: string

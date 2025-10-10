@@ -15,6 +15,19 @@ export interface Investor {
   status: string;
   created_at: string;
   updated_at: string;
+  // Pipeline fields
+  pipeline_stage?: string;
+  sub_stage?: string;
+  expected_commitment?: number;
+  probability?: number;
+  target_close_date?: string;
+  last_contact_date?: string;
+  relationship_strength?: number;
+  aum?: number;
+  fund_vintage?: string;
+  priority_score?: number;
+  source?: string;
+  engagement_level?: string;
 }
 
 export function useInvestors() {

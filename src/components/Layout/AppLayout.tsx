@@ -60,12 +60,19 @@ const mainNavigation = [
 // Grouped navigation
 const navigationGroups = [
   {
-    label: 'Relationships',
+    label: 'Investor Relations',
     defaultOpen: true,
+    items: [
+      { name: 'Investor Pipeline', href: '/investor-pipeline', icon: TrendingUp },
+      { name: 'Investor Directory', href: '/investors', icon: Users },
+    ]
+  },
+  {
+    label: 'Relationships',
+    defaultOpen: false,
     items: [
       { name: 'Companies', href: '/companies', icon: Building2 },
       { name: 'Contacts', href: '/contacts', icon: Users },
-      { name: 'Investors', href: '/investors', icon: TrendingUp },
       { name: 'Intermediaries', href: '/intermediaries', icon: Network },
     ]
   },
