@@ -16,6 +16,7 @@ import Funds from "./pages/Funds";
 import Companies from "./pages/Companies";
 import Investors from "./pages/Investors";
 import InvestorPipeline from "./pages/InvestorPipeline";
+import FundraisingDashboard from "./pages/FundraisingDashboard";
 import ESGAnalytics from "./pages/ESGAnalytics";
 import SectoralAnalysis from "./pages/SectoralAnalysis";
 import Research from "./pages/Research";
@@ -66,6 +67,7 @@ const App = () => (
             <Route path="companies" element={<Companies />} />
             <Route path="investors" element={<Investors />} />
             <Route path="investor-pipeline" element={<InvestorPipeline />} />
+            <Route path="fundraising" element={<FundraisingDashboard />} />
             <Route path="portfolio" element={<Portfolio />} />
             {/* Redirect old routes to Analytics page */}
             <Route path="esg-analytics" element={<Navigate to="/analytics" replace />} />

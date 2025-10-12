@@ -10,15 +10,26 @@ import { PipelineAnalytics } from '@/components/Analytics/PipelineAnalytics';
 import { useTasks } from '@/hooks/useTasks';
 import { useDeals } from '@/hooks/useDeals';
 import { useContacts } from '@/hooks/useContacts';
+import { useInvestors } from '@/hooks/useInvestors';
 import { Checkbox } from '@/components/ui/checkbox';
 import { NewsIntelligenceBanner } from '@/components/Dashboard/NewsIntelligenceBanner';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const Index = () => {
   const { tasks, updateTask } = useTasks();
   const { deals } = useDeals();
   const { contacts } = useContacts();
+  const { investors } = useInvestors();
+  const { formatCurrency } = useCurrency();
   
   const recentTasks = tasks.filter(task => task.status !== 'completed').slice(0, 3);
+
+  // Investor pipeline metrics
+  const activeInvestors = investors.filter(inv => 
+    ["Engaged", "Qualified", "Due Diligence", "Commitment Offered"].includes(inv.pipeline_stage || "")
+  ).length;
+  const totalPipelineValue = investors.reduce((sum, inv) => sum + (inv.expected_commitment || 0), 0);
+  const hotInvestors = investors.filter(inv => inv.engagement_level === 'Hot').length;
 
   return (
     <div className="space-y-6">
@@ -56,6 +67,34 @@ const Index = () => {
 
       {/* Pipeline Analytics */}
       <PipelineAnalytics />
+
+      {/* Investor Pipeline Health */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Investor Pipeline Health</CardTitle>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/investor-pipeline">
+              View Pipeline <ArrowRight className="h-4 w-4 ml-1" />
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Active Investors</p>
+              <p className="text-2xl font-bold">{activeInvestors}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Pipeline Value</p>
+              <p className="text-2xl font-bold">{formatCurrency(totalPipelineValue)}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Hot Leads</p>
+              <p className="text-2xl font-bold">{hotInvestors}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Fund Performance */}
       <FundMetrics />

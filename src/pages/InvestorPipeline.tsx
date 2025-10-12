@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useInvestors } from "@/hooks/useInvestors";
 import { EditInvestorDialog } from "@/components/Investors/EditInvestorDialog";
 import { ViewInvestorDialog } from "@/components/Investors/ViewInvestorDialog";
-import { Plus, Search, LayoutGrid, LayoutList, Target, TrendingUp, DollarSign, Calendar } from "lucide-react";
+import { InvestorActivityDialog } from "@/components/Investors/InvestorActivityDialog";
+import { Plus, Search, LayoutGrid, LayoutList, Target, TrendingUp, DollarSign, Calendar, Activity } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "sonner";
 
@@ -35,6 +36,7 @@ export default function InvestorPipeline() {
   const { formatCurrency } = useCurrency();
   const [editingInvestor, setEditingInvestor] = useState<any>(null);
   const [viewingInvestor, setViewingInvestor] = useState<any>(null);
+  const [activityInvestor, setActivityInvestor] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStage, setFilterStage] = useState<string>("all");
   const [filterEngagement, setFilterEngagement] = useState<string>("all");
@@ -166,7 +168,7 @@ export default function InvestorPipeline() {
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Filters & Actions */}
         <div className="flex gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -215,6 +217,7 @@ export default function InvestorPipeline() {
                     <th className="text-left p-4 font-medium">Probability</th>
                     <th className="text-left p-4 font-medium">Priority</th>
                     <th className="text-left p-4 font-medium">Target Close</th>
+                    <th className="text-left p-4 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -252,11 +255,23 @@ export default function InvestorPipeline() {
                       <td className="p-4 text-sm text-muted-foreground">
                         {investor.target_close_date ? new Date(investor.target_close_date).toLocaleDateString() : '-'}
                       </td>
+                      <td className="p-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActivityInvestor(investor);
+                          }}
+                        >
+                          <Activity className="h-4 w-4" />
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                   {filteredInvestors.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={8} className="p-8 text-center text-muted-foreground">
                         No investors found
                       </td>
                     </tr>
@@ -285,8 +300,18 @@ export default function InvestorPipeline() {
             open={!!viewingInvestor}
             onOpenChange={(open) => !open && setViewingInvestor(null)}
             onContact={() => {
-              toast.success(`Opening contact for ${viewingInvestor.name}`);
+              setActivityInvestor(viewingInvestor);
+              setViewingInvestor(null);
             }}
+          />
+        )}
+
+        {activityInvestor && (
+          <InvestorActivityDialog
+            investorId={activityInvestor.id}
+            investorName={activityInvestor.name}
+            open={!!activityInvestor}
+            onOpenChange={(open) => !open && setActivityInvestor(null)}
           />
         )}
       </div>
@@ -496,8 +521,18 @@ export default function InvestorPipeline() {
           open={!!viewingInvestor}
           onOpenChange={(open) => !open && setViewingInvestor(null)}
           onContact={() => {
-            toast.success(`Opening contact for ${viewingInvestor.name}`);
+            setActivityInvestor(viewingInvestor);
+            setViewingInvestor(null);
           }}
+        />
+      )}
+
+      {activityInvestor && (
+        <InvestorActivityDialog
+          investorId={activityInvestor.id}
+          investorName={activityInvestor.name}
+          open={!!activityInvestor}
+          onOpenChange={(open) => !open && setActivityInvestor(null)}
         />
       )}
     </div>

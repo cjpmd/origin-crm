@@ -35,7 +35,8 @@ import {
   FileText,
   CheckSquare,
   Newspaper,
-  BookOpen
+  BookOpen,
+  Target
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -65,6 +66,7 @@ const navigationGroups = [
     items: [
       { name: 'Investor Pipeline', href: '/investor-pipeline', icon: TrendingUp },
       { name: 'Investor Directory', href: '/investors', icon: Users },
+      { name: 'Fundraising Dashboard', href: '/fundraising', icon: Target },
     ]
   },
   {
