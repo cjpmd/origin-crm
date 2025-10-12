@@ -4,13 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useInvestors } from "@/hooks/useInvestors";
+import { useInvestors, Investor } from "@/hooks/useInvestors";
 import { EditInvestorDialog } from "@/components/Investors/EditInvestorDialog";
 import { ViewInvestorDialog } from "@/components/Investors/ViewInvestorDialog";
 import { InvestorActivityDialog } from "@/components/Investors/InvestorActivityDialog";
-import { Plus, Search, LayoutGrid, LayoutList, Target, TrendingUp, DollarSign, Calendar, Activity } from "lucide-react";
+import { Plus, Search, LayoutGrid, LayoutList, Target, TrendingUp, DollarSign, Calendar, Activity, Pencil, Trash2 } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const pipelineStages = ["Sourced", "Engaged", "Qualified", "Due Diligence", "Commitment Offered", "Committed", "Closed", "Nurture"];
 
@@ -34,14 +44,16 @@ const engagementColors: Record<string, string> = {
 export default function InvestorPipeline() {
   const { investors, isLoading, createInvestor, updateInvestor, deleteInvestor } = useInvestors();
   const { formatCurrency } = useCurrency();
-  const [editingInvestor, setEditingInvestor] = useState<any>(null);
-  const [viewingInvestor, setViewingInvestor] = useState<any>(null);
-  const [activityInvestor, setActivityInvestor] = useState<any>(null);
+  const [editingInvestor, setEditingInvestor] = useState<Investor | null>(null);
+  const [viewingInvestor, setViewingInvestor] = useState<Investor | null>(null);
+  const [activityInvestor, setActivityInvestor] = useState<Investor | null>(null);
+  const [deletingInvestor, setDeletingInvestor] = useState<Investor | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStage, setFilterStage] = useState<string>("all");
   const [filterEngagement, setFilterEngagement] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
-  const [draggedInvestor, setDraggedInvestor] = useState<any>(null);
+  const [draggedInvestor, setDraggedInvestor] = useState<Investor | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
   const handleDragStart = (e: React.DragEvent, investor: any) => {
@@ -71,6 +83,21 @@ export default function InvestorPipeline() {
       toast.success(`Moved ${draggedInvestor.name} to ${targetStage}`);
     }
     setDraggedInvestor(null);
+  };
+
+  const handleSaveInvestor = async (data: Partial<Investor> & { id?: string }) => {
+    if (data.id) {
+      await updateInvestor(data as Partial<Investor> & { id: string });
+    } else {
+      await createInvestor(data as Omit<Partial<Investor>, 'user_id' | 'id' | 'created_at' | 'updated_at'> & { name: string });
+    }
+  };
+
+  const handleDeleteInvestor = async () => {
+    if (deletingInvestor) {
+      await deleteInvestor(deletingInvestor.id);
+      setDeletingInvestor(null);
+    }
   };
 
   const filteredInvestors = investors?.filter(investor => {
@@ -105,6 +132,10 @@ export default function InvestorPipeline() {
             <p className="text-muted-foreground">Track and manage prospective investor relationships</p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Investor
+            </Button>
             <Button
               variant={viewMode === "board" ? "default" : "outline"}
               size="sm"
@@ -217,7 +248,7 @@ export default function InvestorPipeline() {
                     <th className="text-left p-4 font-medium">Probability</th>
                     <th className="text-left p-4 font-medium">Priority</th>
                     <th className="text-left p-4 font-medium">Target Close</th>
-                    <th className="text-left p-4 font-medium">Actions</th>
+                    <th className="text-right p-4 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -256,22 +287,44 @@ export default function InvestorPipeline() {
                         {investor.target_close_date ? new Date(investor.target_close_date).toLocaleDateString() : '-'}
                       </td>
                       <td className="p-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActivityInvestor(investor);
-                          }}
-                        >
-                          <Activity className="h-4 w-4" />
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivityInvestor(investor);
+                            }}
+                          >
+                            <Activity className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingInvestor(investor);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingInvestor(investor);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                   {filteredInvestors.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={9} className="p-8 text-center text-muted-foreground">
                         No investors found
                       </td>
                     </tr>
@@ -282,17 +335,19 @@ export default function InvestorPipeline() {
           </CardContent>
         </Card>
 
-        {editingInvestor && (
-          <EditInvestorDialog
-            investor={editingInvestor}
-            open={!!editingInvestor}
-            onOpenChange={(open) => !open && setEditingInvestor(null)}
-          onSave={(data) => {
-            updateInvestor(data as any);
-            setEditingInvestor(null);
-          }}
-          />
-        )}
+        <EditInvestorDialog
+          investor={editingInvestor}
+          open={!!editingInvestor}
+          onOpenChange={(open) => !open && setEditingInvestor(null)}
+          onSave={handleSaveInvestor}
+        />
+
+        <EditInvestorDialog
+          investor={null}
+          open={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onSave={handleSaveInvestor}
+        />
 
         {viewingInvestor && (
           <ViewInvestorDialog
@@ -314,6 +369,23 @@ export default function InvestorPipeline() {
             onOpenChange={(open) => !open && setActivityInvestor(null)}
           />
         )}
+
+        <AlertDialog open={!!deletingInvestor} onOpenChange={(open) => !open && setDeletingInvestor(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Investor</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete {deletingInvestor?.name}? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteInvestor} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
 
@@ -322,11 +394,15 @@ export default function InvestorPipeline() {
     <div className="space-y-6">
       {/* Header & Filters */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Investor Pipeline</h1>
-          <p className="text-muted-foreground">Track and manage prospective investor relationships</p>
-        </div>
-        <div className="flex gap-2">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Investor Pipeline</h1>
+            <p className="text-muted-foreground">Track and manage prospective investor relationships</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Investor
+            </Button>
           <Button
             variant={viewMode === "board" ? "default" : "outline"}
             size="sm"
@@ -443,12 +519,35 @@ export default function InvestorPipeline() {
                     {stageInvestors.map((investor) => (
                       <Card
                         key={investor.id}
-                        className="cursor-move hover:shadow-md transition-shadow bg-card"
+                        className="group cursor-move hover:shadow-md transition-shadow bg-card relative"
                         draggable
                         onDragStart={(e) => handleDragStart(e, investor)}
-                        onClick={() => setViewingInvestor(investor)}
                       >
-                        <CardContent className="p-3 space-y-2">
+                        <CardContent className="p-3 space-y-2" onClick={() => setViewingInvestor(investor)}>
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingInvestor(investor);
+                              }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingInvestor(investor);
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </div>
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
                               <h4 className="font-semibold text-sm truncate">{investor.name}</h4>
@@ -503,17 +602,19 @@ export default function InvestorPipeline() {
         </div>
       </div>
 
-      {editingInvestor && (
-        <EditInvestorDialog
-          investor={editingInvestor}
-          open={!!editingInvestor}
-          onOpenChange={(open) => !open && setEditingInvestor(null)}
-          onSave={(data) => {
-            updateInvestor(data as any);
-            setEditingInvestor(null);
-          }}
-        />
-      )}
+      <EditInvestorDialog
+        investor={editingInvestor}
+        open={!!editingInvestor}
+        onOpenChange={(open) => !open && setEditingInvestor(null)}
+        onSave={handleSaveInvestor}
+      />
+
+      <EditInvestorDialog
+        investor={null}
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSave={handleSaveInvestor}
+      />
 
       {viewingInvestor && (
         <ViewInvestorDialog
@@ -535,6 +636,23 @@ export default function InvestorPipeline() {
           onOpenChange={(open) => !open && setActivityInvestor(null)}
         />
       )}
+
+      <AlertDialog open={!!deletingInvestor} onOpenChange={(open) => !open && setDeletingInvestor(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Investor</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {deletingInvestor?.name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteInvestor} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 
