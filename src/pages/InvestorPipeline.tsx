@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { useInvestors, Investor } from "@/hooks/useInvestors";
 import { EditInvestorDialog } from "@/components/Investors/EditInvestorDialog";
 import { ViewInvestorDialog } from "@/components/Investors/ViewInvestorDialog";
 import { InvestorActivityDialog } from "@/components/Investors/InvestorActivityDialog";
-import { Plus, Search, LayoutGrid, LayoutList, Target, TrendingUp, DollarSign, Calendar, Activity, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, LayoutGrid, LayoutList, Target, TrendingUp, DollarSign, Calendar, Activity, Pencil, Trash2, Filter, Maximize2, Settings2, Download, Mail } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "sonner";
 import {
@@ -55,6 +58,10 @@ export default function InvestorPipeline() {
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   const [draggedInvestor, setDraggedInvestor] = useState<Investor | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
+  const [selectedInvestors, setSelectedInvestors] = useState<Set<string>>(new Set());
+  const [hiddenStages, setHiddenStages] = useState<Set<string>>(new Set());
+  const [isCompactView, setIsCompactView] = useState(false);
+  const [showQuickFilters, setShowQuickFilters] = useState(false);
 
   const handleDragStart = (e: React.DragEvent, investor: any) => {
     setDraggedInvestor(investor);
@@ -98,6 +105,56 @@ export default function InvestorPipeline() {
       await deleteInvestor(deletingInvestor.id);
       setDeletingInvestor(null);
     }
+  };
+
+  const toggleInvestorSelection = (investorId: string) => {
+    const newSet = new Set(selectedInvestors);
+    if (newSet.has(investorId)) {
+      newSet.delete(investorId);
+    } else {
+      newSet.add(investorId);
+    }
+    setSelectedInvestors(newSet);
+  };
+
+  const handleBulkMove = async (targetStage: string) => {
+    const promises = Array.from(selectedInvestors).map(id => 
+      updateInvestor({ id, pipeline_stage: targetStage })
+    );
+    await Promise.all(promises);
+    toast.success(`Moved ${selectedInvestors.size} investors to ${targetStage}`);
+    setSelectedInvestors(new Set());
+  };
+
+  const toggleStageVisibility = (stage: string) => {
+    const newSet = new Set(hiddenStages);
+    if (newSet.has(stage)) {
+      newSet.delete(stage);
+    } else {
+      newSet.add(stage);
+    }
+    setHiddenStages(newSet);
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Name', 'Type', 'Stage', 'Engagement', 'Expected Commitment', 'Probability', 'Target Close'];
+    const rows = filteredInvestors.map(inv => [
+      inv.name,
+      inv.type || '',
+      inv.pipeline_stage || '',
+      inv.engagement_level || '',
+      inv.expected_commitment || '',
+      inv.probability || '',
+      inv.target_close_date || ''
+    ]);
+    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'investor-pipeline.csv';
+    a.click();
+    toast.success('Pipeline exported successfully');
   };
 
   const filteredInvestors = investors?.filter(investor => {
@@ -466,9 +523,9 @@ export default function InvestorPipeline() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4">
-        <div className="relative flex-1 max-w-sm">
+      {/* Filters & Tools */}
+      <div className="flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search investors..."
@@ -477,54 +534,184 @@ export default function InvestorPipeline() {
             className="pl-8"
           />
         </div>
-        <Select value={filterEngagement} onValueChange={setFilterEngagement}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Engagement" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Engagement</SelectItem>
-            <SelectItem value="Cold">Cold</SelectItem>
-            <SelectItem value="Warm">Warm</SelectItem>
-            <SelectItem value="Hot">Hot</SelectItem>
-          </SelectContent>
-        </Select>
+
+        <Button
+          variant={showQuickFilters ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => setShowQuickFilters(!showQuickFilters)}
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Quick Filters
+        </Button>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Settings2 className="h-4 w-4 mr-2" />
+              Customize
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64">
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-3">View Options</h4>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm">Compact View</label>
+                  <Checkbox 
+                    checked={isCompactView} 
+                    onCheckedChange={(checked) => setIsCompactView(!!checked)}
+                  />
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <h4 className="font-medium mb-3">Visible Stages</h4>
+                {pipelineStages.map(stage => (
+                  <div key={stage} className="flex items-center justify-between mb-2">
+                    <label className="text-sm">{stage}</label>
+                    <Checkbox 
+                      checked={!hiddenStages.has(stage)} 
+                      onCheckedChange={() => toggleStageVisibility(stage)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {selectedInvestors.size > 0 && (
+          <>
+            <Separator orientation="vertical" className="h-8" />
+            <Badge variant="secondary">{selectedInvestors.size} selected</Badge>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Bulk Move
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48">
+                <div className="space-y-1">
+                  {pipelineStages.map(stage => (
+                    <Button
+                      key={stage}
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => handleBulkMove(stage)}
+                    >
+                      {stage}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setSelectedInvestors(new Set())}
+            >
+              Clear
+            </Button>
+          </>
+        )}
+
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportToCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
       </div>
 
+      {showQuickFilters && (
+        <Card className="animate-fade-in">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={filterEngagement === "Hot" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterEngagement(filterEngagement === "Hot" ? "all" : "Hot")}
+              >
+                🔥 Hot Leads
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const highProbability = investors.filter(i => (i.probability || 0) >= 70);
+                  if (highProbability.length > 0) {
+                    setSearchQuery(highProbability[0].name);
+                  }
+                }}
+              >
+                📈 High Probability (≥70%)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const highPriority = investors.filter(i => (i.priority_score || 0) >= 4);
+                  if (highPriority.length > 0) {
+                    setSearchQuery(highPriority[0].name);
+                  }
+                }}
+              >
+                ⭐ High Priority
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchQuery('')}
+              >
+                Clear Filters
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Kanban Board */}
-      <div className="overflow-x-auto pb-4">
-        <div className="flex gap-4 min-w-max">
-          {pipelineStages.map((stage) => {
+      <div className="w-full overflow-x-auto pb-4 -mx-6 px-6">
+        <div className={`grid gap-3 ${isCompactView ? 'grid-cols-4' : 'grid-cols-3 xl:grid-cols-4'} min-w-max`} style={{ gridAutoColumns: isCompactView ? 'minmax(240px, 1fr)' : 'minmax(280px, 1fr)' }}>
+          {pipelineStages.filter(stage => !hiddenStages.has(stage)).map((stage) => {
             const stageInvestors = getInvestorsByStage(stage);
             const stageValue = stageInvestors.reduce((sum, inv) => sum + (inv.expected_commitment || 0), 0);
             
             return (
               <div
                 key={stage}
-                className={`flex-shrink-0 w-80 ${dragOverStage === stage ? 'ring-2 ring-primary' : ''}`}
+                className={`transition-all ${dragOverStage === stage ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                 onDragOver={(e) => handleDragOver(e, stage)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, stage)}
               >
-                <Card className={`${stageColors[stage]} border-2`}>
-                  <CardHeader className="pb-3">
+                <Card className={`${stageColors[stage]} border-2 h-full flex flex-col`}>
+                  <CardHeader className={isCompactView ? "pb-2 p-3" : "pb-3"}>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-semibold">{stage}</CardTitle>
-                      <Badge variant="secondary">{stageInvestors.length}</Badge>
+                      <CardTitle className={isCompactView ? "text-xs font-semibold" : "text-sm font-semibold"}>{stage}</CardTitle>
+                      <Badge variant="secondary" className={isCompactView ? "text-xs h-5" : ""}>{stageInvestors.length}</Badge>
                     </div>
                     {stageValue > 0 && (
-                      <p className="text-xs text-muted-foreground">{formatCurrency(stageValue)}</p>
+                      <p className="text-xs text-muted-foreground truncate">{formatCurrency(stageValue)}</p>
                     )}
                   </CardHeader>
-                  <CardContent className="space-y-2">
+                  <CardContent className={`space-y-2 flex-1 overflow-y-auto ${isCompactView ? 'p-2 max-h-[600px]' : 'max-h-[700px]'}`}>
                     {stageInvestors.map((investor) => (
                       <Card
                         key={investor.id}
-                        className="group cursor-move hover:shadow-md transition-shadow bg-card relative"
+                        className="group cursor-move hover:shadow-lg transition-all bg-card relative hover:scale-[1.02]"
                         draggable
                         onDragStart={(e) => handleDragStart(e, investor)}
                       >
-                        <CardContent className="p-3 space-y-2" onClick={() => setViewingInvestor(investor)}>
-                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                        <CardContent className={isCompactView ? "p-2 space-y-1.5" : "p-3 space-y-2"} onClick={() => setViewingInvestor(investor)}>
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10">
+                            <Checkbox
+                              checked={selectedInvestors.has(investor.id)}
+                              onCheckedChange={() => toggleInvestorSelection(investor.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="h-4 w-4"
+                            />
                             <Button
                               variant="ghost"
                               size="sm"
@@ -548,20 +735,21 @@ export default function InvestorPipeline() {
                               <Trash2 className="h-3 w-3 text-destructive" />
                             </Button>
                           </div>
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-start justify-between pr-20">
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm truncate">{investor.name}</h4>
-                              <p className="text-xs text-muted-foreground truncate">{investor.type || 'N/A'}</p>
+                              <h4 className={`font-semibold truncate ${isCompactView ? 'text-xs' : 'text-sm'}`}>{investor.name}</h4>
+                              <p className={`text-muted-foreground truncate ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>{investor.type || 'N/A'}</p>
                             </div>
-                            {investor.engagement_level && (
-                              <Badge variant="outline" className={`${engagementColors[investor.engagement_level]} ml-2`}>
-                                {investor.engagement_level}
-                              </Badge>
-                            )}
                           </div>
+
+                          {investor.engagement_level && (
+                            <Badge variant="outline" className={`${engagementColors[investor.engagement_level]} ${isCompactView ? 'text-[10px] h-4 px-1' : 'text-xs'}`}>
+                              {investor.engagement_level}
+                            </Badge>
+                          )}
                           
                           {investor.expected_commitment && (
-                            <div className="flex items-center justify-between text-xs">
+                            <div className={`flex items-center justify-between ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
                               <span className="text-muted-foreground">Expected:</span>
                               <span className="font-semibold">{formatCurrency(investor.expected_commitment)}</span>
                             </div>
@@ -569,20 +757,20 @@ export default function InvestorPipeline() {
                           
                           {investor.probability !== null && investor.probability !== undefined && (
                             <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
+                              <div className={`flex-1 bg-muted rounded-full overflow-hidden ${isCompactView ? 'h-1' : 'h-1.5'}`}>
                                 <div 
                                   className="bg-primary h-full transition-all"
                                   style={{ width: `${investor.probability}%` }}
                                 />
                               </div>
-                              <span className="text-xs text-muted-foreground">{investor.probability}%</span>
+                              <span className={`text-muted-foreground ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>{investor.probability}%</span>
                             </div>
                           )}
                           
-                          {investor.priority_score && (
+                          {!isCompactView && investor.priority_score && (
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-muted-foreground">Priority:</span>
-                              <span>{'★'.repeat(investor.priority_score)}</span>
+                              <span className="text-amber-500">{'★'.repeat(investor.priority_score)}</span>
                             </div>
                           )}
                         </CardContent>
