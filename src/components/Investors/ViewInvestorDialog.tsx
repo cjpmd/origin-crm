@@ -9,6 +9,8 @@ import { Investor } from '@/hooks/useInvestors';
 import { useActivities } from '@/hooks/useActivities';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { format } from 'date-fns';
+import { InvestorPreferencesForm } from './InvestorPreferencesForm';
+import { InvestorDocumentsList } from './InvestorDocumentsList';
 
 interface ViewInvestorDialogProps {
   investor: Investor | null;
@@ -99,9 +101,11 @@ export function ViewInvestorDialog({ investor, open, onOpenChange, onContact }: 
         )}
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="commitment">Commitment</TabsTrigger>
+            <TabsTrigger value="preferences">Preferences</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
 
@@ -245,6 +249,14 @@ export function ViewInvestorDialog({ investor, open, onOpenChange, onContact }: 
                 <Progress value={investor.relationship_strength} className="h-2" />
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="preferences" className="space-y-4">
+            <InvestorPreferencesForm investorId={investor.id} />
+          </TabsContent>
+
+          <TabsContent value="documents" className="space-y-4">
+            <InvestorDocumentsList investorId={investor.id} />
           </TabsContent>
 
           <TabsContent value="activity" className="space-y-4">
