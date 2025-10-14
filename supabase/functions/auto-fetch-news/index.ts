@@ -219,8 +219,8 @@ async function fetchAndMatchNews(queryInfo: any, userId: string, supabase: any, 
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
 
-  // Use Lovable AI to fetch news
-  const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  // Use web search to find real news articles
+  const searchResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -231,39 +231,41 @@ async function fetchAndMatchNews(queryInfo: any, userId: string, supabase: any, 
       messages: [
         { 
           role: 'system', 
-          content: `You are a financial news analyst with access to current events. Today's date is ${todayStr}. Generate 3 REAL, CURRENT news items from TODAY about: "${query}". 
+          content: `You are a news research assistant. Search the web for real, current news articles about: "${query}". 
           
-          CRITICAL: All news MUST be from the last 24 hours (published_at should be within the last 24 hours of ${todayStr}).
+          Find 3 recent news articles from the last 24-48 hours from reputable sources (Bloomberg, Reuters, Financial Times, etc.).
           
-          For each item provide:
-          - title: Real news headline from today
-          - summary: 2-3 sentences about the actual current event
-          - source_name: Real news source (e.g., Financial Times, Bloomberg, Reuters)
-          - source_url: Use format https://example.com/news/{title-slug}
-          - published_at: ISO date/time within the last 24 hours of ${todayStr}
-          - sentiment: positive/negative/neutral
-          - sentiment_confidence: 0-1
-          - impact_level: high/medium/low
+          For each article provide:
+          - title: Exact headline from the article
+          - summary: 2-3 sentence summary of the article
+          - source_name: Name of the publication
+          - source_url: Full URL to the article
+          - published_at: Publication date/time in ISO format
+          - sentiment: positive/negative/neutral based on article tone
+          - sentiment_confidence: 0.0-1.0
+          - impact_level: high/medium/low based on market significance
           - category: financial/sector/regulatory/social/market/product
-          - relevance_score: 0-100
+          - relevance_score: 0-100 relevance to the query
           
-          Format as JSON array. Focus on REAL current events and developments happening NOW.` 
+          Return as a JSON array. Only include real articles with actual URLs.`
         },
         { 
           role: 'user', 
-          content: `Generate 3 current news items from TODAY (${todayStr}) for: ${query}` 
+          content: `Search for recent news about: ${query}`,
+          webSearch: true
         }
       ],
+      webSearch: true
     }),
   });
 
-  if (!aiResponse.ok) {
-    console.error('AI request failed:', aiResponse.status);
+  if (!searchResponse.ok) {
+    console.error('Search request failed:', searchResponse.status);
     return;
   }
 
-  const aiData = await aiResponse.json();
-  const content = aiData.choices[0].message.content;
+  const searchData = await searchResponse.json();
+  const content = searchData.choices[0].message.content;
 
   // Parse news items
   let newsItems = [];
