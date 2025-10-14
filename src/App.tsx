@@ -8,6 +8,7 @@ import { ResearchNotifications } from "@/components/Research/ResearchNotificatio
 import AppLayout from "./components/Layout/AppLayout";
 import { GlobalSearch } from "@/components/Search/GlobalSearch";
 import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Pipeline from "./pages/Pipeline";
 import Contacts from "./pages/Contacts";
@@ -58,6 +59,7 @@ const App = () => (
       <BrowserRouter>
         <ResearchNotifications />
         <Routes>
+          <Route path="/landing" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route index element={<Index />} />
