@@ -59,9 +59,9 @@ const App = () => (
       <BrowserRouter>
         <ResearchNotifications />
         <Routes>
-          <Route path="/landing" element={<Landing />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+          <Route path="/dashboard" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route index element={<Index />} />
             <Route path="pipeline" element={<Pipeline />} />
             <Route path="contacts" element={<Contacts />} />
