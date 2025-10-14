@@ -128,8 +128,7 @@ export default function Landing() {
             🚀 Launching Very Soon
           </div>
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-            The Modern CRM for
-            <span className="text-primary"> Private Equity</span>
+            Private Equity <span className="text-primary">AI CRM</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Manage your entire investment lifecycle with AI-powered intelligence.
