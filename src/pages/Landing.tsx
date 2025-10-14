@@ -6,47 +6,34 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  TrendingUp,
-  Users,
-  Target,
-  Brain,
-  BarChart3,
-  FileText,
-  Sparkles,
-  Shield,
-  Zap,
-  Globe,
-  Mail,
-  Building2,
-} from "lucide-react";
-
+import { TrendingUp, Users, Target, Brain, BarChart3, FileText, Sparkles, Shield, Zap, Globe, Mail, Building2 } from "lucide-react";
 export default function Landing() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const { error } = await supabase.from("waitlist").insert({
+      const {
+        error
+      } = await supabase.from("waitlist").insert({
         email,
         full_name: fullName,
         company,
-        role,
+        role
       });
-
       if (error) {
         if (error.code === "23505") {
           toast({
             title: "Already registered",
-            description: "This email is already on our waitlist!",
+            description: "This email is already on our waitlist!"
           });
         } else {
           throw error;
@@ -54,7 +41,7 @@ export default function Landing() {
       } else {
         toast({
           title: "Success!",
-          description: "You've been added to our waitlist. We'll be in touch soon!",
+          description: "You've been added to our waitlist. We'll be in touch soon!"
         });
         setEmail("");
         setFullName("");
@@ -65,82 +52,65 @@ export default function Landing() {
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const features = [
-    {
-      icon: Users,
-      title: "Deal Pipeline Management",
-      description: "Track and manage your entire deal flow from sourcing to exit",
-    },
-    {
-      icon: Target,
-      title: "Investor Relations",
-      description: "Manage LP relationships, commitments, and fundraising pipelines",
-    },
-    {
-      icon: TrendingUp,
-      title: "Portfolio Analytics",
-      description: "Real-time insights and KPI tracking for your portfolio companies",
-    },
-    {
-      icon: Brain,
-      title: "AI-Powered Research",
-      description: "Automated company research and market intelligence gathering",
-    },
-    {
-      icon: FileText,
-      title: "Smart Reporting",
-      description: "Generate professional reports with AI assistance",
-    },
-    {
-      icon: BarChart3,
-      title: "ESG Analytics",
-      description: "Track and benchmark environmental, social, and governance metrics",
-    },
-    {
-      icon: Globe,
-      title: "News Intelligence",
-      description: "AI-powered news monitoring for your portfolio and prospects",
-    },
-    {
-      icon: Shield,
-      title: "Relationship Mapping",
-      description: "Visualize and leverage your network connections",
-    },
-  ];
-
-  const aiFeatures = [
-    {
-      icon: Sparkles,
-      title: "AI Insights",
-      description: "Automated analysis and recommendations for deals and portfolio companies",
-    },
-    {
-      icon: Brain,
-      title: "Research Agent",
-      description: "Deep-dive research on companies, sectors, and market trends",
-    },
-    {
-      icon: Zap,
-      title: "Smart Suggestions",
-      description: "Context-aware task and action recommendations",
-    },
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-accent/5">
+  const features = [{
+    icon: Users,
+    title: "Deal Pipeline Management",
+    description: "Track and manage your entire deal flow from sourcing to exit"
+  }, {
+    icon: Target,
+    title: "Investor Relations",
+    description: "Manage LP relationships, commitments, and fundraising pipelines"
+  }, {
+    icon: TrendingUp,
+    title: "Portfolio Analytics",
+    description: "Real-time insights and KPI tracking for your portfolio companies"
+  }, {
+    icon: Brain,
+    title: "AI-Powered Research",
+    description: "Automated company research and market intelligence gathering"
+  }, {
+    icon: FileText,
+    title: "Smart Reporting",
+    description: "Generate professional reports with AI assistance"
+  }, {
+    icon: BarChart3,
+    title: "ESG Analytics",
+    description: "Track and benchmark environmental, social, and governance metrics"
+  }, {
+    icon: Globe,
+    title: "News Intelligence",
+    description: "AI-powered news monitoring for your portfolio and prospects"
+  }, {
+    icon: Shield,
+    title: "Relationship Mapping",
+    description: "Visualize and leverage your network connections"
+  }];
+  const aiFeatures = [{
+    icon: Sparkles,
+    title: "AI Insights",
+    description: "Automated analysis and recommendations for deals and portfolio companies"
+  }, {
+    icon: Brain,
+    title: "Research Agent",
+    description: "Deep-dive research on companies, sectors, and market trends"
+  }, {
+    icon: Zap,
+    title: "Smart Suggestions",
+    description: "Context-aware task and action recommendations"
+  }];
+  return <div className="min-h-screen bg-gradient-to-b from-background via-background to-accent/5">
       {/* Navigation */}
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Strata Deal</span>
+            <span className="text-xl font-bold">Deal Flow CRM</span>
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => navigate("/auth")}>
@@ -174,41 +144,19 @@ export default function Landing() {
                 <div className="space-y-3">
                   <div>
                     <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="you@company.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
+                    <Input id="email" type="email" placeholder="you@company.com" value={email} onChange={e => setEmail(e.target.value)} required />
                   </div>
                   <div>
                     <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      placeholder="John Doe"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                    />
+                    <Input id="fullName" placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} />
                   </div>
                   <div>
                     <Label htmlFor="company">Company</Label>
-                    <Input
-                      id="company"
-                      placeholder="Acme Capital"
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                    />
+                    <Input id="company" placeholder="Acme Capital" value={company} onChange={e => setCompany(e.target.value)} />
                   </div>
                   <div>
                     <Label htmlFor="role">Role</Label>
-                    <Input
-                      id="role"
-                      placeholder="Partner, Analyst, etc."
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                    />
+                    <Input id="role" placeholder="Partner, Analyst, etc." value={role} onChange={e => setRole(e.target.value)} />
                   </div>
                 </div>
               </div>
@@ -229,13 +177,11 @@ export default function Landing() {
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature) => (
-            <Card key={feature.title} className="p-6 hover:shadow-lg transition-shadow">
+          {features.map(feature => <Card key={feature.title} className="p-6 hover:shadow-lg transition-shadow">
               <feature.icon className="h-10 w-10 text-primary mb-4" />
               <h3 className="font-semibold mb-2">{feature.title}</h3>
               <p className="text-sm text-muted-foreground">{feature.description}</p>
-            </Card>
-          ))}
+            </Card>)}
         </div>
       </section>
 
@@ -252,15 +198,13 @@ export default function Landing() {
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {aiFeatures.map((feature) => (
-            <Card key={feature.title} className="p-6 text-center hover:shadow-lg transition-shadow">
+          {aiFeatures.map(feature => <Card key={feature.title} className="p-6 text-center hover:shadow-lg transition-shadow">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
                 <feature.icon className="h-8 w-8 text-primary" />
               </div>
               <h3 className="font-semibold mb-2">{feature.title}</h3>
               <p className="text-sm text-muted-foreground">{feature.description}</p>
-            </Card>
-          ))}
+            </Card>)}
         </div>
       </section>
 
@@ -283,6 +227,5 @@ export default function Landing() {
           <p>© 2025 Strata Deal. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 }
