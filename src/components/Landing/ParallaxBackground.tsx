@@ -29,10 +29,10 @@ export function ParallaxBackground() {
   return (
     <div ref={backgroundRef} className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       {/* Evening Sky Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1a1f3a] via-[#2d1b3d] to-[#0f0a1f]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#2a1f4d] via-[#3d2b5f] to-[#1f1535]" />
       
       {/* Atmospheric Glow */}
-      <div className="absolute inset-0 bg-gradient-to-t from-orange-900/20 via-purple-900/10 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-orange-600/30 via-purple-700/20 to-transparent" />
       
       {/* Stars */}
       <div className="absolute inset-0">
@@ -45,16 +45,16 @@ export function ParallaxBackground() {
       </div>
 
       {/* Distant Buildings - Layer 1 (Slowest) */}
-      <div data-speed="8" className="absolute bottom-0 left-0 right-0 h-[40%] transition-transform duration-200 ease-out opacity-30">
-        <div className="absolute bottom-0 left-[5%] w-32 h-[45%] bg-gradient-to-t from-primary/20 to-primary/5" />
-        <div className="absolute bottom-0 left-[12%] w-24 h-[35%] bg-gradient-to-t from-primary/15 to-primary/5" />
-        <div className="absolute bottom-0 left-[20%] w-28 h-[50%] bg-gradient-to-t from-primary/20 to-primary/5" />
-        <div className="absolute bottom-0 right-[20%] w-36 h-[42%] bg-gradient-to-t from-primary/20 to-primary/5" />
-        <div className="absolute bottom-0 right-[10%] w-20 h-[38%] bg-gradient-to-t from-primary/15 to-primary/5" />
+      <div data-speed="8" className="absolute bottom-0 left-0 right-0 h-[40%] transition-transform duration-200 ease-out opacity-40">
+        <div className="absolute bottom-0 left-[5%] w-32 h-[45%] bg-gradient-to-t from-primary/30 to-primary/10" />
+        <div className="absolute bottom-0 left-[12%] w-24 h-[35%] bg-gradient-to-t from-primary/25 to-primary/8" />
+        <div className="absolute bottom-0 left-[20%] w-28 h-[50%] bg-gradient-to-t from-primary/30 to-primary/10" />
+        <div className="absolute bottom-0 right-[20%] w-36 h-[42%] bg-gradient-to-t from-primary/30 to-primary/10" />
+        <div className="absolute bottom-0 right-[10%] w-20 h-[38%] bg-gradient-to-t from-primary/25 to-primary/8" />
       </div>
 
       {/* Mid-range Buildings - Layer 2 */}
-      <div data-speed="15" className="absolute bottom-0 left-0 right-0 h-[55%] transition-transform duration-200 ease-out opacity-50">
+      <div data-speed="15" className="absolute bottom-0 left-0 right-0 h-[55%] transition-transform duration-200 ease-out opacity-60">
         {/* The Gherkin inspired */}
         <div className="absolute bottom-0 left-[35%] w-16 h-[70%]">
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-full bg-gradient-to-t from-accent/30 to-accent/5 clip-path-[polygon(30%_0,70%_0,100%_100%,0%_100%)]" style={{ clipPath: 'polygon(30% 0, 70% 0, 100% 100%, 0% 100%)' }} />
@@ -133,7 +133,7 @@ export function ParallaxBackground() {
       </div>
 
       {/* Foreground Gradient Fade */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent" />
       
       {/* Vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(0,0,0,0.3)_100%)]" />
