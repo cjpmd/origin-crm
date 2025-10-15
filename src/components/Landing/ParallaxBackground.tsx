@@ -28,83 +28,115 @@ export function ParallaxBackground() {
 
   return (
     <div ref={backgroundRef} className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      {/* Gradient Base */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+      {/* Evening Sky Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1a1f3a] via-[#2d1b3d] to-[#0f0a1f]" />
       
-      {/* Grid Pattern - Layer 1 (Slowest) */}
-      <div 
-        data-speed="10"
-        className="absolute inset-0 opacity-[0.03] transition-transform duration-200 ease-out"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, hsl(var(--primary)) 1px, transparent 1px),
-            linear-gradient(to bottom, hsl(var(--primary)) 1px, transparent 1px)
-          `,
-          backgroundSize: '80px 80px',
-        }}
-      />
-
-      {/* Large Circles - Layer 2 */}
-      <div data-speed="15" className="absolute inset-0 transition-transform duration-200 ease-out">
-        <div className="absolute top-20 right-[10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-accent/10 to-transparent blur-3xl" />
-        <div className="absolute bottom-40 left-[5%] w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-primary/10 to-transparent blur-3xl" />
+      {/* Atmospheric Glow */}
+      <div className="absolute inset-0 bg-gradient-to-t from-orange-900/20 via-purple-900/10 to-transparent" />
+      
+      {/* Stars */}
+      <div className="absolute inset-0">
+        <div className="absolute top-[10%] left-[15%] w-1 h-1 rounded-full bg-white/60" />
+        <div className="absolute top-[15%] left-[25%] w-0.5 h-0.5 rounded-full bg-white/40" />
+        <div className="absolute top-[8%] left-[45%] w-1 h-1 rounded-full bg-white/70" />
+        <div className="absolute top-[20%] right-[30%] w-0.5 h-0.5 rounded-full bg-white/50" />
+        <div className="absolute top-[12%] right-[15%] w-1 h-1 rounded-full bg-white/60" />
+        <div className="absolute top-[25%] right-[40%] w-0.5 h-0.5 rounded-full bg-white/40" />
       </div>
 
-      {/* Geometric Shapes - Layer 3 */}
-      <div data-speed="25" className="absolute inset-0 transition-transform duration-200 ease-out">
-        {/* Abstract Building/Tower shapes */}
-        <div className="absolute top-[15%] right-[20%] w-32 h-48 bg-gradient-to-t from-primary/5 to-transparent border border-primary/10 backdrop-blur-sm" 
-             style={{ transform: 'perspective(500px) rotateY(-15deg)' }} />
-        <div className="absolute top-[25%] right-[15%] w-24 h-64 bg-gradient-to-t from-accent/5 to-transparent border border-accent/10 backdrop-blur-sm"
-             style={{ transform: 'perspective(500px) rotateY(10deg)' }} />
-        <div className="absolute top-[20%] right-[28%] w-20 h-56 bg-gradient-to-t from-primary/5 to-transparent border border-primary/10 backdrop-blur-sm"
-             style={{ transform: 'perspective(500px) rotateY(-5deg)' }} />
-        
-        {/* Left side buildings */}
-        <div className="absolute bottom-[20%] left-[15%] w-28 h-52 bg-gradient-to-t from-primary/5 to-transparent border border-primary/10 backdrop-blur-sm"
-             style={{ transform: 'perspective(500px) rotateY(15deg)' }} />
-        <div className="absolute bottom-[15%] left-[22%] w-24 h-40 bg-gradient-to-t from-accent/5 to-transparent border border-accent/10 backdrop-blur-sm"
-             style={{ transform: 'perspective(500px) rotateY(-10deg)' }} />
+      {/* Distant Buildings - Layer 1 (Slowest) */}
+      <div data-speed="8" className="absolute bottom-0 left-0 right-0 h-[40%] transition-transform duration-200 ease-out opacity-30">
+        <div className="absolute bottom-0 left-[5%] w-32 h-[45%] bg-gradient-to-t from-primary/20 to-primary/5" />
+        <div className="absolute bottom-0 left-[12%] w-24 h-[35%] bg-gradient-to-t from-primary/15 to-primary/5" />
+        <div className="absolute bottom-0 left-[20%] w-28 h-[50%] bg-gradient-to-t from-primary/20 to-primary/5" />
+        <div className="absolute bottom-0 right-[20%] w-36 h-[42%] bg-gradient-to-t from-primary/20 to-primary/5" />
+        <div className="absolute bottom-0 right-[10%] w-20 h-[38%] bg-gradient-to-t from-primary/15 to-primary/5" />
       </div>
 
-      {/* Floating Data Points - Layer 4 (Fastest) */}
-      <div data-speed="35" className="absolute inset-0 transition-transform duration-200 ease-out">
-        {/* Financial data nodes */}
-        <div className="absolute top-[30%] left-[25%] w-3 h-3 rounded-full bg-primary/20 shadow-lg shadow-primary/20" />
-        <div className="absolute top-[35%] left-[28%] w-2 h-2 rounded-full bg-accent/30 shadow-lg shadow-accent/20" />
-        <div className="absolute top-[40%] left-[23%] w-2.5 h-2.5 rounded-full bg-primary/25 shadow-lg shadow-primary/20" />
+      {/* Mid-range Buildings - Layer 2 */}
+      <div data-speed="15" className="absolute bottom-0 left-0 right-0 h-[55%] transition-transform duration-200 ease-out opacity-50">
+        {/* The Gherkin inspired */}
+        <div className="absolute bottom-0 left-[35%] w-16 h-[70%]">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-full bg-gradient-to-t from-accent/30 to-accent/5 clip-path-[polygon(30%_0,70%_0,100%_100%,0%_100%)]" style={{ clipPath: 'polygon(30% 0, 70% 0, 100% 100%, 0% 100%)' }} />
+          <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-orange-400/60" />
+          <div className="absolute bottom-[25%] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-orange-400/50" />
+          <div className="absolute bottom-[40%] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-orange-400/40" />
+        </div>
         
-        <div className="absolute top-[50%] right-[30%] w-3 h-3 rounded-full bg-accent/20 shadow-lg shadow-accent/20" />
-        <div className="absolute top-[55%] right-[35%] w-2 h-2 rounded-full bg-primary/30 shadow-lg shadow-primary/20" />
-        <div className="absolute top-[45%] right-[28%] w-2.5 h-2.5 rounded-full bg-accent/25 shadow-lg shadow-accent/20" />
+        {/* Walkie Talkie inspired */}
+        <div className="absolute bottom-0 left-[48%] w-20 h-[65%] bg-gradient-to-t from-primary/25 to-primary/5 rounded-t-3xl">
+          <div className="absolute top-[20%] left-[25%] w-1.5 h-2 bg-orange-400/40" />
+          <div className="absolute top-[30%] left-[60%] w-1.5 h-2 bg-orange-400/30" />
+          <div className="absolute top-[45%] left-[40%] w-1.5 h-2 bg-orange-400/35" />
+        </div>
 
-        {/* Connection lines */}
-        <svg className="absolute top-[30%] left-[25%] w-32 h-32 opacity-20">
-          <line x1="0" y1="0" x2="100" y2="80" stroke="hsl(var(--primary))" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="100" y1="80" x2="120" y2="40" stroke="hsl(var(--accent))" strokeWidth="1" strokeDasharray="4,4" />
-        </svg>
+        {/* Modern towers */}
+        <div className="absolute bottom-0 left-[25%] w-12 h-[60%] bg-gradient-to-t from-accent/25 to-accent/5">
+          <div className="absolute top-[15%] left-[30%] w-1 h-1.5 bg-orange-400/50" />
+          <div className="absolute top-[35%] left-[50%] w-1 h-1.5 bg-orange-400/40" />
+        </div>
         
-        <svg className="absolute top-[48%] right-[28%] w-40 h-32 opacity-20">
-          <line x1="0" y1="40" x2="80" y2="0" stroke="hsl(var(--accent))" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="80" y1="0" x2="120" y2="100" stroke="hsl(var(--primary))" strokeWidth="1" strokeDasharray="4,4" />
-        </svg>
+        <div className="absolute bottom-0 right-[30%] w-14 h-[68%] bg-gradient-to-t from-primary/30 to-primary/5">
+          <div className="absolute top-[20%] left-[40%] w-1 h-1.5 bg-orange-400/45" />
+          <div className="absolute top-[40%] left-[60%] w-1 h-1.5 bg-orange-400/35" />
+        </div>
       </div>
 
-      {/* Fine Grid Overlay - Layer 5 */}
-      <div 
-        data-speed="20"
-        className="absolute inset-0 opacity-[0.02] transition-transform duration-200 ease-out"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, hsl(var(--accent)) 1px, transparent 1px),
-            linear-gradient(to bottom, hsl(var(--accent)) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-        }}
-      />
+      {/* Foreground Buildings - Layer 3 (Fastest) */}
+      <div data-speed="25" className="absolute bottom-0 left-0 right-0 h-[70%] transition-transform duration-200 ease-out">
+        {/* Tall skyscraper left */}
+        <div className="absolute bottom-0 left-[15%] w-20 h-[85%] bg-gradient-to-t from-primary/40 to-primary/10">
+          {/* Windows */}
+          <div className="absolute top-[10%] left-[25%] w-2 h-3 bg-orange-400/60" />
+          <div className="absolute top-[10%] left-[60%] w-2 h-3 bg-orange-400/50" />
+          <div className="absolute top-[22%] left-[25%] w-2 h-3 bg-orange-400/55" />
+          <div className="absolute top-[22%] left-[60%] w-2 h-3 bg-orange-400/45" />
+          <div className="absolute top-[34%] left-[40%] w-2 h-3 bg-orange-400/65" />
+          <div className="absolute top-[46%] left-[25%] w-2 h-3 bg-orange-400/50" />
+          <div className="absolute top-[58%] left-[60%] w-2 h-3 bg-orange-400/55" />
+          <div className="absolute top-[70%] left-[40%] w-2 h-3 bg-orange-400/60" />
+        </div>
 
-      {/* Radial gradient spotlight */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,hsl(var(--background))_100%)]" />
+        {/* Central tower */}
+        <div className="absolute bottom-0 left-[42%] w-24 h-[78%] bg-gradient-to-t from-accent/45 to-accent/10">
+          <div className="absolute top-[15%] left-[30%] w-2.5 h-4 bg-orange-400/70" />
+          <div className="absolute top-[28%] left-[55%] w-2.5 h-4 bg-orange-400/60" />
+          <div className="absolute top-[41%] left-[30%] w-2.5 h-4 bg-orange-400/65" />
+          <div className="absolute top-[54%] left-[55%] w-2.5 h-4 bg-orange-400/55" />
+          <div className="absolute top-[67%] left-[40%] w-2.5 h-4 bg-orange-400/70" />
+        </div>
+
+        {/* Right side buildings */}
+        <div className="absolute bottom-0 right-[20%] w-16 h-[72%] bg-gradient-to-t from-primary/35 to-primary/10">
+          <div className="absolute top-[18%] left-[35%] w-2 h-3 bg-orange-400/55" />
+          <div className="absolute top-[32%] left-[55%] w-2 h-3 bg-orange-400/50" />
+          <div className="absolute top-[48%] left-[35%] w-2 h-3 bg-orange-400/60" />
+          <div className="absolute top-[64%] left-[55%] w-2 h-3 bg-orange-400/45" />
+        </div>
+
+        <div className="absolute bottom-0 right-[8%] w-18 h-[65%] bg-gradient-to-t from-accent/40 to-accent/10">
+          <div className="absolute top-[25%] left-[40%] w-2 h-3 bg-orange-400/65" />
+          <div className="absolute top-[45%] left-[50%] w-2 h-3 bg-orange-400/55" />
+          <div className="absolute top-[65%] left-[40%] w-2 h-3 bg-orange-400/60" />
+        </div>
+
+        {/* Shorter foreground buildings */}
+        <div className="absolute bottom-0 left-[8%] w-14 h-[45%] bg-gradient-to-t from-primary/45 to-primary/15">
+          <div className="absolute top-[30%] left-[40%] w-2 h-2.5 bg-orange-400/70" />
+          <div className="absolute top-[55%] left-[50%] w-2 h-2.5 bg-orange-400/65" />
+        </div>
+
+        <div className="absolute bottom-0 right-[2%] w-12 h-[38%] bg-gradient-to-t from-accent/50 to-accent/15">
+          <div className="absolute top-[35%] left-[45%] w-2 h-2.5 bg-orange-400/75" />
+          <div className="absolute top-[60%] left-[45%] w-2 h-2.5 bg-orange-400/70" />
+        </div>
+      </div>
+
+      {/* Foreground Gradient Fade */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      
+      {/* Vignette */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(0,0,0,0.3)_100%)]" />
     </div>
   );
 }
