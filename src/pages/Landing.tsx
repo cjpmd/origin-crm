@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, Users, Target, Brain, BarChart3, FileText, Sparkles, Shield, Zap, Globe, Mail, Building2 } from "lucide-react";
+import { ParallaxBackground } from "@/components/Landing/ParallaxBackground";
 export default function Landing() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -104,7 +105,9 @@ export default function Landing() {
     title: "Smart Suggestions",
     description: "Context-aware task and action recommendations"
   }];
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background relative">
+      <ParallaxBackground />
+      
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-6 py-5 flex justify-between items-center">
