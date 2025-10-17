@@ -105,7 +105,7 @@ export default function Landing() {
     title: "Smart Suggestions",
     description: "Context-aware task and action recommendations"
   }];
-  return <div className="min-h-screen bg-background relative">
+  return <div className="min-h-screen relative">
       <ParallaxBackground />
       
       {/* Navigation */}
