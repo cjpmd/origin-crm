@@ -53,9 +53,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 // Main navigation items (always visible)
 const mainNavigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Pipeline', href: '/pipeline', icon: GitBranch },
-  { name: 'Portfolio', href: '/portfolio', icon: BarChart3 },
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Pipeline', href: '/dashboard/pipeline', icon: GitBranch },
+  { name: 'Portfolio', href: '/dashboard/portfolio', icon: BarChart3 },
 ];
 
 // Grouped navigation
@@ -64,43 +64,43 @@ const navigationGroups = [
     label: 'Investor Relations',
     defaultOpen: true,
     items: [
-      { name: 'Investor Pipeline', href: '/investor-pipeline', icon: TrendingUp },
-      { name: 'Investor Directory', href: '/investors', icon: Users },
-      { name: 'Fundraising Dashboard', href: '/fundraising', icon: Target },
+      { name: 'Investor Pipeline', href: '/dashboard/investor-pipeline', icon: TrendingUp },
+      { name: 'Investor Directory', href: '/dashboard/investors', icon: Users },
+      { name: 'Fundraising Dashboard', href: '/dashboard/fundraising', icon: Target },
     ]
   },
   {
     label: 'Relationships',
     defaultOpen: false,
     items: [
-      { name: 'Companies', href: '/companies', icon: Building2 },
-      { name: 'Contacts', href: '/contacts', icon: Users },
-      { name: 'Intermediaries', href: '/intermediaries', icon: Network },
+      { name: 'Companies', href: '/dashboard/companies', icon: Building2 },
+      { name: 'Contacts', href: '/dashboard/contacts', icon: Users },
+      { name: 'Intermediaries', href: '/dashboard/intermediaries', icon: Network },
     ]
   },
   {
     label: 'Intelligence',
     defaultOpen: false,
     items: [
-      { name: 'News', href: '/news', icon: Newspaper },
-      { name: 'Analytics', href: '/analytics', icon: LineChart },
-      { name: 'Reports', href: '/reports', icon: FileText },
+      { name: 'News', href: '/dashboard/news', icon: Newspaper },
+      { name: 'Analytics', href: '/dashboard/analytics', icon: LineChart },
+      { name: 'Reports', href: '/dashboard/reports', icon: FileText },
     ]
   },
   {
     label: 'Operations',
     defaultOpen: false,
     items: [
-      { name: 'Funds', href: '/funds', icon: Briefcase },
-      { name: 'Tasks', href: '/tasks', icon: CheckSquare },
-      { name: 'Team', href: '/team', icon: Users },
-      { name: 'Journal', href: '/journal', icon: BookOpen },
+      { name: 'Funds', href: '/dashboard/funds', icon: Briefcase },
+      { name: 'Tasks', href: '/dashboard/tasks', icon: CheckSquare },
+      { name: 'Team', href: '/dashboard/team', icon: Users },
+      { name: 'Journal', href: '/dashboard/journal', icon: BookOpen },
     ]
   }
 ];
 
 const bottomNavigation = [
-  { name: 'Settings', href: '/settings', icon: Settings }
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings }
 ];
 
 export default function AppLayout() {
@@ -252,7 +252,7 @@ export default function AppLayout() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
+                <DropdownMenuItem onClick={() => window.location.href = '/dashboard/settings'}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
