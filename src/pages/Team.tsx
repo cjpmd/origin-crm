@@ -194,7 +194,7 @@ export default function Team() {
                   </div>
                   <div className="flex gap-2">
                     {selectedMemberData.user_id === user?.id ? (
-                      <Button variant="outline" size="sm" onClick={() => window.location.href = '/settings'}>
+                      <Button variant="outline" size="sm" onClick={() => window.location.href = '/dashboard/settings'}>
                         <Edit className="h-4 w-4 mr-1" />
                         Edit Profile
                       </Button>
