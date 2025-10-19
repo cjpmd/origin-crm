@@ -6,7 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Users, Target, Brain, BarChart3, FileText, Sparkles, Shield, Zap, Globe, Mail, Building2 } from "lucide-react";
+import { TrendingUp, Users, Target, Brain, BarChart3, FileText, Sparkles, Shield, Zap, Globe, Briefcase } from "lucide-react";
+import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { ParallaxBackground } from "@/components/Landing/ParallaxBackground";
 export default function Landing() {
   const [email, setEmail] = useState("");

@@ -279,7 +279,10 @@ export type Database = {
           email: string | null
           id: string
           logo_url: string | null
+          max_users: number | null
           phone: string | null
+          stripe_customer_id: string | null
+          subscription_status: string | null
           updated_at: string | null
           user_id: string
           website: string | null
@@ -292,7 +295,10 @@ export type Database = {
           email?: string | null
           id?: string
           logo_url?: string | null
+          max_users?: number | null
           phone?: string | null
+          stripe_customer_id?: string | null
+          subscription_status?: string | null
           updated_at?: string | null
           user_id: string
           website?: string | null
@@ -305,7 +311,10 @@ export type Database = {
           email?: string | null
           id?: string
           logo_url?: string | null
+          max_users?: number | null
           phone?: string | null
+          stripe_customer_id?: string | null
+          subscription_status?: string | null
           updated_at?: string | null
           user_id?: string
           website?: string | null
@@ -2320,6 +2329,62 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          company_id: string
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_name: string
+          seats_purchased: number
+          seats_used: number
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_end: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_name?: string
+          seats_purchased?: number
+          seats_used?: number
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_name?: string
+          seats_purchased?: number
+          seats_used?: number
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
