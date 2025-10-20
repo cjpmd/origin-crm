@@ -102,7 +102,7 @@ const navigationGroups = [
 
 const bottomNavigation = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { name: 'Billing', href: '/billing', icon: CreditCard }
+  { name: 'Billing', href: '/dashboard/billing', icon: CreditCard }
 ];
 
 export default function AppLayout() {

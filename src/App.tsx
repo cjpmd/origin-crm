@@ -63,7 +63,6 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
           <Route path="/subscription-required" element={<ProtectedRoute><SubscriptionRequired /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route index element={<Index />} />
@@ -89,6 +88,7 @@ const App = () => (
             <Route path="tasks" element={<Tasks />} />
             <Route path="team" element={<Team />} />
             <Route path="journal" element={<Journal />} />
+            <Route path="billing" element={<Billing />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -14,6 +14,9 @@ import { useInvestors } from '@/hooks/useInvestors';
 import { Checkbox } from '@/components/ui/checkbox';
 import { NewsIntelligenceBanner } from '@/components/Dashboard/NewsIntelligenceBanner';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import { AlertCircle, Users, CreditCard } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Index = () => {
   const { tasks, updateTask } = useTasks();
@@ -21,6 +24,7 @@ const Index = () => {
   const { contacts } = useContacts();
   const { investors } = useInvestors();
   const { formatCurrency } = useCurrency();
+  const { subscription, isActive, isTrialing, trialDaysRemaining, seatsAvailable } = useSubscription();
   
   const recentTasks = tasks.filter(task => task.status !== 'completed').slice(0, 3);
 
@@ -58,6 +62,82 @@ const Index = () => {
 
       {/* News Intelligence Banner */}
       <NewsIntelligenceBanner />
+
+      {/* Subscription Status */}
+      {subscription && (
+        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Subscription Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Plan</p>
+                <p className="text-lg font-semibold">{subscription.plan_name}</p>
+                <Badge variant={isActive ? "default" : "destructive"}>
+                  {subscription.status}
+                </Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Seats</p>
+                <p className="text-lg font-semibold flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  {subscription.seats_used} / {subscription.seats_purchased}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {seatsAvailable} available
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  {isTrialing ? 'Trial Ends' : 'Next Billing'}
+                </p>
+                <p className="text-lg font-semibold">
+                  {isTrialing && subscription.trial_end 
+                    ? new Date(subscription.trial_end).toLocaleDateString()
+                    : subscription.current_period_end 
+                      ? new Date(subscription.current_period_end).toLocaleDateString()
+                      : 'N/A'
+                  }
+                </p>
+                {isTrialing && (
+                  <p className="text-xs text-muted-foreground">
+                    {trialDaysRemaining} days remaining
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center">
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/dashboard/billing">
+                    Manage Billing <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            
+            {isTrialing && trialDaysRemaining <= 3 && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Your trial ends in {trialDaysRemaining} days. Subscribe now to continue using all features.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {seatsAvailable <= 1 && seatsAvailable > 0 && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Only {seatsAvailable} seat{seatsAvailable !== 1 ? 's' : ''} remaining. Consider upgrading your plan.
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Key Metrics */}
       <DashboardCards />
