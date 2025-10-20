@@ -9,6 +9,8 @@ import AppLayout from "./components/Layout/AppLayout";
 import { GlobalSearch } from "@/components/Search/GlobalSearch";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
+import Billing from "./pages/Billing";
+import SubscriptionRequired from "./pages/SubscriptionRequired";
 import Index from "./pages/Index";
 import Pipeline from "./pages/Pipeline";
 import Contacts from "./pages/Contacts";
@@ -61,6 +63,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+          <Route path="/subscription-required" element={<ProtectedRoute><SubscriptionRequired /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route index element={<Index />} />
             <Route path="pipeline" element={<Pipeline />} />

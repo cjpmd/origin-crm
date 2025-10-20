@@ -3,6 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useSubscription } from '@/hooks/useSubscription';
+import { AlertCircle } from 'lucide-react';
 
 interface TeamMemberDialogProps {
   open: boolean;
@@ -12,6 +15,7 @@ interface TeamMemberDialogProps {
 }
 
 export function TeamMemberDialog({ open, onOpenChange, onSubmit, member }: TeamMemberDialogProps) {
+  const { seatsAvailable, canAddUsers, subscription } = useSubscription();
   const [formData, setFormData] = useState({
     email: member?.email || '',
     full_name: member?.full_name || '',
@@ -29,6 +33,26 @@ export function TeamMemberDialog({ open, onOpenChange, onSubmit, member }: TeamM
         <DialogHeader>
           <DialogTitle>{member ? 'Edit Team Member' : 'Invite Team Member'}</DialogTitle>
         </DialogHeader>
+        
+        {!member && !canAddUsers && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              No seats available. You have {subscription?.seats_purchased || 0} seats and all are currently in use.
+              Please upgrade your subscription to add more team members.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!member && canAddUsers && seatsAvailable <= 2 && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Only {seatsAvailable} seat{seatsAvailable !== 1 ? 's' : ''} remaining. Consider upgrading soon.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -54,7 +78,7 @@ export function TeamMemberDialog({ open, onOpenChange, onSubmit, member }: TeamM
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={!member && !canAddUsers}>
               {member ? 'Update' : 'Invite'}
             </Button>
           </div>

@@ -36,7 +36,8 @@ import {
   CheckSquare,
   Newspaper,
   BookOpen,
-  Target
+  Target,
+  CreditCard
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -100,7 +101,8 @@ const navigationGroups = [
 ];
 
 const bottomNavigation = [
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings }
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Billing', href: '/billing', icon: CreditCard }
 ];
 
 export default function AppLayout() {
