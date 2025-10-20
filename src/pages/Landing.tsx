@@ -274,6 +274,91 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="py-24 px-6 bg-muted/30">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              One comprehensive plan with everything you need to manage your private equity operations
+            </p>
+          </div>
+          
+          <Card className="max-w-4xl mx-auto p-12 border-2 border-primary/20 bg-gradient-to-br from-card via-card/95 to-primary/5 shadow-xl">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-sm font-medium text-primary mb-4">
+                Professional Plan
+              </div>
+              <div className="flex items-baseline justify-center gap-2 mb-4">
+                <span className="text-6xl font-bold">£195</span>
+                <span className="text-2xl text-muted-foreground">per user/month</span>
+              </div>
+              <p className="text-muted-foreground mb-8">
+                or £1,950 per user/year <span className="text-primary font-medium">(save 2 months)</span>
+              </p>
+              <Button size="lg" onClick={() => navigate("/auth")} className="h-12 px-8 text-base font-medium">
+                Start 7-Day Free Trial
+              </Button>
+              <p className="text-sm text-muted-foreground mt-4">No credit card required</p>
+            </div>
+
+            <div className="border-t border-border/50 pt-8 mt-8">
+              <h3 className="font-semibold text-lg mb-6 text-center">Everything included:</h3>
+              <div className="grid md:grid-cols-2 gap-x-12 gap-y-3 max-w-3xl mx-auto">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Complete CRM for deals, companies & contacts</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">AI-powered insights & investment memos</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Automated news feed with sentiment analysis</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">ESG analytics & benchmarking</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Research agent & company reports</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Relationship mapping & network intelligence</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Portfolio & fund management</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Team collaboration (within seat limit)</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">All integrations (LinkedIn, market data)</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Unlimited reports & exports</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Priority email support</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 text-primary">✓</div>
+                  <span className="text-sm">Regular feature updates</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 px-6">
         <div className="container mx-auto">
