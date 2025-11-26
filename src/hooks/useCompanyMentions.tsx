@@ -1,6 +1,8 @@
 import { usePortfolioCompanies } from "@/hooks/usePortfolioCompanies";
 import { useDeals } from "@/hooks/useDeals";
 import { useActivities } from "@/hooks/useActivities";
+import { useProfiles } from "@/hooks/useProfiles";
+import { useTasks } from "@/hooks/useTasks";
 import { useState, useCallback } from "react";
 
 export interface CompanyMention {
@@ -11,10 +13,20 @@ export interface CompanyMention {
   endIndex: number;
 }
 
+export interface UserMention {
+  userId: string;
+  userName: string;
+  entityType: 'user';
+  startIndex: number;
+  endIndex: number;
+}
+
 export function useCompanyMentions() {
   const { companies } = usePortfolioCompanies();
   const { deals } = useDeals();
+  const { profiles } = useProfiles();
   const { logActivity } = useActivities();
+  const { createTask } = useTasks();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const parseMentions = useCallback((text: string): CompanyMention[] => {
@@ -65,15 +77,58 @@ export function useCompanyMentions() {
     return mentions;
   }, [companies, deals]);
 
+  const parseUserMentions = useCallback((text: string): UserMention[] => {
+    if (!profiles || profiles.length === 0) return [];
+    if (!text) return [];
+
+    const mentions: UserMention[] = [];
+    const mentionRegex = /@(\w+(?:\s+\w+)*)/g;
+    let match;
+
+    while ((match = mentionRegex.exec(text)) !== null) {
+      const mentionText = match[1].toLowerCase();
+      
+      // Find matching user
+      const matchedUser = profiles.find(p => 
+        p.full_name?.toLowerCase().includes(mentionText) || 
+        mentionText.includes(p.full_name?.toLowerCase() || '')
+      );
+
+      if (matchedUser) {
+        mentions.push({
+          userId: matchedUser.id,
+          userName: matchedUser.full_name || 'Unnamed User',
+          entityType: 'user',
+          startIndex: match.index,
+          endIndex: match.index + match[0].length,
+        });
+      }
+    }
+
+    return mentions;
+  }, [profiles]);
+
   const getSuggestions = useCallback((query: string) => {
     if (!query) return [];
     
     const searchTerm = query.toLowerCase();
     
+    // Get user suggestions first (priority for team collaboration)
+    const userSuggestions = (profiles || [])
+      .filter(p => p.full_name?.toLowerCase().includes(searchTerm))
+      .slice(0, 2)
+      .map(p => ({
+        id: p.id,
+        name: p.full_name || 'Unnamed User',
+        entityType: 'user' as const,
+        avatarUrl: p.avatar_url || null,
+        label: `${p.full_name || 'Unnamed User'} (Team)`,
+      }));
+
     // Get company suggestions
     const companySuggestions = (companies || [])
       .filter(c => c.name.toLowerCase().includes(searchTerm))
-      .slice(0, 3)
+      .slice(0, 2)
       .map(c => ({
         id: c.id,
         name: c.name,
@@ -85,7 +140,7 @@ export function useCompanyMentions() {
     // Get deal suggestions
     const dealSuggestions = (deals || [])
       .filter(d => d.name.toLowerCase().includes(searchTerm))
-      .slice(0, 3)
+      .slice(0, 2)
       .map(d => ({
         id: d.id,
         name: d.name,
@@ -94,8 +149,8 @@ export function useCompanyMentions() {
         label: `${d.name} (Pipeline)`,
       }));
 
-    return [...companySuggestions, ...dealSuggestions].slice(0, 5);
-  }, [companies, deals]);
+    return [...userSuggestions, ...companySuggestions, ...dealSuggestions].slice(0, 5);
+  }, [profiles, companies, deals]);
 
   const createActivitiesFromMentions = useCallback(async (
     content: string,
@@ -123,10 +178,36 @@ export function useCompanyMentions() {
     }
   }, [logActivity]);
 
+  const createTasksFromUserMentions = useCallback(async (
+    content: string,
+    mentions: UserMention[],
+    title?: string
+  ) => {
+    if (mentions.length === 0) return;
+
+    setIsProcessing(true);
+    try {
+      // Create a task for each mentioned user
+      for (const mention of mentions) {
+        createTask({
+          title: title || 'You were mentioned in a journal entry',
+          description: `${content.substring(0, 200)}${content.length > 200 ? '...' : ''}`,
+          status: 'pending',
+          priority: 'medium',
+          assigned_to: mention.userId,
+        });
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [createTask]);
+
   return {
     parseMentions,
+    parseUserMentions,
     getSuggestions,
     createActivitiesFromMentions,
+    createTasksFromUserMentions,
     isProcessing,
   };
 }
