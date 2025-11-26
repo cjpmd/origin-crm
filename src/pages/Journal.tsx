@@ -15,7 +15,7 @@ import { toast } from "sonner";
 export default function Journal() {
   const { user } = useAuth();
   const { entries, createEntry, updateEntry, deleteEntry, isCreating, isUpdating, isDeleting } = useJournalEntries(user?.id);
-  const { parseMentions, getSuggestions, createActivitiesFromMentions, isProcessing } = useCompanyMentions();
+  const { parseMentions, parseUserMentions, getSuggestions, createActivitiesFromMentions, createTasksFromUserMentions, isProcessing } = useCompanyMentions();
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -114,12 +114,28 @@ export default function Journal() {
         const result = await createEntry({ title: title || undefined, content });
         console.log('[Journal] Entry created successfully:', result);
         
-        // Parse and create activities for mentions
+        // Parse and create activities for company mentions
         const mentions = parseMentions(content);
         if (mentions.length > 0) {
           await createActivitiesFromMentions(content, mentions, title);
-          toast.success("Entry saved with company mentions", {
-            description: `Linked to ${mentions.length} ${mentions.length === 1 ? 'company' : 'companies'}`,
+        }
+
+        // Parse and create tasks for user mentions
+        const userMentions = parseUserMentions(content);
+        if (userMentions.length > 0) {
+          await createTasksFromUserMentions(content, userMentions, title);
+        }
+
+        if (mentions.length > 0 || userMentions.length > 0) {
+          const parts: string[] = [];
+          if (mentions.length > 0) {
+            parts.push(`${mentions.length} ${mentions.length === 1 ? 'company' : 'companies'}`);
+          }
+          if (userMentions.length > 0) {
+            parts.push(`${userMentions.length} ${userMentions.length === 1 ? 'team member' : 'team members'}`);
+          }
+          toast.success("Entry saved with mentions", {
+            description: `Linked to ${parts.join(' and ')}`,
           });
         } else {
           toast.success("Entry saved", {
@@ -135,10 +151,16 @@ export default function Journal() {
         const result = await updateEntry({ id: selectedEntry, title: title || undefined, content });
         console.log('[Journal] Entry updated successfully:', result);
         
-        // Parse and create activities for new mentions
+        // Parse and create activities for company mentions
         const mentions = parseMentions(content);
         if (mentions.length > 0) {
           await createActivitiesFromMentions(content, mentions, title);
+        }
+
+        // Parse and create tasks for user mentions
+        const userMentions = parseUserMentions(content);
+        if (userMentions.length > 0) {
+          await createTasksFromUserMentions(content, userMentions, title);
         }
         
         toast.success("Entry updated", {
@@ -246,7 +268,7 @@ export default function Journal() {
               <div className="p-4 relative">
                 <Textarea
                   ref={textareaRef}
-                  placeholder="Start writing... Use @ to mention companies"
+                  placeholder="Start writing... Use @ to mention team members or companies"
                   value={content}
                   onChange={handleContentChange}
                   className="min-h-[500px] border-none shadow-none resize-none focus-visible:ring-0"
@@ -261,15 +283,21 @@ export default function Journal() {
                         className="w-full justify-start gap-2 h-auto py-2"
                         onClick={() => insertMention(suggestion.name)}
                       >
-                        <CompanyAvatar 
-                          name={suggestion.name} 
-                          logoUrl={suggestion.logoUrl}
-                          size="sm"
-                        />
+                        {suggestion.entityType === 'user' ? (
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xs">
+                            {suggestion.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                        ) : (
+                          <CompanyAvatar 
+                            name={suggestion.name} 
+                            logoUrl={(suggestion as any).logoUrl}
+                            size="sm"
+                          />
+                        )}
                         <div className="flex flex-col items-start">
                           <span className="text-sm">{suggestion.name}</span>
                           <span className="text-xs text-muted-foreground">
-                            {suggestion.entityType === 'company' ? 'Portfolio' : 'Pipeline'}
+                            {suggestion.label}
                           </span>
                         </div>
                       </Button>
@@ -282,7 +310,7 @@ export default function Journal() {
             <div className="p-4 border-t flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <AtSign className="h-4 w-4" />
-                <span>Use @ to mention companies</span>
+                <span>Use @ to mention team members or companies</span>
               </div>
               <Button 
                 onClick={handleSave} 
