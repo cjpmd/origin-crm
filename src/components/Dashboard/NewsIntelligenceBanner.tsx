@@ -205,7 +205,9 @@ const NewsSection = ({ news, getSentimentColor, getImpactColor, showAll = false 
                     </Badge>
                   )}
                   <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(item.published_at), { addSuffix: true })}
+                    {item.published_at && !isNaN(new Date(item.published_at).getTime())
+                      ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true })
+                      : 'Recently'}
                   </span>
                 </div>
                 <h4 className="font-medium text-sm leading-tight">{item.title}</h4>
