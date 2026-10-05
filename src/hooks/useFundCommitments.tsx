@@ -54,7 +54,7 @@ export function useFundCommitments(fundId?: string) {
     mutationFn: async (commitment: Omit<Partial<FundCommitment>, 'id' | 'created_at' | 'updated_at'> & { fund_id: string, investor_id: string, commitment_amount: number }) => {
       const { data, error } = await supabase
         .from("fund_commitments")
-        .insert([commitment])
+        .insert([commitment as any])
         .select()
         .single();
 
@@ -74,7 +74,7 @@ export function useFundCommitments(fundId?: string) {
     mutationFn: async ({ id, ...updates }: Partial<FundCommitment> & { id: string }) => {
       const { data, error } = await supabase
         .from("fund_commitments")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();

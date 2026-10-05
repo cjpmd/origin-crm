@@ -81,7 +81,7 @@ export function usePortfolioCompanies() {
     mutationFn: async ({ id, ...updates }: Partial<PortfolioCompany> & { id: string }) => {
       const { data, error } = await supabase
         .from("portfolio_companies")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();
