@@ -12,7 +12,7 @@ export function ResearchNotifications() {
 
   useEffect(() => {
     const channel = supabase
-      .channel("research-updates")
+      .channel(`research-updates-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         {
