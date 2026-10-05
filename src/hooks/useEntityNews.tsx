@@ -123,7 +123,7 @@ export const useEntityNews = () => {
     if (!userId) return;
 
     const channel = supabase
-      .channel('entity-news-updates')
+      .channel(`entity-news-updates-${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         {

@@ -71,7 +71,7 @@ export function useContacts() {
     mutationFn: async ({ id, ...updates }: Partial<Contact> & { id: string }) => {
       const { data, error } = await supabase
         .from("contacts")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();
